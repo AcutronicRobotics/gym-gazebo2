@@ -42,10 +42,11 @@ Please refer to `acutronicrobotics.com/docs <https://acutronicrobotics.com/docs/
 Installation
 ============
 
-Install ROS 2.0
----------------
+Install ROS 2.0 and Gazebo 9.6
+------------------------------
 
 - **ROS 2 Crystal**. Install ROS 2.0 following the official instructions, binaries recommended. `Instructions <https://index.ros.org/doc/ros2/Linux-Install-Debians/>`_.
+- **Gazebo 9.6**. Install Gazebo 9.6 following the official one-liner installation instructions. `Instructions <http://gazebosim.org/tutorials?tut=install_ubuntu#Defaultinstallation:one-liner>`_.
 
 MARA ROS 2.0 specific instructions
 ----------------------------------
@@ -53,6 +54,28 @@ MARA ROS 2.0 specific instructions
 Following folder naming is recommended!
 
 **TODO. TEMPORARY NOTE 1:** gym-gazebo-ros2 is private for now and it's temporary location is: https://github.com/erlerobot/gym-gazebo-ros2 . Take that into consideration while following the instructions.
+
+Install development tools, ROS tools
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code:: shell
+
+    sudo apt update && sudo apt install -y \
+      build-essential \
+      cmake \
+      git \
+      python3-colcon-common-extensions \
+      python3-pip \
+      python-rosdep \
+      python3-vcstool \
+      python3-sip-dev \
+      python3-numpy \  
+      wget
+    pip3 install lxml tensorflow
+    # Fast-RTPS dependencies
+    sudo apt install --no-install-recommends -y \
+      libasio-dev \
+      libtinyxml2-dev
 
 Create a ROS workspace 
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -64,13 +87,8 @@ Create the workspace and download source files:
     cd ~/ros2_mara_ws/src
     wget https://raw.githubusercontent.com/erlerobot/gym-gazebo/master/mara.repos
     vcs import src < mara.repos
-
-Install a couple compilation-required dependencies:
-
-.. code:: shell
-
-    pip3 install lxml
-    sudo apt-get install python3-sip-dev
+    # Avoid compiling erroneus package
+    touch ~/ros2_mara_ws/src/orocos_kinematics_dynamics/orocos_kinematics_dynamics/COLCON_IGNORE
 
 Compile the workspace
 ~~~~~~~~~~~~~~~~~~~~~
@@ -81,17 +99,10 @@ Build the workspace using the ``--merge-install`` flag.
     source /opt/ros/crystal/setup.bash
     cd ~/ros2_mara_ws
     colcon build --merge-install
+    # Remove warnings
+    touch TODO
 
-Install OpenAI Gym
-~~~~~~~~~~~~~~~~~~
-Gym should be installed with the latest version, which means using the source code:
 
-.. code:: shell
-
-    cd ~
-    git clone https://github.com/openai/gym
-    cd gym
-    pip3 install -e .
 
 Install Baselines
 ~~~~~~~~~~~~~~~~~
@@ -113,6 +124,28 @@ Install URDF Parser
     cd ~
     git clone https://github.com/nzlz/urdf_parser_py -b nestor-fix-crystal
     cd urdf_parser_py
+    pip3 install -e .
+
+Install OpenAI Gym
+~~~~~~~~~~~~~~~~~~
+Gym should be installed with the latest version, which means using the source code:
+
+.. code:: shell
+
+    cd ~
+    git clone https://github.com/openai/gym
+    cd gym
+    pip3 install -e .
+    
+Install Gym-Gazebo
+~~~~~~~~~~~~~~~~~~
+Install this repository.
+
+.. code:: shell
+
+    cd ~
+    git clone https://github.com/erlerobot/gym-gazebo
+    cd gym-gazebo
     pip3 install -e .
 
 Usage
@@ -151,7 +184,8 @@ You can use an alias to simplify the process. Note that GAZEBO_MODEL_PATH and GA
 
 .. code:: shell
 
-    alias setup_mara='source /opt/ros/crystal/setup.bash ; source ~/ros2_mara_ws/install/setup.bash ; source /usr/share/gazebo/setup.sh ; export PYTHONPATH=$PYTHONPATH:~/ros2_mara_ws/install/lib/python3/dist-packages ; export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:~/ros2_mara_ws/src/MARA ; export GAZEBO_PLUGIN_PATH=$GAZEBO_PLUGIN_PATH:~/ros2_mara_ws/src/MARA/mara_gazebo_plugins/build/'
+    echo "alias setup_mara='source /opt/ros/crystal/setup.bash ; source ~/ros2_mara_ws/install/setup.bash ; source /usr/share/gazebo/setup.sh ; export PYTHONPATH=$PYTHONPATH:~/ros2_mara_ws/install/lib/python3/dist-packages ; export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:~/ros2_mara_ws/src/MARA ; export GAZEBO_PLUGIN_PATH=$GAZEBO_PLUGIN_PATH:~/ros2_mara_ws/src/MARA/mara_gazebo_plugins/build/'
+" >> ~/.bashrc
 
 gzserver/gzclient
 ~~~~~~~~~~~~~~~~~
