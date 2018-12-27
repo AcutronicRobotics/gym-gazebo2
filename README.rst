@@ -84,7 +84,7 @@ Create the workspace and download source files:
 .. code:: shell
 
     mkdir -p ~/ros2_mara_ws/src
-    cd ~/ros2_mara_ws/src
+    cd ~/ros2_mara_ws
     wget https://raw.githubusercontent.com/erlerobot/gym-gazebo/master/mara.repos
     vcs import src < mara.repos
     # Avoid compiling erroneus package
@@ -100,9 +100,14 @@ Build the workspace using the ``--merge-install`` flag.
     cd ~/ros2_mara_ws
     colcon build --merge-install
     # Remove warnings
-    touch TODO
+    touch ~/ros2_mara_ws/install/share/orocos_kdl/local_setup.sh ~/ros2_mara_ws/install/share/orocos_kdl/local_setup.bash
 
+A few packages are expected to throw warning messages. The expected output is the following:
 
+.. code:: shell
+
+    Summary: 53 packages finished [12min 41s]
+    5 packages had stderr output: cv_bridge mara_gazebo_plugins orocos_kdl python_orocos_kdl robotiq_140_gripper_gazebo_plugin
 
 Install Baselines
 ~~~~~~~~~~~~~~~~~
@@ -180,12 +185,11 @@ Tips
 alias
 ~~~~~
 
-You can use an alias to simplify the process. Note that GAZEBO_MODEL_PATH and GAZEBO_PLUGIN_PATH are included here as you will need them if you want to call the ``gzclient`` from a different terminal.
+You can use an alias to simplify the process. Note that GAZEBO_MODEL_PATH and GAZEBO_PLUGIN_PATH are included here as you will need them if you want to call the ``gzclient`` from a different terminal. The alias contains environment variables, so be careful and past the following directly to your ``.bashrc``.
 
 .. code:: shell
 
-    echo "alias setup_mara='source /opt/ros/crystal/setup.bash ; source ~/ros2_mara_ws/install/setup.bash ; source /usr/share/gazebo/setup.sh ; export PYTHONPATH=$PYTHONPATH:~/ros2_mara_ws/install/lib/python3/dist-packages ; export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:~/ros2_mara_ws/src/MARA ; export GAZEBO_PLUGIN_PATH=$GAZEBO_PLUGIN_PATH:~/ros2_mara_ws/src/MARA/mara_gazebo_plugins/build/'
-" >> ~/.bashrc
+    alias setup_mara='source /opt/ros/crystal/setup.bash ; source ~/ros2_mara_ws/install/setup.bash ; source /usr/share/gazebo/setup.sh ; export PYTHONPATH=$PYTHONPATH:~/ros2_mara_ws/install/lib/python3/dist-packages ; export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:~/ros2_mara_ws/src/MARA ; export GAZEBO_PLUGIN_PATH=$GAZEBO_PLUGIN_PATH:~/ros2_mara_ws/src/MARA/mara_gazebo_plugins/build/'
 
 gzserver/gzclient
 ~~~~~~~~~~~~~~~~~
