@@ -1,0 +1,29 @@
+repositories:
+  control_msgs:
+    type: git
+    url: https://github.com/erlerobot/control_msgs
+    version: crystal
+  gazebo_ros_pkgs:
+    type: git
+    url: https://github.com/ros-simulation/gazebo_ros_pkgs
+    version: ros2    
+  HRIM:
+    type: git
+    url: https://github.com/erlerobot/HRIM
+    version: master
+  image_common:
+    type: git
+    url: https://github.com/ros-perception/image_common
+    version: ros2     
+  MARA:
+    type: git
+    url: https://github.com/AcutronicRobotics/MARA
+    version: master
+  orocos_kinematics_dynamics:
+    type: git
+    url: https://github.com/erlerobot/orocos_kinematics_dynamics
+    version: ros2
+  vision_opencv:
+    type: git
+    url: https://github.com/ros-perception/vision_opencv
+    version: ros2
