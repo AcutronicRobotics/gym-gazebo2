@@ -514,7 +514,14 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
         # Execute "action"
         self._pub.publish(self.get_trajectory_message(action[:self.scara_chain.getNrOfJoints()]))
         # TODO. Wait unlit the action is finished.
-        time.sleep(3)
+
+        action_finished = False
+        while not action_finished:
+            rclpy.spin_once(self.node)
+            obs_message = self._observation_msg
+            if obs_message is not None:
+                last_observation = self.process_observations(obs_message, self.environment)
+                action_finished = self.positions_match(action, last_observation)
 
         # Take an observation
         self.ob = self.take_observation()
@@ -540,6 +547,18 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
 
         # Return the corresponding observations, rewards, etc.
         return self.ob, self.reward, done, {}
+
+    def positions_match(self, action, last_observation):
+        """
+        Compares a given action with the observed position.
+
+        Returns: bool. True if the position is final, False if not.
+        """
+        accepted_error = 0.01
+        for i in range(action.size -1): #last_observation loses last pose
+            if abs(action[i] - last_observation[i]) > accepted_error:
+                return False
+        return True
 
     def reset(self):
         """
