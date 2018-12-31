@@ -58,6 +58,9 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
 
         # Launch mara in a new Process
         launch_helpers.start_launch_servide_process(self.generate_launch_description())
+        # Wait a bit for the spawn process.
+        # TODO, replace sleep function.
+        time.sleep(5)
 
         # Create the node after the new ROS_DOMAIN_ID is set in generate_launch_description()
         rclpy.init(args=None)
@@ -500,6 +503,34 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
+    def positions_match(self, action, last_observation):
+        """
+        Compares a given action with the observed position.
+
+        Returns: bool. True if the position is final, False if not.
+        """
+        accepted_error = 0.01
+        for i in range(action.size -1): #last_observation loses last pose
+            if abs(action[i] - last_observation[i]) > accepted_error:
+                return False
+        return True
+
+    def wait_for_action(self, action):
+        """Receives an action and loops until the robot reaches the pose set by the action.
+        """
+        action_finished = False
+        trials = 0
+        while not action_finished:
+            trials += 1
+            # if trials > 50: #action failed, probably hitting the table.
+            #     print("Crashing")
+            #     action_finished = True
+            rclpy.spin_once(self.node)
+            obs_message = self._observation_msg
+            if obs_message is not None:
+                last_observation = self.process_observations(obs_message, self.environment)
+                action_finished = self.positions_match(action, last_observation)
+
     def step(self, action):
         """
         Implement the environment step abstraction. Execute action and returns:
@@ -513,15 +544,9 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
 
         # Execute "action"
         self._pub.publish(self.get_trajectory_message(action[:self.scara_chain.getNrOfJoints()]))
-        # TODO. Wait unlit the action is finished.
 
-        action_finished = False
-        while not action_finished:
-            rclpy.spin_once(self.node)
-            obs_message = self._observation_msg
-            if obs_message is not None:
-                last_observation = self.process_observations(obs_message, self.environment)
-                action_finished = self.positions_match(action, last_observation)
+        # Wait until the action is finished.
+        self.wait_for_action(action)
 
         # Take an observation
         self.ob = self.take_observation()
@@ -531,9 +556,6 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
 
         self.reward_dist = -self.rmse_func(self.ob[self.scara_chain.getNrOfJoints():(self.scara_chain.getNrOfJoints()+3)])
         self.reward_orient = - self.rmse_func(self.ob[self.scara_chain.getNrOfJoints()+3:(self.scara_chain.getNrOfJoints()+7)])
-
-        #scale here the orientation because it should not be the main bias of the reward, position should be
-        orientation_scale = 0.1
 
         # here we want to fetch the positions of the end-effector which are nr_dof:nr_dof+3
         if(self.rmse_func(self.ob[self.scara_chain.getNrOfJoints():(self.scara_chain.getNrOfJoints()+3)])<0.005):
@@ -548,18 +570,6 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
         # Return the corresponding observations, rewards, etc.
         return self.ob, self.reward, done, {}
 
-    def positions_match(self, action, last_observation):
-        """
-        Compares a given action with the observed position.
-
-        Returns: bool. True if the position is final, False if not.
-        """
-        accepted_error = 0.01
-        for i in range(action.size -1): #last_observation loses last pose
-            if abs(action[i] - last_observation[i]) > accepted_error:
-                return False
-        return True
-
     def reset(self):
         """
         Reset the agent for a particular experiment condition.
@@ -567,10 +577,11 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
         self.iterator = 0
 
         if self.reset_jnts is True:
+            # Move to the initial position.
             self._pub.publish(self.get_trajectory_message(self.environment['reset_conditions']['initial_positions']))
 
-        # TODO. Wait unlit the action is finished.
-        time.sleep(3)
+            # Wait until the action is finished.
+            self.wait_for_action(self.environment['reset_conditions']['initial_positions'])
 
         # Take an observation
         self.ob = self.take_observation()
