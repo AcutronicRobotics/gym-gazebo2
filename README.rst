@@ -45,8 +45,10 @@ Installation
 Install ROS 2.0 and Gazebo 9.6
 ------------------------------
 
-- **ROS 2 Crystal**. Install ROS 2.0 following the official instructions, binaries recommended. `Instructions <https://index.ros.org/doc/ros2/Linux-Install-Debians/>`_.
 - **Gazebo 9.6**. Install Gazebo 9.6 following the official one-liner installation instructions. `Instructions <http://gazebosim.org/tutorials?tut=install_ubuntu#Defaultinstallation:one-liner>`_.
+- **ROS 2 Crystal**.
+   - Ubuntu 18: Install ROS 2.0 following the official instructions, binaries recommended. `Instructions <https://index.ros.org/doc/ros2/Linux-Install-Debians/>`_.
+   - Ubuntu 16: Install ROS 2.0 following the official instructions, sources required. `Instructions <https://index.ros.org/doc/ros2/Linux-Development-Setup/>`_.
 
 MARA ROS 2.0 specific instructions
 ----------------------------------
@@ -92,6 +94,9 @@ Create the workspace and download source files:
 
 Compile the workspace
 ~~~~~~~~~~~~~~~~~~~~~
+
+Ubuntu 18
+^^^^^^^^^
 Build the workspace using the ``--merge-install`` flag.
 
 .. code:: shell
@@ -108,6 +113,40 @@ A few packages are expected to throw warning messages. The expected output is th
 
     Summary: 53 packages finished [12min 41s]
     5 packages had stderr output: cv_bridge mara_gazebo_plugins orocos_kdl python_orocos_kdl robotiq_140_gripper_gazebo_plugin
+
+Ubuntu 16
+^^^^^^^^^
+
+Compilation dependencies:
+
+.. code:: shell
+
+    # OpenCV 3, cv_bridge requirement
+    sudo apt-get install -y unzip wget
+    wget https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip
+    unzip ${OPENCV_VERSION}.zip
+    rm ${OPENCV_VERSION}.zip
+    mv opencv-${OPENCV_VERSION} OpenCV
+    cd OpenCV
+    mkdir build
+    cd build
+    cmake -DWITH_QT=ON -DWITH_OPENGL=ON -DFORCE_VTK=ON -DWITH_TBB=ON -DWITH_GDAL=ON -DWITH_XINE=ON -DBUILD_EXAMPLES=ON -DENABLE_PRECOMPILED_HEADERS=OFF ..
+    make -j4
+    sudo make install
+    sudo ldconfig
+    
+    # image_transport requirement
+    sudo apt install libpcre3-dev
+    
+Build the workspace using the ``--merge-install`` flag.
+
+.. code:: shell
+
+    source ~/ros2_ws/install/setup.bash
+    cd ~/ros2_mara_ws
+    colcon build --merge-install
+    # Remove warnings
+    touch ~/ros2_mara_ws/install/share/orocos_kdl/local_setup.sh ~/ros2_mara_ws/install/share/orocos_kdl/local_setup.bash
 
 Install Baselines
 ~~~~~~~~~~~~~~~~~
@@ -162,7 +201,11 @@ First we need setup ROS2, MARA ROS2 workspace and Gazebo.
 
 .. code:: shell
 
+    # Ubuntu 18
     source /opt/ros/crystal/setup.bash
+    # Ubuntu 16
+    source ~/ros_ws/install/setup.bash
+    
     source ~/ros2_mara_ws/install/setup.bash
     source /usr/share/gazebo/setup.sh
 
@@ -177,7 +220,7 @@ Now that out environment is setup, we can execute the algorithm.
 .. code:: shell
 
     cd ~/gym-gazebo-ros2/examples/MARA
-    python3 gazebo_mara_top_3dof_random_ROS2.py
+    python3 gazebo_mara_top_3dof_4actions_ROS2.py
 
 Tips
 ----
@@ -185,7 +228,9 @@ Tips
 alias
 ~~~~~
 
-You can use an alias to simplify the process. Note that GAZEBO_MODEL_PATH and GAZEBO_PLUGIN_PATH are included here as you will need them if you want to call the ``gzclient`` from a different terminal. The alias contains environment variables, so be careful and past the following directly to your ``.bashrc``.
+You can use an alias to simplify the process. Note that GAZEBO_MODEL_PATH and GAZEBO_PLUGIN_PATH are included here as you will need them if you want to call the ``gzclient`` from a different terminal. The alias contains environment variables, so be careful and past the following directly to your ``.bashrc``. 
+
+Note: Update ROS 2 source to ``~/ros_ws/installation/setup.bash`` if you are in Ubuntu 16.
 
 .. code:: shell
 
