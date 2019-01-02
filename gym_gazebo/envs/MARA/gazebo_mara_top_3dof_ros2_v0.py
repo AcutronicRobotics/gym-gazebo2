@@ -522,9 +522,16 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
         trials = 0
         while not action_finished:
             trials += 1
-            # if trials > 50: #action failed, probably hitting the table.
-            #     print("Crashing")
-            #     action_finished = True
+            if trials > 200: #action failed, probably hitting the table.
+                print("Can't complete trajectory, setting new trajectory: initial_positions")
+                # update action
+                action = self.environment['reset_conditions']['initial_positions']
+                # Move to the initial position and wait until the action is finished.
+                self._pub.publish(self.get_trajectory_message(action))
+                self.wait_for_action(action)
+                # Finish the action loop
+                action_finished = True
+
             rclpy.spin_once(self.node)
             obs_message = self._observation_msg
             if obs_message is not None:
@@ -554,6 +561,11 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
             print("step: observation is Empty")
             self.ob = self.take_observation()
 
+        """NOTE: 
+        If MARA is stuck and can't complete the trajectory, the final pose of the trajectory will be the initial position.
+        Which means, failing trajectories will receive the same reward as the inital_position pose.
+        If the TARGET is UP (close to the inital pose) the MARA could learn to get stuck on purpose and fall into a local minimum.
+        A simple solution would be to use a CRASH variable to reduce the reward, and not only be pose-dependant."""
         self.reward_dist = -self.rmse_func(self.ob[self.scara_chain.getNrOfJoints():(self.scara_chain.getNrOfJoints()+3)])
         self.reward_orient = - self.rmse_func(self.ob[self.scara_chain.getNrOfJoints()+3:(self.scara_chain.getNrOfJoints()+7)])
 
