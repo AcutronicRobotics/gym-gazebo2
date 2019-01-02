@@ -122,6 +122,7 @@ Compilation dependencies:
 .. code:: shell
 
     # OpenCV 3, cv_bridge requirement
+    OPENCV_VERSION='3.4.2'
     sudo apt-get install -y unzip wget
     wget https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip
     unzip ${OPENCV_VERSION}.zip
