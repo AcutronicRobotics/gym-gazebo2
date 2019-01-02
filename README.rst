@@ -92,6 +92,15 @@ Create the workspace and download source files:
     # Avoid compiling erroneus package
     touch ~/ros2_mara_ws/src/orocos_kinematics_dynamics/orocos_kinematics_dynamics/COLCON_IGNORE
 
+Generate HRIM dependencies:
+
+.. code:: shell
+
+    sudo apt-get install python-lxml
+    cd ~/ros2_mara_ws/src/HRIM
+    python hrim.py generate models/actuator/servo/servo.xml
+    python hrim.py generate models/actuator/gripper/gripper.xml
+
 Compile the workspace
 ~~~~~~~~~~~~~~~~~~~~~
 
