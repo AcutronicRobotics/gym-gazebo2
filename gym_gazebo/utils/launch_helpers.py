@@ -40,5 +40,5 @@ def get_exclusive_network_parameters():
     while is_port_in_use(random_port):
         print("Randomly selected port is already in use, retrying.")
         random_port = random.randint(10000, 15000)
-    return {'ros_domain_id':"GYM_GAZEBO_ROS2_" + str(random_port),
+    return {'ros_domain_id':str(random_port),
      'gazebo_master_uri':"http://localhost:" + str(random_port)}
