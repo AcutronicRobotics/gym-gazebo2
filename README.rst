@@ -96,10 +96,9 @@ Generate HRIM dependencies:
 
 .. code:: shell
 
-    sudo apt-get install python-lxml
     cd ~/ros2_mara_ws/src/HRIM
-    python hrim.py generate models/actuator/servo/servo.xml
-    python hrim.py generate models/actuator/gripper/gripper.xml
+    python3 hrim.py generate models/actuator/servo/servo.xml
+    python3 hrim.py generate models/actuator/gripper/gripper.xml
 
 Compile the workspace
 ~~~~~~~~~~~~~~~~~~~~~
