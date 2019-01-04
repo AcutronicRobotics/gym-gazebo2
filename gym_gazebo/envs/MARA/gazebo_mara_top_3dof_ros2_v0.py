@@ -519,18 +519,16 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
         """Receives an action and loops until the robot reaches the pose set by the action.
         """
         action_finished = False
+        resetting = False
         trials = 0
         while not action_finished:
             trials += 1
-            if trials > 200: #action failed, probably hitting the table.
+            if trials > 200 and not resetting: #action failed, probably hitting the table.
                 print("Can't complete trajectory, setting new trajectory: initial_positions")
-                # update action
+                resetting = True
+            if resetting:
                 action = self.environment['reset_conditions']['initial_positions']
-                # Move to the initial position and wait until the action is finished.
                 self._pub.publish(self.get_trajectory_message(action))
-                self.wait_for_action(action)
-                # Finish the action loop
-                action_finished = True
 
             rclpy.spin_once(self.node)
             obs_message = self._observation_msg
