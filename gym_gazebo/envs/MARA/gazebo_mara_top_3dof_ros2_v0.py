@@ -17,6 +17,7 @@ from rclpy.qos import QoSProfile, qos_profile_sensor_data
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint # Used for publishing scara joint angles.
 from control_msgs.msg import JointTrajectoryControllerState
 from std_msgs.msg import String
+from std_srvs.srv import Empty
 from geometry_msgs.msg import Pose
 from ros2pkg.api import get_prefix_path
 from builtin_interfaces.msg import Duration
@@ -313,7 +314,7 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
         # Creation of ROS2 LaunchDescription obj.
         ld = LaunchDescription([
             ExecuteProcess(
-                cmd=[gazebo_cmd, '--verbose', '-s', 'libgazebo_ros_factory.so', world_path], output='screen',
+                cmd=[gazebo_cmd,'--verbose', '-s', 'libgazebo_ros_factory.so', '-s', 'libgazebo_ros_init.so', world_path], output='screen',
                 env=envs
             ),
             Node(package='robot_state_publisher', node_executable='robot_state_publisher', output='screen', arguments=[urdf]),
@@ -527,8 +528,17 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
                 print("Can't complete trajectory, setting new trajectory: initial_positions")
                 resetting = True
             if resetting:
-                action = self.environment['reset_conditions']['initial_positions']
-                self._pub.publish(self.get_trajectory_message(action))
+
+                # Reset simulation
+                reset_cli = self.node.create_client(Empty, '/reset_simulation')
+                while not reset_cli.wait_for_service(timeout_sec=1.0):
+                    self.node.get_logger().info('service not available, waiting again...')
+
+                reset_future = reset_cli.call_async(Empty.Request())
+                rclpy.spin_until_future_complete(self.node, reset_future)
+
+                # Avoid unnecessary pose check.
+                break
 
             rclpy.spin_once(self.node)
             obs_message = self._observation_msg
