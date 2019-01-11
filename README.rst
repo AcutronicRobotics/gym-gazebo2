@@ -170,12 +170,12 @@ Install Baselines
 
 Install URDF Parser
 ~~~~~~~~~~~~~~~~~~~
-**TODO. @nzlz own repo** containing fix for python3.
+Standalone URDF parser for Python3.
 
 .. code:: shell
 
     cd ~
-    git clone https://github.com/nzlz/urdf_parser_py -b nestor-fix-crystal
+    git clone https://github.com/ros/urdf_parser_py.git -b melodic-devel
     cd urdf_parser_py
     pip3 install -e .
 
