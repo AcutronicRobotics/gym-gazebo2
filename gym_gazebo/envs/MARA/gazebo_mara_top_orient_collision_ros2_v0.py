@@ -63,7 +63,7 @@ from PyKDL import Jacobian, Chain, ChainJntToJacSolver, JntArray # For KDL Jacob
 
 import cv2
 
-import quaternion as quat
+import transforms3d as tf
 
 # from custom baselines repository
 from baselines.agent.utility.general_utils import forward_kinematics, get_ee_points, rotation_from_matrix, \
@@ -518,8 +518,8 @@ class GazeboMARATopOrientCollisionv0EnvROS2(gym.Env):
             roll = 0.0
             pitch = 0.0
             yaw = np.random.uniform(-1.57, 1.57)
-            q = quat.from_euler_angles(roll, pitch, yaw)
-            EE_ROT_TGT = quat.as_rotation_matrix(q)
+            q = tf.taitbryan.euler2quat(yaw, pitch, roll)
+            EE_ROT_TGT = tf.quaternions.quat2mat(q)
             self.target_orientation = EE_ROT_TGT
             ee_tgt = np.ndarray.flatten(get_ee_points(self.environment['end_effector_points'], EE_POS_TGT, EE_ROT_TGT).T)
 
@@ -585,21 +585,20 @@ class GazeboMARATopOrientCollisionv0EnvROS2(gym.Env):
             # # I need this calculations for the new reward function, need to send them back to the run mara or calculate them here
             # current_quaternion = quaternion_from_matrix(rotation_matrix)
             # tgt_quartenion = quaternion_from_matrix(self.target_orientation)
-
-            current_quaternion = quat.from_rotation_matrix(rotation_matrix)
-            tgt_quartenion = quat.from_rotation_matrix(self.target_orientation)
+            current_quaternion = tf.quaternions.mat2quat(rot) #[w, x, y ,z]
+            tgt_quartenion = tf.quaternions.mat2quat(self.target_orientation)
 
             # A  = np.vstack([current_quaternion, np.ones(len(current_quaternion))]).T
             #quat_error = np.linalg.lstsq(A, tgt_quartenion)[0]
 
             quat_error = current_quaternion * tgt_quartenion.conjugate()
-            rot_vec_err = quat.as_rotation_vector(quat_error)
+            rot_vec_err, _ = tf.quaternions.quat2axangle(quat_error)
 
             # convert quat to np arrays
-            quat_error = quat.as_float_array(quat_error)
+            # quat_error = np.asarray(quat_error, dtype=np.quaternion).view((np.double, 4))
 
             # RK:  revisit this later, we only take one angle difference here!
-            angle_diff = 2 * np.arccos(np.clip(quat_error[..., 0], -1., 1.))
+            # angle_diff = 2 * np.arccos(np.clip(quat_error[..., 0], -1., 1.))
 
             current_ee_tgt = np.ndarray.flatten(get_ee_points(self.environment['end_effector_points'],
                                                               trans,

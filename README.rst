@@ -73,7 +73,7 @@ Install development tools, ROS tools
       python3-sip-dev \
       python3-numpy \  
       wget
-    pip3 install lxml tensorflow
+    pip3 install lxml tensorflow transforms3d
     # Fast-RTPS dependencies
     sudo apt install --no-install-recommends -y \
       libasio-dev \
