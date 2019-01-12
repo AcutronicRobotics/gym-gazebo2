@@ -6,7 +6,7 @@ import copy
 import threading # Used for time locks to synchronize position data.
 import os
 from gym import utils, spaces
-from gym_gazebo.utils import launch_helpers
+from gym_gazebo.utils import ut_gazebo, ut_generic, ut_launch, ut_mara, ut_math
 from gym.utils import seeding
 from gazebo_msgs.srv import SpawnModel, DeleteModel, SpawnEntity
 from multiprocessing import Process
@@ -58,7 +58,7 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
         self.gzserver_only = False # Set to False or comment for the complete server+client option.
 
         # Launch mara in a new Process
-        launch_helpers.start_launch_servide_process(self.generate_launch_description())
+        ut_launch.start_launch_servide_process(self.generate_launch_description())
         # Wait a bit for the spawn process.
         # TODO, replace sleep function.
         time.sleep(5)
@@ -290,7 +290,7 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
 
 
         # Exclusive network segmentation, which allows to launch multiple instances of ROS2+Gazebo
-        network_params = launch_helpers.get_exclusive_network_parameters()
+        network_params = ut_launch.get_exclusive_network_parameters()
         os.environ["ROS_DOMAIN_ID"] = network_params.get('ros_domain_id')
         os.environ["GAZEBO_MASTER_URI"] = network_params.get('gazebo_master_uri')
         print("ROS_DOMAIN_ID=" + network_params.get('ros_domain_id'))
@@ -330,106 +330,6 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
         """
         self._observation_msg =  message
 
-    def get_trajectory_message(self, action, robot_id=0):
-        """
-        Helper function.
-        Wraps an action vector of joint angles into a JointTrajectory message.
-        Velocity must be set now. Duration (self.slowness) does not control velocity now.
-        """
-        # Set up a trajectory message to publish.
-        action_msg = JointTrajectory()
-        action_msg.joint_names = self.environment['joint_order']
-        # Create a point to tell the robot to move to.
-        target = JointTrajectoryPoint()
-        action_float = [float(i) for i in action]
-        target.positions = action_float
-        target.velocities = [1.0]*action.size #rad/s. Real MARA max speed is 1.41
-
-        action_msg.points = [target]
-        return action_msg
-
-    def process_observations(self, message, agent, robot_id=0):
-        """
-        Helper fuinction to convert a ROS message to joint angles and velocities.
-        Check for and handle the case where a message is either malformed
-        or contains joint values in an order different from that expected observation_callback
-        in hyperparams['joint_order']
-        """
-        if not message:
-            print("Message is empty");
-            # return None
-        else:
-            # # Check if joint values are in the expected order and size.
-            if message.joint_names != agent['joint_order']:
-                # Check that the message is of same size as the expected message.
-                if len(message.joint_names) != len(agent['joint_order']):
-                    raise MSG_INVALID_JOINT_NAMES_DIFFER
-
-                # Check that all the expected joint values are present in a message.
-                # if not all(map(lambda x,y: x in y, message.joint_names,
-                #     [self._valid_joint_set[robot_id] for _ in range(len(message.joint_names))])):
-                #     raise MSG_INVALID_JOINT_NAMES_DIFFER
-                    print("Joints differ")
-            return np.array(message.actual.positions) # + message.actual.velocities
-
-    def get_jacobians(self, state, robot_id=0):
-        """
-        Produce a Jacobian from the urdf that maps from joint angles to x, y, z.
-        This makes a 6x6 matrix from 6 joint angles to x, y, z and 3 angles.
-        The angles are roll, pitch, and yaw (not Euler angles) and are not needed.
-        Returns a repackaged Jacobian that is 3x6.
-        """
-        # Initialize a Jacobian for self.scara_chain.getNrOfJoints() joint angles by 3 cartesian coords and 3 orientation angles
-        jacobian = Jacobian(self.scara_chain.getNrOfJoints())
-        # Initialize a joint array for the present self.scara_chain.getNrOfJoints() joint angles.
-        angles = JntArray(self.scara_chain.getNrOfJoints())
-        # Construct the joint array from the most recent joint angles.
-        for i in range(self.scara_chain.getNrOfJoints()):
-            angles[i] = state[i]
-        # Update the jacobian by solving for the given angles.observation_callback
-        self.jac_solver.JntToJac(angles, jacobian)
-        # Initialize a numpy array to store the Jacobian.
-        J = np.array([[jacobian[i, j] for j in range(jacobian.columns())] for i in range(jacobian.rows())])
-        # Only want the cartesian position, not Roll, Pitch, Yaw (RPY) Angles
-        ee_jacobians = J
-        return ee_jacobians
-
-    def get_ee_points_jacobians(self, ref_jacobian, ee_points, ref_rot):
-        """
-        Get the jacobians of the points on a link given the jacobian for that link's origin
-        :param ref_jacobian: 6 x 6 numpy array, jacobian for the link's origin
-        :param ee_points: N x 3 numpy array, points' coordinates on the link's coordinate system
-        :param ref_rot: 3 x 3 numpy array, rotational matrix for the link's coordinate system
-        :return: 3N x 6 Jac_trans, each 3 x 6 numpy array is the Jacobian[:3, :] for that point
-                 3N x 6 Jac_rot, each 3 x 6 numpy array is the Jacobian[3:, :] for that point
-        """
-        ee_points = np.asarray(ee_points)
-        ref_jacobians_trans = ref_jacobian[:3, :]
-        ref_jacobians_rot = ref_jacobian[3:, :]
-        end_effector_points_rot = np.expand_dims(ref_rot.dot(ee_points.T).T, axis=1)
-        ee_points_jac_trans = np.tile(ref_jacobians_trans, (ee_points.shape[0], 1)) + \
-                                        np.cross(ref_jacobians_rot.T, end_effector_points_rot).transpose(
-                                            (0, 2, 1)).reshape(-1, self.scara_chain.getNrOfJoints())
-        ee_points_jac_rot = np.tile(ref_jacobians_rot, (ee_points.shape[0], 1))
-        return ee_points_jac_trans, ee_points_jac_rot
-
-    def get_ee_points_velocities(self, ref_jacobian, ee_points, ref_rot, joint_velocities):
-        """
-        Get the velocities of the points on a link
-        :param ref_jacobian: 6 x 6 numpy array, jacobian for the link's origin
-        :param ee_points: N x 3 numpy array, points' coordinates on the link's coordinate system
-        :param ref_rot: 3 x 3 numpy array, rotational matrix for the link's coordinate system
-        :param joint_velocities: 1 x 6 numpy array, joint velocities
-        :return: 3N numpy array, velocities of each point
-        """
-        ref_jacobians_trans = ref_jacobian[:3, :]
-        ref_jacobians_rot = ref_jacobian[3:, :]
-        ee_velocities_trans = np.dot(ref_jacobians_trans, joint_velocities)
-        ee_velocities_rot = np.dot(ref_jacobians_rot, joint_velocities)
-        ee_velocities = ee_velocities_trans + np.cross(ee_velocities_rot.reshape(1, 3),
-                                                       ref_rot.dot(ee_points.T).T)
-        return ee_velocities.reshape(-1)
-
     def take_observation(self):
         """
         Take observation from the environment and return it.
@@ -444,11 +344,11 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
         # Collect the end effector points and velocities in
         # cartesian coordinates for the process_observationsstate.
         # Collect the present joint angles and velocities from ROS for the state.
-        last_observations = self.process_observations(obs_message, self.environment)
+        last_observations = ut_mara.process_observations(obs_message, self.environment)
         # # # Get Jacobians from present joint angles and KDL trees
         # # # The Jacobians consist of a 6x6 matrix getting its from from
         # # # (# joint angles) x (len[x, y, z] + len[roll, pitch, yaw])
-        ee_link_jacobians = self.get_jacobians(last_observations)
+        ee_link_jacobians = ut_mara.get_jacobians(last_observations, self.scara_chain.getNrOfJoints(), self.jac_solver)
         if self.environment['link_names'][-1] is None:
             print("End link is empty!!")
             return None
@@ -476,10 +376,11 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
                                                               trans,
                                                               rot).T)
             ee_points = current_ee_tgt - self.realgoal#self.environment['ee_points_tgt']
-            ee_points_jac_trans, _ = self.get_ee_points_jacobians(ee_link_jacobians,
+            ee_points_jac_trans, _ = ut_mara.get_ee_points_jacobians(ee_link_jacobians,
                                                                    self.environment['end_effector_points'],
-                                                                   rot)
-            ee_velocities = self.get_ee_points_velocities(ee_link_jacobians,
+                                                                   rot,
+                                                                   self.scara_chain.getNrOfJoints())
+            ee_velocities = ut_mara.get_ee_points_velocities(ee_link_jacobians,
                                                            self.environment['end_effector_points'],
                                                            rot,
                                                            last_observations)
@@ -493,31 +394,15 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
 
             return state
 
-    def rmse_func(self, ee_points):
-        """
-        Computes the Residual Mean Square Error of the difference between current and desired end-effector position
-        """
-        rmse = np.sqrt(np.mean(np.square(ee_points), dtype=np.float32))
-        return rmse
-
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
-    def positions_match(self, action, last_observation):
-        """
-        Compares a given action with the observed position.
-
-        Returns: bool. True if the position is final, False if not.
-        """
-        accepted_error = 0.01
-        for i in range(action.size -1): #last_observation loses last pose
-            if abs(action[i] - last_observation[i]) > accepted_error:
-                return False
-        return True
-
     def wait_for_action(self, action):
         """Receives an action and loops until the robot reaches the pose set by the action.
+        
+        Note: This function can't be migrated to the ut_mara module since it reads constantly 
+        from the observation callback provided by /mara_controller/state.
         """
         action_finished = False
         resetting = False
@@ -543,8 +428,8 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
             rclpy.spin_once(self.node)
             obs_message = self._observation_msg
             if obs_message is not None:
-                last_observation = self.process_observations(obs_message, self.environment)
-                action_finished = self.positions_match(action, last_observation)
+                last_observation = ut_mara.process_observations(obs_message, self.environment)
+                action_finished = ut_mara.positions_match(action, last_observation)
 
     def step(self, action):
         """
@@ -558,7 +443,7 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
         self.iterator+=1
 
         # Execute "action"
-        self._pub.publish(self.get_trajectory_message(action[:self.scara_chain.getNrOfJoints()]))
+        self._pub.publish(ut_mara.get_trajectory_message(action[:self.scara_chain.getNrOfJoints()], self.environment['joint_order']))
 
         # Wait until the action is finished.
         self.wait_for_action(action)
@@ -574,12 +459,12 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
         Which means, failing trajectories will receive the same reward as the inital_position pose.
         If the TARGET is UP (close to the inital pose) the MARA could learn to get stuck on purpose and fall into a local minimum.
         A simple solution would be to use a CRASH variable to reduce the reward, and not only be pose-dependant."""
-        self.reward_dist = -self.rmse_func(self.ob[self.scara_chain.getNrOfJoints():(self.scara_chain.getNrOfJoints()+3)])
-        self.reward_orient = - self.rmse_func(self.ob[self.scara_chain.getNrOfJoints()+3:(self.scara_chain.getNrOfJoints()+7)])
+        self.reward_dist = -ut_math.rmse_func(self.ob[self.scara_chain.getNrOfJoints():(self.scara_chain.getNrOfJoints()+3)])
+        self.reward_orient = - ut_math.rmse_func(self.ob[self.scara_chain.getNrOfJoints()+3:(self.scara_chain.getNrOfJoints()+7)])
 
         # here we want to fetch the positions of the end-effector which are nr_dof:nr_dof+3
-        if(self.rmse_func(self.ob[self.scara_chain.getNrOfJoints():(self.scara_chain.getNrOfJoints()+3)])<0.005):
-            self.reward = 1 - self.rmse_func(self.ob[self.scara_chain.getNrOfJoints():(self.scara_chain.getNrOfJoints()+3)]) # Make the reward increase as the distance decreases
+        if(ut_math.rmse_func(self.ob[self.scara_chain.getNrOfJoints():(self.scara_chain.getNrOfJoints()+3)])<0.005):
+            self.reward = 1 - ut_math.rmse_func(self.ob[self.scara_chain.getNrOfJoints():(self.scara_chain.getNrOfJoints()+3)]) # Make the reward increase as the distance decreases
             print("Reward is: ", self.reward)
         else:
             self.reward = self.reward_dist
@@ -598,7 +483,7 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
 
         if self.reset_jnts is True:
             # Move to the initial position.
-            self._pub.publish(self.get_trajectory_message(self.environment['reset_conditions']['initial_positions']))
+            self._pub.publish(ut_mara.get_trajectory_message(self.environment['reset_conditions']['initial_positions'], self.environment['joint_order']))
 
             # Wait until the action is finished.
             self.wait_for_action(self.environment['reset_conditions']['initial_positions'])
