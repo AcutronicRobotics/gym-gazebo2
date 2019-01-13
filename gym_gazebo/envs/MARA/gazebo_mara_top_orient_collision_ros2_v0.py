@@ -34,8 +34,6 @@ from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint # Used for
 from control_msgs.msg import JointTrajectoryControllerState
 from geometry_msgs.msg import Pose, Vector3, WrenchStamped
 
-from sensor_msgs.msg import CompressedImage
-
 # ROS 2
 import rclpy
 from launch import LaunchDescription
