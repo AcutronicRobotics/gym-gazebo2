@@ -349,7 +349,7 @@ class GazeboMARATopOrientCollisionv0EnvROS2(gym.Env):
         # Creation of ROS2 LaunchDescription obj.
         ld = LaunchDescription([
             ExecuteProcess(
-                cmd=[gazebo_cmd,'--verbose', '-s', 'libgazebo_ros_factory.so', '-s', 'libgazebo_ros_init.so', '-s', 'gazebo_ros_state.so', world_path], output='screen',
+                cmd=[gazebo_cmd,'--verbose', '-s', 'libgazebo_ros_factory.so', '-s', 'libgazebo_ros_init.so', world_path], output='screen',
                 env=envs
             ),
             Node(package='robot_state_publisher', node_executable='robot_state_publisher', output='screen', arguments=[urdf]),
