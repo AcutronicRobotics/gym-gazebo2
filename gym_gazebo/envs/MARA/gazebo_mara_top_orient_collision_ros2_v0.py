@@ -3,9 +3,6 @@ MIGRATION TO ROS2 IN PROCESS.
 
 Additional Env specific dependencies:
 
-YES pip3 install transforms3d
-NO pip3 install numpy-quaternion
-
 gazebo_ros_pkgs (merge from branch ros2_state required)
 for now: https://github.com/nzlz/gazebo_ros_pkgs -b ros2_merge_state_time_cmds
 
@@ -21,47 +18,35 @@ import time
 import os
 import numpy as np
 from gym import utils, spaces
-from gym_gazebo.utils import ut_gazebo, ut_generic, ut_launch, ut_mara, ut_math
-from geometry_msgs.msg import Pose
-from geometry_msgs.msg import Twist
-from std_srvs.srv import Empty
-from sensor_msgs.msg import LaserScan
 from gym.utils import seeding
+from gym_gazebo.utils import ut_gazebo, ut_generic, ut_launch, ut_mara, ut_math
 import copy
 import threading # Used for time locks to synchronize position data.
 
-from gazebo_msgs.srv import SpawnModel, DeleteModel, SetModelState, SetLinkState, GetModelState, SpawnEntity
-
-from geometry_msgs.msg import Vector3
-from geometry_msgs.msg import WrenchStamped
+from gazebo_msgs.srv import SpawnEntity, DeleteEntity, GetEntityState, SetEntityState
 from gazebo_msgs.msg import ContactState
 from gazebo_msgs.msg import ModelState, LinkState
+from gazebo_msgs.msg import EntityState
+
+from std_srvs.srv import Empty
+from std_msgs.msg import String, Empty as stdEmpty
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint # Used for publishing scara joint angles.
+from control_msgs.msg import JointTrajectoryControllerState
+from geometry_msgs.msg import Pose, Vector3, WrenchStamped
 
 from sensor_msgs.msg import CompressedImage
-# ROS Image message -> OpenCV2 image converter
-from cv_bridge import CvBridge, CvBridgeError
+
 # ROS 2
 import rclpy
 from launch import LaunchDescription
 from launch.actions.execute_process import ExecuteProcess
 from launch_ros.actions import Node
 from ros2pkg.api import get_prefix_path
-from gazebo_msgs.srv import SpawnModel, DeleteModel, SpawnEntity, DeleteEntity, GetEntityState, SetEntityState
-from gazebo_msgs.msg import EntityState
-
 from rclpy.qos import QoSProfile, qos_profile_sensor_data
-from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint # Used for publishing scara joint angles.
-from control_msgs.msg import JointTrajectoryControllerState
-from std_msgs.msg import String
-from std_msgs.msg import Empty as stdEmpty
 from ament_index_python.packages import get_package_share_directory, get_package_prefix
 
-from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
-from control_msgs.msg import JointTrajectoryControllerState
 from baselines.agent.scara_arm.tree_urdf import treeFromFile # For KDL Jacobians
 from PyKDL import Jacobian, Chain, ChainJntToJacSolver, JntArray # For KDL Jacobians
-
-import cv2
 
 import transforms3d as tf
 
@@ -122,7 +107,6 @@ class GazeboMARATopOrientCollisionv0EnvROS2(gym.Env):
         #   Environment hyperparams
         #############################
         # target, where should the agent reach
-
         EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466]) # alex2
         EE_ROT_TGT = np.asmatrix([[0.79660969, -0.51571238,  0.31536287], [0.51531424,  0.85207952,  0.09171542], [-0.31601302,  0.08944959,  0.94452874]]) # original orientation
         EE_POINTS = np.asmatrix([[0, 0, 0]])
@@ -376,7 +360,6 @@ class GazeboMARATopOrientCollisionv0EnvROS2(gym.Env):
                 arguments=["-motors", install_dir + "/share/hros_cognition_mara_components/link_order.yaml"])
         ])
         return ld
-
 
     def observation_callback(self, message):
         """
