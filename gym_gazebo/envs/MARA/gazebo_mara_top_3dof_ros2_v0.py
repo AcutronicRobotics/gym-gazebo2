@@ -55,7 +55,7 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
         """
         Initialize the MARA environemnt
         """
-        self.gzserver_only = False # Set to False or comment for the complete server+client option.
+        self.gzserver_only = True # Set to False or comment for the complete server+client option.
 
         # Launch mara in a new Process
         ut_launch.start_launch_servide_process(self.generate_launch_description())

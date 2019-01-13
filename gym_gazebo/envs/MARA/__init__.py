@@ -1,2 +1,3 @@
 from gym_gazebo.envs.MARA.gazebo_mara_top_3dof_ros2_v0 import GazeboMARATop3DOFv0EnvROS2
 from gym_gazebo.envs.MARA.gazebo_mara_top_orient_collision_ros2_v0 import GazeboMARATopOrientCollisionv0EnvROS2 
+from gym_gazebo.envs.MARA.gazebo_mara_top_orient_vision_collision_ros2_v0 import GazeboMARATopOrientVisionCollisionv0EnvROS2
