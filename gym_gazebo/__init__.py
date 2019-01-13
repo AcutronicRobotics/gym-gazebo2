@@ -17,3 +17,8 @@ register(
     id='MARAOrientVisionCollisionROS2-v0',
     entry_point='gym_gazebo.envs.MARA:GazeboMARATopOrientVisionCollisionv0EnvROS2',
 )
+
+register(
+    id='MARAOrientVisionROS2-v0',
+    entry_point='gym_gazebo.envs.MARA:GazeboMARATopOrientVisionv0EnvROS2',
+)
