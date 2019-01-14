@@ -649,6 +649,7 @@ class GazeboMARATopOrientCollisionv0EnvROS2(gym.Env):
         """
         self.iterator+=1
 
+        # Execute "action"
         self._pub.publish(ut_mara.get_trajectory_message(action[:self.scara_chain.getNrOfJoints()], self.environment['joint_order']))
         # Wait until the action is finished.
         self.wait_for_action(action)

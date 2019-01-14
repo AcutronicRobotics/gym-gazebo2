@@ -434,11 +434,10 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
     def step(self, action):
         """
         Implement the environment step abstraction. Execute action and returns:
-            - reward
-            - done (status)
             - action
             - observation
-            - dictionary
+            - reward
+            - done (status)
         """
         self.iterator+=1
 
