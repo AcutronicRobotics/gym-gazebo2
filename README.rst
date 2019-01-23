@@ -4,7 +4,7 @@ gym-gazebo
 **gym-gazebo is a toolkit for developing reinforcement learning algotihms using ROS 2 and Gazebo.** Initially built as an extension for the `OpenAI Gym <https://github.com/openai/gym>`_ , now adopts a stand alone structure while mantaining the core concepts of the Gym.
 
 
-  The initial version, which presented the project as an extension of the initial OpenAI gym for robotics using ROS and Gazebo can be found in the ``/gym-gazebo-old?`` branch of this repository. This version is available "as it is" and currently it is not supported by any specific organization, but community support is available `here <https://github.com/erlerobot/gym-gazebo/issues>`_. A whitepaper about that work is available at https://arxiv.org/abs/1608.05742. Please use the following BibTex entry to cite our work::
+  The initial version, which presented the project as an extension of the initial OpenAI gym for robotics using ROS and Gazebo can be found in the ``/gym-gazebo`` repository. This version is available "as it is" and currently it is not supported by any specific organization, but community support is available `here <https://github.com/erlerobot/gym-gazebo/issues>`_. A whitepaper about that work is available at https://arxiv.org/abs/1608.05742. Please use the following BibTex entry to cite our work::
 
     @article{zamora2016extending,
       title={Extending the OpenAI Gym for robotics: a toolkit for reinforcement learning using ROS and Gazebo},
