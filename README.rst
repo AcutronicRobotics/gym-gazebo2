@@ -204,8 +204,8 @@ Install this repository.
 .. code:: shell
 
     cd ~
-    git clone https://github.com/erlerobot/gym-gazebo
-    cd gym-gazebo
+    git clone https://github.com/erlerobot/gym-gazebo-ros2
+    cd gym-gazebo-ros2
     pip3 install -e .
 
 Usage
