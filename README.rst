@@ -211,60 +211,63 @@ Usage
 
 Executing an algorithm
 ----------------------
-First we need setup ROS2, MARA ROS2 workspace and Gazebo.
+First we need setup ROS2, MARA ROS2 workspace and Gazebo. It is convenient that the required environment variables are automatically added to your bash session every time a new shell is launched:
 
 .. code:: shell
 
-    # Ubuntu 18
-    source /opt/ros/crystal/setup.bash
-    # Ubuntu 16
-    source ~/ros_ws/install/setup.bash
-    
+    echo "source ~/gym-gazebo-ros2/gym_gazebo/provision/mara_setup.sh" >> ~/.bashrc
+    source ~/.bashrc
+
+
+**Note**: This setup file contains paths to ROS and Gazebo used by default by this toolkit. If you installed ROS from sources (e.g: Ubuntu16 installation), you must modify the first line of the provisioning script:
+
+.. code:: shell
+
+    (--- this line) source /opt/ros/crystal/setup.bash
+    (+++ this line) source ~/ros_ws/install/setup.bash
     source ~/ros2_mara_ws/install/setup.bash
     source /usr/share/gazebo/setup.sh
-
-Now we need to add our python library folder inside MARA ROS2 workspace to the PYTHONPATH. This is required as some libraries like PyKDL are located here.
-
-.. code:: shell
-
     export PYTHONPATH=$PYTHONPATH:~/ros2_mara_ws/install/lib/python3/dist-packages
+    export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:~/ros2_mara_ws/src/MARA
+    export GAZEBO_PLUGIN_PATH=$GAZEBO_PLUGIN_PATH:~/ros2_mara_ws/src/MARA/mara_gazebo_plugins/build/
 
-Now that out environment is setup, we can execute the algorithm.
+Now that out environment is setup, we can execute the algorithm. Note that if you added the privisioning script to your ``~/.bashrc``, you can directly execute the algorithm.
 
 .. code:: shell
 
     cd ~/gym-gazebo-ros2/examples/MARA
-    python3 gazebo_mara_top_3dof_4actions_ROS2.py
+    python3 gazebo_mara_4actions.py
 
 Tips
 ----
 
-alias
-~~~~~
+Script parameters
+~~~~~~~~~~~~~~~~~
 
-You can use an alias to simplify the process. Note that GAZEBO_MODEL_PATH and GAZEBO_PLUGIN_PATH are included here as you will need them if you want to call the ``gzclient`` from a different terminal. The alias contains environment variables, so be careful and past the following directly to your ``.bashrc``. 
-
-Note: Update ROS 2 source to ``~/ros_ws/installation/setup.bash`` if you are in Ubuntu 16.
+Every MARA environment provides three command-line customization arguments. You can read the details by using the ``-h`` option in any MARA-script (e.g: ``python3 gazebo_mara_4actions.py -h``). The help message is the following:
 
 .. code:: shell
 
-    alias setup_mara='source /opt/ros/crystal/setup.bash ; source ~/ros2_mara_ws/install/setup.bash ; source /usr/share/gazebo/setup.sh ; export PYTHONPATH=$PYTHONPATH:~/ros2_mara_ws/install/lib/python3/dist-packages ; export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:~/ros2_mara_ws/src/MARA ; export GAZEBO_PLUGIN_PATH=$GAZEBO_PLUGIN_PATH:~/ros2_mara_ws/src/MARA/mara_gazebo_plugins/build/'
+    usage: gazebo_mara_4actions.py [-h] [-g] [-r] [-v VELOCITY]
+
+    MARA environment argument provider.
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -g, --gzclient        Run user interface.
+      -r, --real_speed      Execute the simulation in real speed. RTF=1.
+      -v VELOCITY, --velocity VELOCITY
+                            Set servo motor velocity. Keep < 1.41 for real speed.
+
 
 gzserver/gzclient
 ~~~~~~~~~~~~~~~~~
 
-If you want to get faster simulation speeds, you should launch the simulation withouht the ``gzclient``, which is the visual interface of gazebo. In order to do so, you must set to ``True`` the ``gzserver_only`` variable located in the ``__init__`` function of the corresponding MARA environment. 
+If you want to get faster simulation speeds, you should launch the simulation withouht the visual interface of gazebo. But it is possible that you want to check the learnt policy at some point without stoping the training, so this is how you do it:
 
 Steps to launch the GUI:
 
-- Open a new terminal.
-- Setup the environment using the `alias <#alias>`_. 
-
-.. code:: shell
-
-    setup_mara
-
-- Set the corresponding GAZEBO_MASTER_URI: For convinience, this environment variable is printed at the beginning of every Env execution. Just copy and export it. Example:
+- In a new terminal, set the corresponding ``GAZEBO_MASTER_URI``: For convinience, this environment variable is printed at the beginning of every Env execution. Just copy and export it. You can also find information related to any running execution inside ``/tmp/gym-gazebo-2/running/`` folder. Example:
 
 .. code:: shell
 
@@ -276,7 +279,7 @@ Steps to launch the GUI:
 
     gzclient
 
-Final note: you can launch as many ``gzserver``s and ``gzclient``s as you want as long as you take into account the GAZEBO_MASTER_URI environment.
+Final note: you can launch as many ``gzserver``s and ``gzclient``s as you want as long as you manage properly the GAZEBO_MASTER_URI environment variable.
 
 What's new
 ==========
