@@ -55,10 +55,14 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
         """
         Initialize the MARA environemnt
         """
-        self.gzserver_only = True # Set to False or comment for the complete server+client option.
+        # Manage command line args
+        args = ut_generic.getArgsMARA()
+        self.gzclient = args.gzclient
+        self.real_speed = args.real_speed
+        self.velocity = args.velocity
 
         # Launch mara in a new Process
-        ut_launch.start_launch_servide_process(self.generate_launch_description())
+        ut_launch.start_launch_servide_process(ut_launch.generate_launch_description_mara(self.gzclient, self.real_speed))
         # Wait a bit for the spawn process.
         # TODO, replace sleep function.
         time.sleep(5)
@@ -264,65 +268,6 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
         # Seed the environment
         self.seed()
 
-    def generate_launch_description(self):
-        """
-            Returns ROS2 LaunchDescription object.
-        """
-        urdf = os.path.join(get_package_share_directory('mara_description'), 'urdf', 'mara_robot_camera_top.urdf')
-        mara = get_package_share_directory('mara_gazebo_plugins')
-        install_dir = get_package_prefix('mara_gazebo_plugins')
-        ros2_ws_path = os.path.abspath(os.path.join(install_dir, os.pardir))
-        MARA_model_path = os.path.join(ros2_ws_path, 'src', 'MARA')
-        MARA_plugin_path = os.path.join(ros2_ws_path, 'src', 'MARA', 'mara_gazebo_plugins', 'build')
-        world_path = os.path.join(get_package_share_directory('mara_gazebo'), 'worlds', 'empty_speed_up.world')
-
-        if 'GAZEBO_MODEL_PATH' in os.environ:
-            os.environ['GAZEBO_MODEL_PATH'] =  (os.environ['GAZEBO_MODEL_PATH'] + ':' + install_dir + 'share'
-                                                + ':' + MARA_model_path)
-        else:
-            os.environ['GAZEBO_MODEL_PATH'] =  install_dir + "/share" + ':' + MARA_model_path
-
-        if 'GAZEBO_PLUGIN_PATH' in os.environ:
-            os.environ['GAZEBO_PLUGIN_PATH'] = (os.environ['GAZEBO_PLUGIN_PATH'] + ':' + install_dir + '/lib'
-                                                + ':' + MARA_plugin_path)
-        else:
-            os.environ['GAZEBO_PLUGIN_PATH'] = install_dir + '/lib' + ':' + MARA_plugin_path
-
-
-        # Exclusive network segmentation, which allows to launch multiple instances of ROS2+Gazebo
-        network_params = ut_launch.get_exclusive_network_parameters()
-        os.environ["ROS_DOMAIN_ID"] = network_params.get('ros_domain_id')
-        os.environ["GAZEBO_MASTER_URI"] = network_params.get('gazebo_master_uri')
-        print("ROS_DOMAIN_ID=" + network_params.get('ros_domain_id'))
-        print("GAZEBO_MASTER_URI=" + network_params.get('gazebo_master_uri'))
-
-        try:
-            envs = {}
-            for key in os.environ.__dict__["_data"]:
-                key = key.decode("utf-8")
-                if (key.isupper()):
-                    envs[key] = os.environ[key]
-        except Exception as e:
-            print("Error with Envs: " + str(e))
-            return None
-
-        # Gazebo visual interfaze. GUI/no GUI options.
-        gazebo_cmd = "gazebo"
-        if self.gzserver_only:
-            gazebo_cmd = "gzserver"
-
-        # Creation of ROS2 LaunchDescription obj.
-        ld = LaunchDescription([
-            ExecuteProcess(
-                cmd=[gazebo_cmd,'--verbose', '-s', 'libgazebo_ros_factory.so', '-s', 'libgazebo_ros_init.so', world_path], output='screen',
-                env=envs
-            ),
-            Node(package='robot_state_publisher', node_executable='robot_state_publisher', output='screen', arguments=[urdf]),
-            Node(package='mara_utils_scripts', node_executable='spawn_entity.py', output='screen'),
-            Node(package='hros_cognition_mara_components', node_executable='hros_cognition_mara_components', output='screen',
-                arguments=["-motors", install_dir + "/share/hros_cognition_mara_components/link_order.yaml"])
-        ])
-        return ld
 
     def observation_callback(self, message):
         """
@@ -442,7 +387,10 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
         self.iterator+=1
 
         # Execute "action"
-        self._pub.publish(ut_mara.get_trajectory_message(action[:self.scara_chain.getNrOfJoints()], self.environment['joint_order']))
+        self._pub.publish(ut_mara.get_trajectory_message(
+            action[:self.scara_chain.getNrOfJoints()],
+            self.environment['joint_order'],
+            self.velocity))
 
         # Wait until the action is finished.
         self.wait_for_action(action)
@@ -482,7 +430,10 @@ class GazeboMARATop3DOFv0EnvROS2(gym.Env):
 
         if self.reset_jnts is True:
             # Move to the initial position.
-            self._pub.publish(ut_mara.get_trajectory_message(self.environment['reset_conditions']['initial_positions'], self.environment['joint_order']))
+            self._pub.publish(ut_mara.get_trajectory_message(
+                self.environment['reset_conditions']['initial_positions'],
+                self.environment['joint_order'],
+                self.velocity))
 
             # Wait until the action is finished.
             self.wait_for_action(self.environment['reset_conditions']['initial_positions'])

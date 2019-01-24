@@ -83,14 +83,12 @@ def get_ee_points_velocities(ref_jacobian, ee_points, ref_rot, joint_velocities)
                                                    ref_rot.dot(ee_points.T).T)
     return ee_velocities.reshape(-1)
 
-def get_trajectory_message(action, joint_order, robot_id=0):
+def get_trajectory_message(action, joint_order, velocity, robot_id=0):
     """
     Helper function.
     Wraps an action vector of joint angles into a JointTrajectory message.
     Velocity must be set now. Duration (self.slowness) does not control velocity now.
     """
-    speed = 1.0 #rad/s. Real MARA max speed is 1.41
- 
     # Set up a trajectory message to publish.
     action_msg = JointTrajectory()
     action_msg.joint_names = joint_order
@@ -98,7 +96,7 @@ def get_trajectory_message(action, joint_order, robot_id=0):
     target = JointTrajectoryPoint()
     action_float = [float(i) for i in action]
     target.positions = action_float
-    target.velocities = [speed]*action.size
+    target.velocities = [velocity]*action.size
 
     action_msg.points = [target]
     return action_msg
