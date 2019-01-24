@@ -119,7 +119,7 @@ A few packages are expected to throw warning messages. The expected output is th
 
 .. code:: shell
 
-    Summary: 53 packages finished [12min 41s]
+    Summary: 38 packages finished [12min 5s]
     5 packages had stderr output: cv_bridge mara_gazebo_plugins orocos_kdl python_orocos_kdl robotiq_140_gripper_gazebo_plugin
 
 Ubuntu 16
