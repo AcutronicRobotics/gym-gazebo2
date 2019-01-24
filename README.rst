@@ -85,7 +85,7 @@ Create the workspace and download source files:
 
     mkdir -p ~/ros2_mara_ws/src
     cd ~/ros2_mara_ws
-    wget https://raw.githubusercontent.com/erlerobot/gym-gazebo/master/mara.repos
+    wget https://raw.githubusercontent.com/erlerobot/gym-gazebo/master/provision/mara.repos
     vcs import src < mara.repos
     # Avoid compiling erroneus package
     touch ~/ros2_mara_ws/src/orocos_kinematics_dynamics/orocos_kinematics_dynamics/COLCON_IGNORE
