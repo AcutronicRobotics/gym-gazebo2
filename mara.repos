@@ -9,8 +9,8 @@ repositories:
     version: ros2
   gazebo_ros_pkgs:
     type: git
-    url: https://github.com/ros-simulation/gazebo_ros_pkgs
-    version: ros2
+    url: https://github.com/acutronicrobotics/gazebo_ros_pkgs
+    version: ros2_merge_state_time_cmds
   HRIM:
     type: git
     url: https://github.com/erlerobot/HRIM
