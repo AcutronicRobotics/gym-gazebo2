@@ -254,8 +254,7 @@ class GazeboMARATopOrientVisionv0EnvROS2(gym.Env):
         #self.reset_sim = rospy.ServiceProxy('/gazebo/reset_simulation', Empty)
         self.reset_sim = self.node.create_client(Empty, '/reset_simulation')
 
-        #self.assets_path = os.path.abspath(os.path.join(rospkg.RosPack().get_path("gazebo_domain_randomizer"), os.pardir)) + "/assets"
-        self.assets_path = get_prefix_path("gazebo_domain_randomizer") + "/../src/gazebo_domain_random/assets"
+        self.assets_path = os.path.join(get_package_share_directory('gazebo_domain_random'), 'assets')
 
         self.addTarget()
 

@@ -107,8 +107,6 @@ Compile the workspace
 
 Use my own ``gazebo_ros_pkgs`` branch, which includes a merge of plugins that are still pending aproval in the official repository. Replace the current ``gazebo_ros_pkgs`` repository in ``ros2_mara_ws/src`` with ``https://github.com/nzlz/gazebo_ros_pkgs -b ros2_merge_state_time_cmds`` .
 
-Use my own ``gazebo_domain_random`` branch, which emulates the path to assets relative to ``gazebo_domain_randomizer``. Required while that repo is not ported to ROS2. Clone ``https://github.com/nzlz/gazebo_domain_random.git -b master`` into ``ros2_mara_ws/src``.
-
 Ubuntu 18
 ^^^^^^^^^
 Build the workspace using the ``--merge-install`` flag.

@@ -1,12 +1,14 @@
 import socket
 import random
 import os
+import gym_gazebo
 from multiprocessing import Process
 
 from launch import LaunchService, LaunchDescription
 from launch.actions.execute_process import ExecuteProcess
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory, get_package_prefix
+
 
 def start_launch_servide_process(ld):
     """Starts a Launch Service process. To be called from subclasses.
@@ -59,9 +61,9 @@ def generate_launch_description_mara(gzclient, real_speed):
     MARA_plugin_path = os.path.join(ros2_ws_path, 'src', 'MARA', 'mara_gazebo_plugins', 'build')
 
     if not real_speed:
-        world_path = os.path.join(get_package_share_directory('mara_gazebo'), 'worlds', 'empty_speed_up.world')
+        world_path = os.path.join(os.path.dirname(gym_gazebo.__file__), 'worlds', 'empty__state_plugin__speed_up.world')
     else:
-        world_path = ''  # Use the default empty world provided by gazebo.
+        world_path = os.path.join(os.path.dirname(gym_gazebo.__file__), 'worlds', 'empty__state_plugin.world')
 
     if 'GAZEBO_MODEL_PATH' in os.environ:
         os.environ['GAZEBO_MODEL_PATH'] =  (os.environ['GAZEBO_MODEL_PATH'] + ':' + install_dir + 'share'

@@ -3,10 +3,14 @@ repositories:
     type: git
     url: https://github.com/erlerobot/control_msgs
     version: crystal
+  gazebo_domain_random:
+    type: git
+    url: https://github.com/erlerobot/gazebo_domain_random
+    version: ros2
   gazebo_ros_pkgs:
     type: git
     url: https://github.com/ros-simulation/gazebo_ros_pkgs
-    version: ros2    
+    version: ros2
   HRIM:
     type: git
     url: https://github.com/erlerobot/HRIM
@@ -14,7 +18,7 @@ repositories:
   image_common:
     type: git
     url: https://github.com/ros-perception/image_common
-    version: ros2     
+    version: ros2
   MARA:
     type: git
     url: https://github.com/AcutronicRobotics/MARA

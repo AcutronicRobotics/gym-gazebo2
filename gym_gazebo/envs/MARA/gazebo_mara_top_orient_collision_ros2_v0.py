@@ -5,11 +5,6 @@ Additional Env specific dependencies:
 
 gazebo_ros_pkgs (merge from branch ros2_state required)
 for now: https://github.com/nzlz/gazebo_ros_pkgs -b ros2_merge_state_time_cmds
-
-Emulate path to assets relative to gazebo_domain_randomizer.
-Only while gazebo_domain_random is NOT PORTED to ROS2.
-https://github.com/nzlz/gazebo_domain_random.git -b master
-
 """
 
 import gym
@@ -280,9 +275,7 @@ class GazeboMARATopOrientCollisionv0EnvROS2(gym.Env):
         pose.orientation.w = 0.0;
         reference_frame = "world"
 
-        # TODO. Migrate gazebo_domain_random to ROS2 and FIX this.
-        #self.assets_path = os.path.abspath(os.path.join(rospkg.RosPack().get_path("gazebo_domain_randomizer"), os.pardir)) + "/assets"
-        self.assets_path = get_prefix_path("gazebo_domain_randomizer") + "/../src/gazebo_domain_random/assets"
+        self.assets_path = os.path.join(get_package_share_directory('gazebo_domain_random'), 'assets')
 
         file_xml = open(self.assets_path + '/models/urdf/target_point.urdf' ,mode='r')
         model_xml = file_xml.read()

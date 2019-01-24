@@ -1,0 +1,36 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="default">
+    <!-- Accelerated world. This world pushes gazebo simulation to the maximum
+    the MARA is able to handle. These values seem reasonable and should work 
+    with other robots too. Update the values to be closer to the defaults in case of unexpected behaviors.
+
+    TODO: A world plugin could handle disabling atmosphere/magnetic_field.. which would result in a very very slight performance improvement. -->
+
+    <plugin name="gazebo_ros_state" filename="libgazebo_ros_state.so">
+      <ros>
+        <namespace></namespace>
+      </ros>
+    </plugin>
+
+    <!-- A global light source -->
+    <include>
+      <uri>model://sun</uri>
+    </include>
+    <!-- A ground plane -->
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+    <!-- Speed up the simulation to the maximum -->
+    <physics type="ode">
+      <max_step_size>0.00105</max_step_size>
+      <real_time_update_rate>0</real_time_update_rate>
+      <ode>
+        <solver>
+          <iters>5</iters> <!-- Default value is 50 -->
+        </solver>
+      </ode>
+    </physics>
+
+  </world>
+</sdf>
