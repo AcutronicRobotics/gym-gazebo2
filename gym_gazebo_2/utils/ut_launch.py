@@ -1,11 +1,11 @@
 import socket
 import random
 import os
-import gym_gazebo
+import gym_gazebo_2
 import pathlib
 from datetime import datetime
 from multiprocessing import Process
-from gym_gazebo.utils import ut_generic
+from gym_gazebo_2.utils import ut_generic
 
 from launch import LaunchService, LaunchDescription
 from launch.actions.execute_process import ExecuteProcess
@@ -78,9 +78,9 @@ def generate_launch_description_mara(gzclient, real_speed):
     MARA_plugin_path = os.path.join(ros2_ws_path, 'src', 'MARA', 'mara_gazebo_plugins', 'build')
 
     if not real_speed:
-        world_path = os.path.join(os.path.dirname(gym_gazebo.__file__), 'worlds', 'empty__state_plugin__speed_up.world')
+        world_path = os.path.join(os.path.dirname(gym_gazebo_2.__file__), 'worlds', 'empty__state_plugin__speed_up.world')
     else:
-        world_path = os.path.join(os.path.dirname(gym_gazebo.__file__), 'worlds', 'empty__state_plugin.world')
+        world_path = os.path.join(os.path.dirname(gym_gazebo_2.__file__), 'worlds', 'empty__state_plugin.world')
 
     if 'GAZEBO_MODEL_PATH' in os.environ:
         os.environ['GAZEBO_MODEL_PATH'] =  (os.environ['GAZEBO_MODEL_PATH'] + ':' + install_dir + 'share'

@@ -6,7 +6,7 @@ import copy
 import threading # Used for time locks to synchronize position data.
 import os
 from gym import utils, spaces
-from gym_gazebo.utils import ut_gazebo, ut_generic, ut_launch, ut_mara, ut_math
+from gym_gazebo_2.utils import ut_gazebo, ut_generic, ut_launch, ut_mara, ut_math
 from gym.utils import seeding
 from gazebo_msgs.srv import SpawnModel, DeleteModel, SpawnEntity
 from multiprocessing import Process

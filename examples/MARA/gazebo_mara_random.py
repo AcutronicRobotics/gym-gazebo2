@@ -1,5 +1,5 @@
 import gym
-import gym_gazebo
+import gym_gazebo_2
 import time
 import random
 

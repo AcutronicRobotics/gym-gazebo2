@@ -1,7 +1,7 @@
-gym-gazebo
-**********
+gym-gazebo-ros2
+************
 
-**gym-gazebo is a toolkit for developing reinforcement learning algotihms using ROS 2 and Gazebo.** Initially built as an extension for the `OpenAI Gym <https://github.com/openai/gym>`_ , now adopts a stand alone structure while mantaining the core concepts of the Gym.
+**gym-gazebo-ros2 is a toolkit for developing reinforcement learning algotihms using ROS 2 and Gazebo.** Initially built as an extension for the `OpenAI Gym <https://github.com/openai/gym>`_ , now adopts a stand alone structure while mantaining the core concepts of the Gym.
 
 
   The initial version, which presented the project as an extension of the initial OpenAI gym for robotics using ROS and Gazebo can be found in the ``/gym-gazebo`` repository. This version is available "as it is" and currently it is not supported by any specific organization, but community support is available `here <https://github.com/erlerobot/gym-gazebo/issues>`_. A whitepaper about that work is available at https://arxiv.org/abs/1608.05742. Please use the following BibTex entry to cite our work::
@@ -13,7 +13,7 @@ gym-gazebo
       year={2016}
     }
 
-**gym-gazebo** is a complex piece of software for roboticists that puts together simulation tools, robot middlewares (ROS, ROS 2), machine learning and reinforcement learning techniques. All together to create an environment whereto benchmark and develop behaviors with robots. Setting up `gym-gazebo` appropriately requires relevant familiarity with these tools.
+**gym-gazebo-ros2** is a complex piece of software for roboticists that puts together simulation tools, robot middlewares (ROS, ROS 2), machine learning and reinforcement learning techniques. All together to create an environment whereto benchmark and develop behaviors with robots. Setting up `gym-gazebo-ros2` appropriately requires relevant familiarity with these tools.
 
 .. contents:: **Contents of this document**
    :depth: 2
@@ -21,7 +21,7 @@ gym-gazebo
 Environments
 ============
 The code for each environment group is housed in its own subdirectory
-`gym/envs <https://github.com/erlerobot/gym-gazebo/blob/master/gym_gazebo/envs>`_. Robot specific simulation files should be housed in robot specific ROS2 packages.
+`gym_gazebo_2/envs <https://github.com/erlerobot/gym-gazebo-ros2/blob/master/gym_gazebo_2/envs>`_. Robot specific simulation files should be housed in robot specific ROS2 packages.
 
 MARA
 ----
@@ -33,7 +33,7 @@ MARA stands for Modular Articulated Robotic Arm and is a collaborative robotic a
 
 Simulated Robot
 ~~~~~~~~~~~~~~
-MARA also provides an accurate simulated version in Gazebo, which allows to translate behaviors from the simulated environment to the real robot. This is the version we will be training in gym-gazebo.
+MARA also provides an accurate simulated version in Gazebo, which allows to translate behaviors from the simulated environment to the real robot. This is the version we will be training in gym-gazebo-ros2.
 
 .. image:: imgs/mara_2.gif
 
@@ -85,7 +85,7 @@ Create the workspace and download source files:
 
     mkdir -p ~/ros2_mara_ws/src
     cd ~/ros2_mara_ws
-    wget https://raw.githubusercontent.com/erlerobot/gym-gazebo/master/provision/mara.repos
+    wget https://raw.githubusercontent.com/erlerobot/gym-gazebo-ros2/master/provision/mara.repos
     vcs import src < mara.repos
     # Avoid compiling erroneus package
     touch ~/ros2_mara_ws/src/orocos_kinematics_dynamics/orocos_kinematics_dynamics/COLCON_IGNORE
@@ -195,8 +195,8 @@ Gym should be installed with the latest version, which means using the source co
     cd gym
     pip3 install -e .
     
-Install Gym-Gazebo
-~~~~~~~~~~~~~~~~~~
+Install gym-gazebo-ros2
+~~~~~~~~~~~~~~~~~~~~
 Install this repository.
 
 .. code:: shell
@@ -267,7 +267,7 @@ If you want to get faster simulation speeds, you should launch the simulation wi
 
 Steps to launch the GUI:
 
-- In a new terminal, set the corresponding ``GAZEBO_MASTER_URI``: For convinience, this environment variable is printed at the beginning of every Env execution. Just copy and export it. You can also find information related to any running execution inside ``/tmp/gym-gazebo-2/running/`` folder. Example:
+- In a new terminal, set the corresponding ``GAZEBO_MASTER_URI``: For convinience, this environment variable is printed at the beginning of every Env execution. Just copy and export it. You can also find information related to any running execution inside ``/tmp/gym-gazebo-ros2/running/`` folder. Example:
 
 .. code:: shell
 
@@ -283,4 +283,4 @@ Final note: you can launch as many ``gzserver``s and ``gzclient``s as you want a
 
 What's new
 ==========
-- 2018-12-31: Release of gym-gazebo with ROS2 compatibility and MARA environments.
+- 2018-12-31: Release of gym-gazebo-ros2 with ROS2 compatibility and MARA environments.

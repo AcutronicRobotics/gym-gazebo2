@@ -3,7 +3,7 @@ from launch import LaunchDescription
 from launch.actions.execute_process import ExecuteProcess
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory, get_package_prefix
-from gym_gazebo.utils import launch_helpers
+from gym_gazebo_2.utils import launch_helpers
 
 def generate_launch_description():
     """

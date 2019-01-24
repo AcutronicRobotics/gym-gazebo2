@@ -1,12 +1,3 @@
-"""
-MIGRATION TO ROS2 IN PROCESS.
-
-Additional Env specific dependencies:
-
-gazebo_ros_pkgs (merge from branch ros2_state required)
-for now: https://github.com/nzlz/gazebo_ros_pkgs -b ros2_merge_state_time_cmds
-"""
-
 import gym
 gym.logger.set_level(40) # hide warnings
 import time
@@ -14,7 +5,7 @@ import os
 import numpy as np
 from gym import utils, spaces
 from gym.utils import seeding
-from gym_gazebo.utils import ut_gazebo, ut_generic, ut_launch, ut_mara, ut_math
+from gym_gazebo_2.utils import ut_gazebo, ut_generic, ut_launch, ut_mara, ut_math
 import copy
 import threading # Used for time locks to synchronize position data.
 
