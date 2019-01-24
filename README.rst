@@ -47,8 +47,8 @@ Install ROS 2.0 and Gazebo 9.6
 
 - **Gazebo 9.6**. Install Gazebo 9.6 following the official one-liner installation instructions. `Instructions <http://gazebosim.org/tutorials?tut=install_ubuntu#Defaultinstallation:one-liner>`_.
 - **ROS 2 Crystal**.
-   - Ubuntu 18: Install ROS 2.0 following the official instructions, binaries recommended. `Instructions <https://index.ros.org/doc/ros2/Linux-Install-Debians/>`_.
-   - Ubuntu 16: Install ROS 2.0 following the official instructions, sources required. `Instructions <https://index.ros.org/doc/ros2/Linux-Development-Setup/>`_.
+   - Ubuntu 18: Install ROS 2.0 following the official instructions, binaries recommended. `Instructions <https://index.ros.org/doc/ros2/Installation/Linux-Install-Debians/>`_.
+   - Ubuntu 16: Install ROS 2.0 following the official instructions, sources required. `Instructions <https://index.ros.org/doc/ros2/Installation/Linux-Development-Setup/>`_.
 
 MARA ROS 2.0 specific instructions
 ----------------------------------
