@@ -46,7 +46,7 @@ class MSG_INVALID_JOINT_NAMES_DIFFER(Exception):
     """Error object exclusively raised by _process_observations."""
     pass
 
-class GazeboMARATop3DOFv0EnvROS2(gym.Env):
+class GazeboMARAEnv(gym.Env):
     """
     TODO. Define the environment.
     """

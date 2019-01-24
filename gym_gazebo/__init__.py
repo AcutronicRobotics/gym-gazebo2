@@ -4,21 +4,21 @@ from gym.envs.registration import register
 # ----------------------------------------
 # MARA
 register(
-    id='MARATop3DOFROS2-v0',
-    entry_point='gym_gazebo.envs.MARA:GazeboMARATop3DOFv0EnvROS2',
+    id='MARA-v0',
+    entry_point='gym_gazebo.envs.MARA:GazeboMARAEnv',
 )
 
 register(
-    id='MARAOrientCollisionROS2-v0',
-    entry_point='gym_gazebo.envs.MARA:GazeboMARATopOrientCollisionv0EnvROS2',
+    id='MARAOrientCollision-v0',
+    entry_point='gym_gazebo.envs.MARA:GazeboMARAOrientCollisionEnv',
 )
 
 register(
-    id='MARAOrientVisionCollisionROS2-v0',
-    entry_point='gym_gazebo.envs.MARA:GazeboMARATopOrientVisionCollisionv0EnvROS2',
+    id='MARAOrientVisionCollision-v0',
+    entry_point='gym_gazebo.envs.MARA:GazeboMARAOrientVisionCollisionEnv',
 )
 
 register(
-    id='MARAOrientVisionROS2-v0',
-    entry_point='gym_gazebo.envs.MARA:GazeboMARATopOrientVisionv0EnvROS2',
+    id='MARAOrientVision-v0',
+    entry_point='gym_gazebo.envs.MARA:GazeboMARAOrientVisionEnv',
 )

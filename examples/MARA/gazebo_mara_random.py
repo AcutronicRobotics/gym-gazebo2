@@ -3,7 +3,7 @@ import gym_gazebo
 import time
 import random
 
-env = gym.make('MARATop3DOFROS2-v0')
+env = gym.make('MARA-v0')
 
 for i in range(100):
     env.reset()
