@@ -55,8 +55,6 @@ MARA ROS 2.0 specific instructions
 
 Following folder naming is recommended!
 
-**TODO. TEMPORARY NOTE 1:** gym-gazebo-ros2 is private for now and it's temporary location is: https://github.com/erlerobot/gym-gazebo-ros2 . Take that into consideration while following the instructions.
-
 Install development tools, ROS tools
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -106,6 +104,8 @@ Compile the workspace
 **Note for Devs:** In order to work with the ``orient_collision`` environment you need to do the following temporary changes:
 
 Use my own ``gazebo_ros_pkgs`` branch, which includes a merge of plugins that are still pending aproval in the official repository. Replace the current ``gazebo_ros_pkgs`` repository in ``ros2_mara_ws/src`` with ``https://github.com/nzlz/gazebo_ros_pkgs -b ros2_merge_state_time_cmds`` .
+
+Please make sure you are not sourcing ROS1 workspaces via bashrc or any other way.
 
 Ubuntu 18
 ^^^^^^^^^
