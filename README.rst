@@ -215,7 +215,7 @@ First we need setup ROS2, MARA ROS2 workspace and Gazebo. It is convenient that 
 
 .. code:: shell
 
-    echo "source ~/gym-gazebo-ros2/gym_gazebo/provision/mara_setup.sh" >> ~/.bashrc
+    echo "source ~/gym-gazebo-ros2/provision/mara_setup.sh" >> ~/.bashrc
     source ~/.bashrc
 
 
