@@ -2,7 +2,10 @@ import socket
 import random
 import os
 import gym_gazebo
+import pathlib
+from datetime import datetime
 from multiprocessing import Process
+from gym_gazebo.utils import ut_generic
 
 from launch import LaunchService, LaunchDescription
 from launch.actions.execute_process import ExecuteProcess
@@ -44,6 +47,20 @@ def get_exclusive_network_parameters():
     while is_port_in_use(random_port):
         print("Randomly selected port is already in use, retrying.")
         random_port = random.randint(10000, 15000)
+
+    # Save network segmentation related information in a temporary folder.
+    temp_path = '/tmp/gym-gazebo-2/running/'
+    pathlib.Path(temp_path).mkdir(parents=True, exist_ok=True)
+
+    # Remove old tmp files.
+    ut_generic.clean_old_files(temp_path, ".log", 2)
+
+    filename = datetime.now().strftime('running_since_%H_%M__%d_%m_%Y.log')
+
+    f = open(temp_path + '/' + filename, 'w+')
+    f.write(filename + '\nROS_DOMAIN_ID='+str(random_port)+'\nGAZEBO_MASTER_URI=http://localhost:' + str(random_port))
+    f.close()
+
     return {'ros_domain_id':str(random_port),
      'gazebo_master_uri':"http://localhost:" + str(random_port)}
 
