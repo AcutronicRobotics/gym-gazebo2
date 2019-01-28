@@ -1,4 +1,4 @@
-from gym_gazebo_2.utils import ut_generic
+from gym_gazebo2.utils import ut_generic
 from gazebo_msgs.srv import SpawnEntity
 import rclpy
 

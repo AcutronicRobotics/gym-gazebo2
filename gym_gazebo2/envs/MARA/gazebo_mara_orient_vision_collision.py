@@ -9,15 +9,15 @@ import gym
 gym.logger.set_level(40) # hide warnings
 import time
 import os
-import random
 import numpy as np
 from gym import utils, spaces
 from gym.utils import seeding
-from gym_gazebo_2.utils import ut_gazebo, ut_generic, ut_launch, ut_mara, ut_math
+from gym_gazebo2.utils import ut_gazebo, ut_generic, ut_launch, ut_mara, ut_math
 import copy
 import threading # Used for time locks to synchronize position data.
 
 from gazebo_msgs.srv import SpawnEntity, DeleteEntity, GetEntityState, SetEntityState
+from gazebo_msgs.msg import ContactState
 from gazebo_msgs.msg import ModelState, LinkState
 from gazebo_msgs.msg import EntityState
 
@@ -25,7 +25,7 @@ from std_srvs.srv import Empty
 from std_msgs.msg import String, Empty as stdEmpty
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint # Used for publishing scara joint angles.
 from control_msgs.msg import JointTrajectoryControllerState
-from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Pose, Vector3, WrenchStamped
 
 # ROS 2
 import rclpy
@@ -50,7 +50,7 @@ class MSG_INVALID_JOINT_NAMES_DIFFER(Exception):
     pass
 
 
-class GazeboMARAOrientVisionEnv(gym.Env):
+class GazeboMARAOrientVisionCollisionEnv(gym.Env):
     """
     TODO, description.
     """
@@ -66,9 +66,10 @@ class GazeboMARAOrientVisionEnv(gym.Env):
         self.gzclient = args.gzclient
         self.real_speed = args.real_speed
         self.velocity = args.velocity
+        self.multi_instance = args.multi_instance
 
         # Launch mara in a new Process
-        ut_launch.start_launch_servide_process(ut_launch.generate_launch_description_mara(self.gzclient, self.real_speed))
+        ut_launch.start_launch_servide_process(ut_launch.generate_launch_description_mara(self.gzclient, self.real_speed, self.multi_instance))
         # Wait a bit for the spawn process.
         # TODO, replace sleep function.
         time.sleep(5)
@@ -94,6 +95,8 @@ class GazeboMARAOrientVisionEnv(gym.Env):
         # default to seconds
         self.reset_jnts = True
         self.detect_target_once = 1
+        self._collision_msg = None
+        self._filter_collision = None
 
         self._time_lock = threading.RLock()
 
@@ -190,6 +193,9 @@ class GazeboMARAOrientVisionEnv(gym.Env):
                                                 JOINT_SUBSCRIBER,
                                                 self.observation_callback,
                                                 qos_profile=qos_profile_sensor_data)
+        self._sub_coll = self.node.create_subscription(ContactState,
+                                                '/gazebo_contacts',
+                                                self.collision_callback)
         TARGET_SUBSCRIBER = '/mara/target'
         self._sub_tgt = self.node.create_subscription(Pose,
                                                 TARGET_SUBSCRIBER,
@@ -266,6 +272,21 @@ class GazeboMARAOrientVisionEnv(gym.Env):
         Callback method for the subscriber of JointTrajectoryControllerState
         """
         self._observation_msg =  message
+
+    def collision_callback(self, message):
+        """
+        Callback method for the subscriber of Collision data
+        """
+        if "puzzle_ball_joints::cubie" not in message.collision1_name and "puzzle_ball_joints::cubie" not in message.collision2_name:
+
+            if "robot::motor6_link::motor6_link_fixed_joint_lump__robotiq_arg2f_base_link_collision_1" not in message.collision1_name and  "robot::left_outer_finger::left_outer_finger_collision" not in message.collision2_name:
+                if "puzzle_ball_joints::cubie" not in message.collision1_name or  "robot::table::table_fixed_joint_lump__mara_work_area_link_collision_4" not in message.collision2_name:
+                    self._collision_msg =  message
+                    # print("\ncollision: ", self._collision_msg)
+
+        # if "puzzle_ball_joints::cubie" not in self._filter_collision.collision1_name or  "robot::table::table_fixed_joint_lump__mara_work_area_link_collision_4" not in self._filter_collision.collision2_name:
+        #     self._collision_msg = self._filter_collision
+        #     # print(self._collision_msg)
 
     def tgt_callback(self,msg):
         # print("Whats the target?: ", msg)
@@ -367,12 +388,13 @@ class GazeboMARAOrientVisionEnv(gym.Env):
         pose = Pose()
 
         pose.position.x = -0.5074649153217804#-0.5074649153217804#random.uniform(-0.3, -0.6);
-        pose.position.y = random.uniform(-0.02, 0.01)#0.03617460539210797#random.uniform(-0.02, 0.01)        # stay put in Z!!!
+        pose.position.y = 0.03617460539210797#random.uniform(-0.02, 0.01)
+        # stay put in Z!!!
         pose.position.z = 0.72#0.72#0.80 #0.72;
 
         roll = 0.0#random.uniform(-0.2, 0.6)
         pitch = 0.0#random.uniform(-0.2, 0.2)
-        yaw = 0.0#-0.3#random.uniform(-0.3, 0.3)
+        yaw = -0.3#-0.3#random.uniform(-0.3, 0.3)
         new_camera_pose = False
         q_rubik = tf.taitbryan.euler2quat(yaw, pitch, roll)
         # print("q_rubik: ", q_rubik.x, q_rubik.y, q_rubik.z, q_rubik.w)
@@ -424,17 +446,6 @@ class GazeboMARAOrientVisionEnv(gym.Env):
 
         future = self.remove_entity.call_async(req)
         rclpy.spin_until_future_complete(self.node, future)
-
-    def removeTargetSphere(self):
-        while not self.remove_entity.wait_for_service(timeout_sec=1.0):
-            self.node.get_logger().info('/delete_entity service not available, waiting again...')
-
-        req = DeleteEntity.Request()
-        req.name = "target"
-
-        future = self.remove_entity.call_async(req)
-        rclpy.spin_until_future_complete(self.node, future)
-
 
     def setTargetPositions(self, msg):
         """
@@ -623,9 +634,9 @@ class GazeboMARAOrientVisionEnv(gym.Env):
         trials = 0
         while not action_finished:
             trials += 1
-            if trials > 200 and not resetting: #action failed, probably hitting the table.
-                print("Can't complete trajectory, setting new trajectory: initial_positions")
-                resetting = True
+            # if trials > 200 and not resetting: #action failed, probably hitting the table.
+            #     print("Can't complete trajectory, setting new trajectory: initial_positions")
+            #     resetting = True
             if resetting:
 
                 # Reset simulation
@@ -651,18 +662,17 @@ class GazeboMARAOrientVisionEnv(gym.Env):
     def step(self, action):
         """
         Implement the environment step abstraction. Execute action and returns:
-            - reward
-            - done (status)
             - action
             - observation
-            - dictionary (#TODO clarify)
+            - reward
+            - done (status)
         """
         self.iterator+=1
 
         # Execute "action"
         self._pub.publish(ut_mara.get_trajectory_message(
             action[:self.scara_chain.getNrOfJoints()],
-            self.environment['joint_order'],
+             self.environment['joint_order'],
             self.velocity))
         # Wait until the action is finished.
         self.wait_for_action(action)
@@ -672,6 +682,20 @@ class GazeboMARAOrientVisionEnv(gym.Env):
         self.ob = self.take_observation()
         while(self.ob is None):
             self.ob = self.take_observation()
+
+        if self._collision_msg is not None:
+            if self._collision_msg.collision1_name:
+                if self._collision_msg.collision2_name:
+                    print("\ncollision detected: ", self._collision_msg)
+                    # Resets the state of the environment and returns an initial observation.
+                    while not self.reset_sim.wait_for_service(timeout_sec=1.0):
+                        self.node.get_logger().info('/reset_simulation service not available, waiting again...')
+
+                    future = self.reset_sim.call_async(Empty.Request())
+                    rclpy.spin_until_future_complete(self.node, reset_future)
+
+                    self.reward = self.reward - 5
+                    self._collision_msg = None
 
         self.reward_dist = -ut_math.rmse_func(self.ob[self.scara_chain.getNrOfJoints():(self.scara_chain.getNrOfJoints()+3)])
         self.reward_orient = - ut_math.rmse_func(self.ob[self.scara_chain.getNrOfJoints()+3:(self.scara_chain.getNrOfJoints()+7)])

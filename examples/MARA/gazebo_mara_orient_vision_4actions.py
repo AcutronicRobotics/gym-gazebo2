@@ -3,7 +3,7 @@ This script is used to measure the performance of ROS2+Gazebo+MARA.
 4 actions are repeated always the same way, one after the other.
 """
 import gym
-import gym_gazebo_2
+import gym_gazebo2
 import time
 import random
 import numpy as np

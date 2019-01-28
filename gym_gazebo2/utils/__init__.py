@@ -10,4 +10,4 @@ not intended as API functions, and will not remain stable over time.
 #	from gym.utils import seeding
 
 #Usage for gym_gazebo utils:
-#	from gym_gazebo_2.utils import ros_utils
+#	from gym_gazebo2.utils import ros_utils

@@ -5,7 +5,7 @@ import os
 import numpy as np
 from gym import utils, spaces
 from gym.utils import seeding
-from gym_gazebo_2.utils import ut_gazebo, ut_generic, ut_launch, ut_mara, ut_math
+from gym_gazebo2.utils import ut_gazebo, ut_generic, ut_launch, ut_mara, ut_math
 import copy
 import threading # Used for time locks to synchronize position data.
 
@@ -58,9 +58,10 @@ class GazeboMARAOrientCollisionEnv(gym.Env):
         self.gzclient = args.gzclient
         self.real_speed = args.real_speed
         self.velocity = args.velocity
+        self.multi_instance = args.multi_instance
 
         # Launch mara in a new Process
-        ut_launch.start_launch_servide_process(ut_launch.generate_launch_description_mara(self.gzclient, self.real_speed))
+        ut_launch.start_launch_servide_process(ut_launch.generate_launch_description_mara(self.gzclient, self.real_speed, self.multi_instance))
         # Wait a bit for the spawn process.
         # TODO, replace sleep function.
         time.sleep(5)
@@ -544,9 +545,9 @@ class GazeboMARAOrientCollisionEnv(gym.Env):
         trials = 0
         while not action_finished:
             trials += 1
-            if trials > 200 and not resetting: #action failed, probably hitting the table.
-                print("Can't complete trajectory, setting new trajectory: initial_positions")
-                resetting = True
+            # if trials > 200 and not resetting: #action failed, probably hitting the table.
+            #     print("Can't complete trajectory, setting new trajectory: initial_positions")
+            #     resetting = True
             if resetting:
 
                 # Reset simulation
