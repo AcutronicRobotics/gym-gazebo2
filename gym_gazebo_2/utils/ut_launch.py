@@ -43,10 +43,10 @@ def get_exclusive_network_parameters():
     Returns:
         Dictionary {ros_domain_id (string), ros_domain_id (string)}
     """
-    random_port = random.randint(10000, 15000)
+    random_port = random.randint(500, 1000)
     while is_port_in_use(random_port):
         print("Randomly selected port is already in use, retrying.")
-        random_port = random.randint(10000, 15000)
+        random_port = random.randint(500, 1000)
 
     # Save network segmentation related information in a temporary folder.
     temp_path = '/tmp/gym-gazebo-2/running/'
