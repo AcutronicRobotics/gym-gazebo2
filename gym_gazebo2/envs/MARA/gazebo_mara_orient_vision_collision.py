@@ -12,7 +12,7 @@ import os
 import numpy as np
 from gym import utils, spaces
 from gym.utils import seeding
-from gym_gazebo_2.utils import ut_gazebo, ut_generic, ut_launch, ut_mara, ut_math
+from gym_gazebo2.utils import ut_gazebo, ut_generic, ut_launch, ut_mara, ut_math
 import copy
 import threading # Used for time locks to synchronize position data.
 
