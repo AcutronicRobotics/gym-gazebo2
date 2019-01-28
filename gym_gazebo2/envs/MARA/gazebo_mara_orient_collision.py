@@ -58,9 +58,10 @@ class GazeboMARAOrientCollisionEnv(gym.Env):
         self.gzclient = args.gzclient
         self.real_speed = args.real_speed
         self.velocity = args.velocity
+        self.multi_instance = args.multi_instance
 
         # Launch mara in a new Process
-        ut_launch.start_launch_servide_process(ut_launch.generate_launch_description_mara(self.gzclient, self.real_speed))
+        ut_launch.start_launch_servide_process(ut_launch.generate_launch_description_mara(self.gzclient, self.real_speed, self.multi_instance))
         # Wait a bit for the spawn process.
         # TODO, replace sleep function.
         time.sleep(5)

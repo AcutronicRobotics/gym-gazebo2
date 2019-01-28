@@ -12,6 +12,7 @@ def getArgsMARA():
     parser.add_argument('-g', '--gzclient', action='store_true', help='Run user interface.')
     parser.add_argument('-r', '--real_speed', action='store_true', help='Execute the simulation in real speed. RTF=1.')
     parser.add_argument('-v', '--velocity', type=float, default=1.0, help='Set servo motor velocity. Keep < 1.41 for real speed.')
+    parser.add_argument('-m', '--multi_instance', action='store_true', help='Provide network segmentation to allow multiple instances.')
     args = parser.parse_args()
 
     return args

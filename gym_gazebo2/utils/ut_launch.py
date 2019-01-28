@@ -64,7 +64,7 @@ def get_exclusive_network_parameters():
     return {'ros_domain_id':str(random_port),
      'gazebo_master_uri':"http://localhost:" + str(random_port)}
 
-def generate_launch_description_mara(gzclient, real_speed):
+def generate_launch_description_mara(gzclient, real_speed, multi_instance):
     """
         Returns ROS2 LaunchDescription object.
         Args:
@@ -94,15 +94,15 @@ def generate_launch_description_mara(gzclient, real_speed):
     else:
         os.environ['GAZEBO_PLUGIN_PATH'] = install_dir + '/lib' + ':' + MARA_plugin_path
 
-
-    # Exclusive network segmentation, which allows to launch multiple instances of ROS2+Gazebo
-    network_params = get_exclusive_network_parameters()
-    os.environ["ROS_DOMAIN_ID"] = network_params.get('ros_domain_id')
-    os.environ["GAZEBO_MASTER_URI"] = network_params.get('gazebo_master_uri')
-    print("")
-    print("ROS_DOMAIN_ID=" + network_params.get('ros_domain_id'))
-    print("GAZEBO_MASTER_URI=" + network_params.get('gazebo_master_uri'))
-    print("")
+    if multi_instance:
+        # Exclusive network segmentation, which allows to launch multiple instances of ROS2+Gazebo
+        network_params = get_exclusive_network_parameters()
+        os.environ["ROS_DOMAIN_ID"] = network_params.get('ros_domain_id')
+        os.environ["GAZEBO_MASTER_URI"] = network_params.get('gazebo_master_uri')
+        print("******* Exclusive network segmentation *******")
+        print("ROS_DOMAIN_ID=" + network_params.get('ros_domain_id'))
+        print("GAZEBO_MASTER_URI=" + network_params.get('gazebo_master_uri'))
+        print("")
 
     try:
         envs = {}
