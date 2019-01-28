@@ -240,6 +240,8 @@ optional arguments:
   -r, --real_speed      Execute the simulation in real speed. RTF=1.
   -v VELOCITY, --velocity VELOCITY
                         Set servo motor velocity. Keep < 1.41 for real speed.
+  -m, --multi_instance  Provide network segmentation to allow multiple
+                        instances.
 ```
 
 ### gzserver-gzclient
