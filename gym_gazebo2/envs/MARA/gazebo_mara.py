@@ -99,7 +99,7 @@ class GazeboMARAEnv(gym.Env):
         # target, where should the agent reach
         EE_POS_TGT = np.asmatrix([-0.5087683179567231 - 0.14134294, 0.18728049, (2.03314576-1.4808068867058566)*1.3333])
         EE_ROT_TGT = np.asmatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-        
+
         EE_POINTS = np.asmatrix([[0, 0, 0]])
         EE_VELOCITIES = np.asmatrix([[0, 0, 0]])
 
@@ -254,7 +254,7 @@ class GazeboMARAEnv(gym.Env):
         pose.orientation.y= 0.0;
         pose.orientation.z = 0.0;
         pose.orientation.w = 0.0;
-        
+
         #override previous spawn_request element.
         self.spawn_request = SpawnEntity.Request()
         self.spawn_request.name = "target"
@@ -335,7 +335,7 @@ class GazeboMARAEnv(gym.Env):
             # vector, typically denoted asrobot_id 'x'.
             state = np.r_[np.reshape(last_observations, -1),
                           np.reshape(ee_points, -1),
-                          np.reshape(quat_error, -1),
+                          # np.reshape(quat_error, -1),
                           np.reshape(ee_velocities, -1),]
 
             return state
@@ -346,8 +346,8 @@ class GazeboMARAEnv(gym.Env):
 
     def wait_for_action(self, action):
         """Receives an action and loops until the robot reaches the pose set by the action.
-        
-        Note: This function can't be migrated to the ut_mara module since it reads constantly 
+
+        Note: This function can't be migrated to the ut_mara module since it reads constantly
         from the observation callback provided by /mara_controller/state.
         """
         action_finished = False
@@ -402,7 +402,7 @@ class GazeboMARAEnv(gym.Env):
             print("step: observation is Empty")
             self.ob = self.take_observation()
 
-        """NOTE: 
+        """NOTE:
         If MARA is stuck and can't complete the trajectory, the final pose of the trajectory will be the initial position.
         Which means, failing trajectories will receive the same reward as the inital_position pose.
         If the TARGET is UP (close to the inital pose) the MARA could learn to get stuck on purpose and fall into a local minimum.
