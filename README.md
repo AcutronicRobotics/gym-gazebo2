@@ -195,9 +195,7 @@ git clone https://github.com/erlerobot/gym-gazebo2
 cd gym-gazebo2
 pip3 install -e .
 ```
-## Usage
-
-### Executing an algorithm
+#### Environment variable provisioning
 
 First we need setup ROS2, MARA ROS2 workspace and Gazebo. It is convenient that the required environment variables are automatically added to your bash session every time a new shell is launched:
 
@@ -217,7 +215,11 @@ export PYTHONPATH=$PYTHONPATH:~/ros2_mara_ws/install/lib/python3/dist-packages
 export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:~/ros2_mara_ws/src/MARA
 export GAZEBO_PLUGIN_PATH=$GAZEBO_PLUGIN_PATH:~/ros2_mara_ws/src/MARA/mara_gazebo_plugins/build/
 ```
-Now that out environment is setup, we can execute the algorithm. Note that if you added the privisioning script to your `~/.bashrc`, you can directly execute the algorithm.
+## Usage
+
+### Executing an algorithm
+
+If you added the privisioning script to your `~/.bashrc`, you can directly execute the algorithm. Load the environment variables manually otherwise.
 
 ```sh
 cd ~/gym-gazebo2/examples/MARA
