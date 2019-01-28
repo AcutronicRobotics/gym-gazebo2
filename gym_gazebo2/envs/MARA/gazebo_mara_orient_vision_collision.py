@@ -634,9 +634,9 @@ class GazeboMARAOrientVisionCollisionEnv(gym.Env):
         trials = 0
         while not action_finished:
             trials += 1
-            if trials > 200 and not resetting: #action failed, probably hitting the table.
-                print("Can't complete trajectory, setting new trajectory: initial_positions")
-                resetting = True
+            # if trials > 200 and not resetting: #action failed, probably hitting the table.
+            #     print("Can't complete trajectory, setting new trajectory: initial_positions")
+            #     resetting = True
             if resetting:
 
                 # Reset simulation
