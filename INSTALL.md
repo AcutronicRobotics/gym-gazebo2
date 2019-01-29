@@ -173,12 +173,12 @@ source ~/.bashrc
 
 **Note**: This setup file contains paths to ROS and Gazebo used by default by this toolkit. If you installed ROS from sources (e.g: Ubuntu16 installation), you must modify the first line of the provisioning script:
 
-```sh
-(--- this line) source /opt/ros/crystal/setup.bash
-(+++ this line) source ~/ros_ws/install/setup.bash
-source ~/ros2_mara_ws/install/setup.bash
-source /usr/share/gazebo/setup.sh
-export PYTHONPATH=$PYTHONPATH:~/ros2_mara_ws/install/lib/python3/dist-packages
-export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:~/ros2_mara_ws/src/MARA
-export GAZEBO_PLUGIN_PATH=$GAZEBO_PLUGIN_PATH:~/ros2_mara_ws/src/MARA/mara_gazebo_plugins/build/
+```diff
+-  source /opt/ros/crystal/setup.bash
++  source ~/ros_ws/install/setup.bash
+   source ~/ros2_mara_ws/install/setup.bash
+   source /usr/share/gazebo/setup.sh
+   export PYTHONPATH=$PYTHONPATH:~/ros2_mara_ws/install/lib/python3/dist-packages
+   export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:~/ros2_mara_ws/src/MARA
+   export GAZEBO_PLUGIN_PATH=$GAZEBO_PLUGIN_PATH:~/ros2_mara_ws/src/MARA/mara_gazebo_plugins/build/
 ```
