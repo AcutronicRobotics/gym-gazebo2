@@ -76,7 +76,7 @@ python3 gazebo_mara_4actions.py
 Every MARA environment provides three command-line customization arguments. You can read the details by using the ``-h`` option in any MARA-script (e.g: `python3 gazebo_mara_4actions.py -h`). The help message is the following:
 
 ```sh
-usage: gazebo_mara_4actions.py [-h] [-g] [-r] [-v VELOCITY]
+usage: gazebo_mara_4actions.py [-h] [-g] [-r] [-v VELOCITY] [-m | -p PORT]
 
 MARA environment argument provider.
 
@@ -88,6 +88,8 @@ optional arguments:
                         Set servo motor velocity. Keep < 1.41 for real speed.
   -m, --multi_instance  Provide network segmentation to allow multiple
                         instances.
+  -p PORT, --port PORT  Provide exact port to the network segmentation to
+                        allow multiple instances.
 ```
 
 ### gzserver-gzclient
