@@ -43,10 +43,11 @@ def get_exclusive_network_parameters():
     Returns:
         Dictionary {ros_domain_id (string), ros_domain_id (string)}
     """
-    random_port = random.randint(500, 1000)
+
+    random_port = random.randint(10000, 15000)
     while is_port_in_use(random_port):
         print("Randomly selected port is already in use, retrying.")
-        random_port = random.randint(500, 1000)
+        random_port = random.randint(10000, 15000)
 
     # Save network segmentation related information in a temporary folder.
     temp_path = '/tmp/gym-gazebo-2/running/'
@@ -64,7 +65,7 @@ def get_exclusive_network_parameters():
     return {'ros_domain_id':str(random_port),
      'gazebo_master_uri':"http://localhost:" + str(random_port)}
 
-def generate_launch_description_mara(gzclient, real_speed, multi_instance):
+def generate_launch_description_mara(gzclient, real_speed, multi_instance, port):
     """
         Returns ROS2 LaunchDescription object.
         Args:
@@ -94,7 +95,14 @@ def generate_launch_description_mara(gzclient, real_speed, multi_instance):
     else:
         os.environ['GAZEBO_PLUGIN_PATH'] = install_dir + '/lib' + ':' + MARA_plugin_path
 
-    if multi_instance:
+    if port != 11345:  # Default gazebo port
+        os.environ["ROS_DOMAIN_ID"] = str(port)
+        os.environ["GAZEBO_MASTER_URI"] = "http://localhost:" + str(port)
+        print("******* Manual network segmentation *******")
+        print("ROS_DOMAIN_ID=" + os.environ['ROS_DOMAIN_ID'])
+        print("GAZEBO_MASTER_URI=" + os.environ['GAZEBO_MASTER_URI'])
+        print("")
+    elif multi_instance:
         # Exclusive network segmentation, which allows to launch multiple instances of ROS2+Gazebo
         network_params = get_exclusive_network_parameters()
         os.environ["ROS_DOMAIN_ID"] = network_params.get('ros_domain_id')
