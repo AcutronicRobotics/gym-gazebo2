@@ -433,24 +433,40 @@ class GazeboMARAOrientCollisionEnv(gym.Env):
             # if trials > 200 and not resetting: #action failed, probably hitting the table.
             #     print("Can't complete trajectory, setting new trajectory: initial_positions")
             #     resetting = True
-            if resetting:
-
-                # Reset simulation
-                reset_cli = self.node.create_client(Empty, '/reset_simulation')
-                while not reset_cli.wait_for_service(timeout_sec=1.0):
-                    self.node.get_logger().info('service not available, waiting again...')
-
-                reset_future = reset_cli.call_async(Empty.Request())
-                rclpy.spin_until_future_complete(self.node, reset_future)
-
-                # Avoid unnecessary pose check.
-                break
+            # if resetting:
+            #
+            #     # Reset simulation
+            #     reset_cli = self.node.create_client(Empty, '/reset_simulation')
+            #     while not reset_cli.wait_for_service(timeout_sec=1.0):
+            #         self.node.get_logger().info('service not available, waiting again...')
+            #
+            #     reset_future = reset_cli.call_async(Empty.Request())
+            #     rclpy.spin_until_future_complete(self.node, reset_future)
+            #
+            #     # Avoid unnecessary pose check.
+            #     break
 
             rclpy.spin_once(self.node)
             obs_message = self._observation_msg
             if obs_message is not None:
                 last_observation = ut_mara.process_observations(obs_message, self.environment)
                 action_finished = ut_mara.positions_match(action, last_observation)
+
+            if self._collision_msg is not None:
+                if self._collision_msg.collision1_name is None:
+                    raise AttributeError("collision1_name is None")
+                if self._collision_msg.collision2_name is None:
+                    raise AttributeError("collision2_name is None")
+
+                print("reseting")
+                # ROS 2
+                while not self.reset_sim.wait_for_service(timeout_sec=1.0):
+                    self.node.get_logger().info('service not available, waiting again...')
+
+                reset_future = self.reset_sim.call_async(Empty.Request())
+                rclpy.spin_until_future_complete(self.node, reset_future)
+                self._collision_msg = None
+                break
 
     def _seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -472,13 +488,13 @@ class GazeboMARAOrientCollisionEnv(gym.Env):
             self.environment['joint_order'],
             self.velocity))
         # Wait until the action is finished.
-        self.wait_for_action(action)
+        # self.wait_for_action(action)
 
         # # Take an observation
         # TODO: program this better, check that ob is not None, etc.
         self.ob = self.take_observation()
-        print(action)
-        print(self.ob)
+        # print(action)
+        # print(self.ob)
         while(self.ob is None):
             self.ob = self.take_observation()
 
@@ -488,40 +504,22 @@ class GazeboMARAOrientCollisionEnv(gym.Env):
         self.reward_orient = - orientation_scale * ut_math.rmse_func(self.ob[self.scara_chain.getNrOfJoints()+3:(self.scara_chain.getNrOfJoints()+6)])
         #scale here the orientation because it should not be the main bias of the reward, position should be
         print(self.iterator)
-        if self._collision_msg is not None:
-            if self._collision_msg.collision1_name is None:
-                raise AttributeError("collision1_name is None")
-            if self._collision_msg.collision2_name is None:
-                raise AttributeError("collision2_name is None")
 
-            self.reward = (self.reward_dist + self.reward_orient) * 5.0
-            print("reseting")
-            # ROS 2
-            while not self.reset_sim.wait_for_service(timeout_sec=1.0):
-                self.node.get_logger().info('service not available, waiting again...')
-
-            reset_future = self.reset_sim.call_async(Empty.Request())
-            rclpy.spin_until_future_complete(self.node, reset_future)
-            self._collision_msg = None
-            print("reseted")
-
+        # here we want to fetch the positions of the end-effector which are nr_dof:nr_dof+3
+        # here is the distance block
+        if abs(self.reward_dist) < 0.005:
+            self.reward = 1 + self.reward_dist # Make the reward increase as the distance decreases
+            self.reset_iter +=1
+            print("Reward dist is: ", self.reward)
+            if abs(self.reward_orient)<0.005:
+                self.reward = (2 + self.reward + self.reward_orient)*2
+                print("Reward dist + orient is: ", self.reward)
+            else:
+                self.reward = self.reward + self.reward_orient
+                print("Reward dist+(orient=>0.01) is: ", self.reward)
 
         else:
-            # here we want to fetch the positions of the end-effector which are nr_dof:nr_dof+3
-            # here is the distance block
-            if abs(self.reward_dist) < 0.005:
-                self.reward = 1 + self.reward_dist # Make the reward increase as the distance decreases
-                self.reset_iter +=1
-                print("Reward dist is: ", self.reward)
-                if abs(self.reward_orient)<0.005:
-                    self.reward = (2 + self.reward + self.reward_orient)*2
-                    print("Reward dist + orient is: ", self.reward)
-                else:
-                    self.reward = self.reward + self.reward_orient
-                    print("Reward dist+(orient=>0.01) is: ", self.reward)
-
-            else:
-                self.reward = self.reward_dist
+            self.reward = self.reward_dist
 
         done = bool((abs(self.reward_dist) < 0.001) or (self.iterator>self.max_episode_steps) or (abs(self.reward_orient) < 0.001) )
 
