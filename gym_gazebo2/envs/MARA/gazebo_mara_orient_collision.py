@@ -306,45 +306,6 @@ class GazeboMARAOrientCollisionEnv(gym.Env):
             # neither obj nor obstacle colliding with table
             self._collision_msg = message
 
-    def randomizeTargetPose(self, obj_name, centerPoint=False):
-        ms = ModelState()
-        if not centerPoint:
-            EE_POS_TGT = np.asmatrix([ round(np.random.uniform(-0.62713, -0.29082), 5), round(np.random.uniform(-0.15654, 0.15925), 5), self.realgoal[2] ])
-
-            roll = 0.0
-            pitch = 0.0
-            yaw = np.random.uniform(-1.57, 1.57)
-            q = tf.taitbryan.euler2quat(yaw, pitch, roll)
-            EE_ROT_TGT = tf.quaternions.quat2mat(q)
-            self.target_orientation = EE_ROT_TGT
-            ee_tgt = np.ndarray.flatten(get_ee_points(self.environment['end_effector_points'], EE_POS_TGT, EE_ROT_TGT).T)
-
-            ms.pose.position.x = EE_POS_TGT[0,0]
-            ms.pose.position.y = EE_POS_TGT[0,1]
-            ms.pose.position.z = EE_POS_TGT[0,2]
-            ms.pose.orientation.x = q.x
-            ms.pose.orientation.y = q.y
-            ms.pose.orientation.z = q.z
-            ms.pose.orientation.w = q.w
-
-            if obj_name != "target":
-                ms.model_name = obj_name
-                ut_gazebo.spawnModel(self.node, obj_name, self.obj_path, ms.pose)
-        else:
-            EE_POS_TGT = np.asmatrix([self.realgoal[0], self.realgoal[1], centerPoint])
-            ee_tgt = np.ndarray.flatten(get_ee_points(self.environment['end_effector_points'], EE_POS_TGT, self.target_orientation).T)
-
-            ms.pose.position.x = EE_POS_TGT[0,0]
-            ms.pose.position.y = EE_POS_TGT[0,1]
-            ms.pose.position.z = EE_POS_TGT[0,2]
-            ms.pose.orientation.x = 0;
-            ms.pose.orientation.y= 0;
-            ms.pose.orientation.z = 0;
-            ms.pose.orientation.w = 0;
-
-        self._pub_link_state.publish( LinkState(link_name="target_link", pose=ms.pose, reference_frame="world") )
-        self.realgoal = ee_tgt
-
     def take_observation(self):
         """
         Take observation from the environment and return it.
@@ -417,37 +378,35 @@ class GazeboMARAOrientCollisionEnv(gym.Env):
                           np.reshape(ee_velocities, -1),]
             return state
 
-    def wait_for_action(self, action):
+    def check_for_collision(self, action):
         """Receives an action and loops until the robot reaches the pose set by the action.
 
         Note: This function can't be migrated to the ut_mara module since it reads constantly
         from the observation callback provided by /mara_controller/state.
         """
-        action_finished = False
-        resetting = False
-        while not action_finished:
+        # action_finished = False
+        # resetting = False
+        # while not action_finished:
+        rclpy.spin_once(self.node)
 
-            rclpy.spin_once(self.node)
-            obs_message = self._observation_msg
-            if obs_message is not None:
-                last_observation = ut_mara.process_observations(obs_message, self.environment)
-                action_finished = ut_mara.positions_match(action, last_observation)
+        if self._collision_msg is not None:
+            if self._collision_msg.collision1_name is None:
+                raise AttributeError("collision1_name is None")
+            if self._collision_msg.collision2_name is None:
+                raise AttributeError("collision2_name is None")
 
-            if self._collision_msg is not None:
-                if self._collision_msg.collision1_name is None:
-                    raise AttributeError("collision1_name is None")
-                if self._collision_msg.collision2_name is None:
-                    raise AttributeError("collision2_name is None")
+            # ROS 2
+            while not self.reset_sim.wait_for_service(timeout_sec=1.0):
+                self.node.get_logger().info('service not available, waiting again...')
 
-                print("reseting")
-                # ROS 2
-                while not self.reset_sim.wait_for_service(timeout_sec=1.0):
-                    self.node.get_logger().info('service not available, waiting again...')
+            reset_future = self.reset_sim.call_async(Empty.Request())
+            rclpy.spin_until_future_complete(self.node, reset_future)
+            self._collision_msg = None
 
-                reset_future = self.reset_sim.call_async(Empty.Request())
-                rclpy.spin_until_future_complete(self.node, reset_future)
-                self._collision_msg = None
-                break
+            # obs_message = self._observation_msg
+            # if obs_message is not None:
+            #     last_observation = ut_mara.process_observations(obs_message, self.environment)
+            #     action_finished = ut_mara.positions_match(action, last_observation)
 
     def _seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -462,14 +421,13 @@ class GazeboMARAOrientCollisionEnv(gym.Env):
             - done (status)
         """
         self.iterator+=1
-
         # Execute "action"
         self._pub.publish(ut_mara.get_trajectory_message(
             action[:self.scara_chain.getNrOfJoints()],
             self.environment['joint_order'],
             self.velocity))
         # Wait until the action is finished.
-        # self.wait_for_action(action)
+        self.check_for_collision(action)
 
         # # Take an observation
         # TODO: program this better, check that ob is not None, etc.
@@ -484,6 +442,7 @@ class GazeboMARAOrientCollisionEnv(gym.Env):
         orientation_scale = 0.1
         self.reward_orient = - orientation_scale * ut_math.rmse_func(self.ob[self.scara_chain.getNrOfJoints()+3:(self.scara_chain.getNrOfJoints()+6)])
         #scale here the orientation because it should not be the main bias of the reward, position should be
+
 
         # here we want to fetch the positions of the end-effector which are nr_dof:nr_dof+3
         # here is the distance block
@@ -510,14 +469,6 @@ class GazeboMARAOrientCollisionEnv(gym.Env):
         """
         Reset the agent for a particular experiment condition.
         """
-        if self.reset_iter > self.rand_target_thresh:
-            # print("goal is before randomize: ", self.realgoal)
-            # print("resseting the iter and randomize target: ", self.reset_iter)
-            self.reset_iter = 0
-            self.randomizeTargetPose("target")
-            # print("self.reset_iter after reset: ", self.reset_iter)
-            with open("/tmp/rosrl/targets.txt", 'a') as out:
-                out.write( str(self.realgoal) + '\n' )
 
         self.iterator = 0
 
@@ -527,7 +478,7 @@ class GazeboMARAOrientCollisionEnv(gym.Env):
             #     self.environment['joint_order'],
             #     self.velocity))
             #
-            # self.wait_for_action(self.environment['reset_conditions']['initial_positions'])
+            # self.check_for_collision(self.environment['reset_conditions']['initial_positions'])
 
             while not self.reset_sim.wait_for_service(timeout_sec=1.0):
                 self.node.get_logger().info('service not available, waiting again...')
