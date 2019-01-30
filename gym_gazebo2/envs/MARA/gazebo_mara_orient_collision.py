@@ -304,9 +304,7 @@ class GazeboMARAOrientCollisionEnv(gym.Env):
         #print(message)
         if message.collision1_name != message.collision2_name:
             # neither obj nor obstacle colliding with table
-            table = "mara::table::table_collision"
-            if table in message.collision1_name or table in message.collision2_name:
-                self._collision_msg = message
+            self._collision_msg = message
 
     def randomizeTargetPose(self, obj_name, centerPoint=False):
         ms = ModelState()
@@ -427,24 +425,7 @@ class GazeboMARAOrientCollisionEnv(gym.Env):
         """
         action_finished = False
         resetting = False
-        trials = 0
         while not action_finished:
-            trials += 1
-            # if trials > 200 and not resetting: #action failed, probably hitting the table.
-            #     print("Can't complete trajectory, setting new trajectory: initial_positions")
-            #     resetting = True
-            # if resetting:
-            #
-            #     # Reset simulation
-            #     reset_cli = self.node.create_client(Empty, '/reset_simulation')
-            #     while not reset_cli.wait_for_service(timeout_sec=1.0):
-            #         self.node.get_logger().info('service not available, waiting again...')
-            #
-            #     reset_future = reset_cli.call_async(Empty.Request())
-            #     rclpy.spin_until_future_complete(self.node, reset_future)
-            #
-            #     # Avoid unnecessary pose check.
-            #     break
 
             rclpy.spin_once(self.node)
             obs_message = self._observation_msg
@@ -503,7 +484,6 @@ class GazeboMARAOrientCollisionEnv(gym.Env):
         orientation_scale = 0.1
         self.reward_orient = - orientation_scale * ut_math.rmse_func(self.ob[self.scara_chain.getNrOfJoints()+3:(self.scara_chain.getNrOfJoints()+6)])
         #scale here the orientation because it should not be the main bias of the reward, position should be
-        print(self.iterator)
 
         # here we want to fetch the positions of the end-effector which are nr_dof:nr_dof+3
         # here is the distance block
@@ -542,13 +522,18 @@ class GazeboMARAOrientCollisionEnv(gym.Env):
         self.iterator = 0
 
         if self.reset_jnts is True:
-            self._pub.publish(ut_mara.get_trajectory_message(
-                self.environment['reset_conditions']['initial_positions'],
-                self.environment['joint_order'],
-                self.velocity))
+            # self._pub.publish(ut_mara.get_trajectory_message(
+            #     self.environment['reset_conditions']['initial_positions'],
+            #     self.environment['joint_order'],
+            #     self.velocity))
+            #
+            # self.wait_for_action(self.environment['reset_conditions']['initial_positions'])
 
-            self.wait_for_action(self.environment['reset_conditions']['initial_positions'])
+            while not self.reset_sim.wait_for_service(timeout_sec=1.0):
+                self.node.get_logger().info('service not available, waiting again...')
 
+            reset_future = self.reset_sim.call_async(Empty.Request())
+            rclpy.spin_until_future_complete(self.node, reset_future)
         # Take an observation
         self.ob = self.take_observation()
         while(self.ob is None):
