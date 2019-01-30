@@ -301,130 +301,12 @@ class GazeboMARAOrientCollisionEnv(gym.Env):
         """
         Callback method for the subscriber of Collision data
         """
+        #print(message)
         if message.collision1_name != message.collision2_name:
             # neither obj nor obstacle colliding with table
-            if "obj::" not in message.collision1_name and "obstacle" not in message.collision1_name or "table_fixed_joint_lump__mara_work_area_link_collision_4" not in message.collision2_name:
-                # neither obj colliding with obstacle and vice-versa nor objs colliding each other nor obstacles colliding each other
-                if "obj::" not in (message.collision1_name and message.collision2_name) and "obstacle" not in (message.collision1_name and message.collision2_name):
-                    self._collision_msg = message
-
-    def randomizeSize(self, current_obj_name, shape):
-        f = open(self.obj_path,'r+')
-        model_xml = f.read()
-        f.seek(0)
-
-        min_size = 0.03
-        max_size = 0.1
-
-        if shape != 'box' and shape != 'cylinder' and shape != 'sphere':
-            raise TypeError("Shape must be 'box', 'cylinder' or 'sphere'")
-
-        if shape == "box":
-            size_x = str( round( np.random.uniform(min_size, max_size), 3 ) )
-            size_y = str( round( np.random.uniform(min_size, max_size), 3 ) )
-            size_z = str( round( np.random.uniform(min_size, max_size), 3 ) )
-            # height position of the wooden part of the table + height of the obj
-            z = 0.69525 + float(size_z) / 2
-        else:
-            radius = str( round( np.random.uniform(min_size, max_size/2), 3 ) )
-            z = 0.69525 + float(radius)
-            if shape == "cylinder":
-                length = str( round( np.random.uniform(min_size, max_size), 3 ) )
-                z = 0.69525 + float(length) / 2
-
-        model_file = ut_generic.getModelFileType(self.obj_path)
-        if model_file == "sdf":
-            if shape == "box":
-                to_replace = model_xml[model_xml.find('<size>')+len('<size>'):model_xml.find('</size>')]
-                model_xml = model_xml.replace(to_replace, size_x + ' ' + size_y + ' ' + size_z)
-            else:
-                to_replace = model_xml[model_xml.find('<radius>')+len('<radius>'):model_xml.find('</radius>')]
-                model_xml = model_xml.replace(to_replace, radius)
-                if shape == "cylinder":
-                    to_replace = model_xml[model_xml.find('<length>')+len('<length>'):model_xml.find('</length>')]
-                    model_xml = model_xml.replace(to_replace, length)
-
-        else:
-            if shape == "box":
-                to_replace = model_xml[model_xml.find('<box ')+len('<box '):model_xml.find('/>')]
-                model_xml = model_xml.replace(to_replace, 'size=' + '"' + size_x + ' ' + size_y + ' ' + size_z + '"')
-            else:
-                to_replace = model_xml[model_xml.find('<sphere ')+len('<sphere '):model_xml.find('/>')]
-                model_xml = model_xml.replace(to_replace, 'radius=' + '"' + radius + '"')
-                if shape == "cylinder":
-                    to_replace = model_xml[model_xml.find('<cylinder ')+len('<cylinder '):model_xml.find('/>')]
-                    model_xml = model_xml.replace(to_replace, 'length=' + '"' + length + '" ' + 'radius=' + '"' + radius + '"')
-
-        f.truncate()
-        f.write(model_xml)
-        f.close()
-        self.randomizeObjectType(current_obj_name=current_obj_name, replace=self.obj_path)
-        self.randomizeTargetPose(obj_name=current_obj_name, centerPoint=z)
-
-    def random_texture(self):
-        material_path = self.assets_path + "/media/materials/scripts/textures.material"
-        m = open(material_path,'r')
-        textures = []
-
-        for t in m:
-            if t.startswith("material "):
-                textures.append(t[9:-1])
-
-        rand_texture = np.random.choice(textures)
-        return rand_texture, textures
-
-    def randomizeTexture(self, current_obj_name):
-        f = open(self.obj_path,'r+')
-        model_xml = f.read()
-        f.seek(0)
-
-        new_texture, list_textures = self.random_texture()
-        for lt in list_textures:
-            if lt != str(new_texture):
-                model_xml = model_xml.replace(lt, new_texture)
-
-        f.truncate()
-        f.write(model_xml)
-        f.close()
-        self.randomizeObjectType(current_obj_name=current_obj_name, replace=self.obj_path)
-
-
-    def randomizeObjectType(self, current_obj_name=None, list_obj=None, replace=None):
-        # obj = ModelState()
-        while not self.get_entity_state.wait_for_service(timeout_sec=1.0):
-            self.node.get_logger().info('service not available, waiting again...')
-
-        req = GetEntityState.Request()
-        req.name = 'target'
-        req.reference_frame = ''
-
-        obj = self.add_entity.call_async(req)
-        rclpy.spin_until_future_complete(self.node, obj)
-
-        while not self.remove_entity.wait_for_service(timeout_sec=1.0):
-            self.node.get_logger().info('service not available, waiting again...')
-
-        req = DeleteEntity.Request()
-        req.name = current_obj_name
-
-        future = self.remove_entity.call_async(req)
-        rclpy.spin_until_future_complete(self.node, future)
-
-
-        if replace is None:
-            random_obj = np.random.choice(list_obj)
-            self.obj_path = random_obj
-        else:
-            random_obj = replace
-
-        ut_gazebo.spawnModel(self.node, current_obj_name, random_obj, obj.pose)
-
-    def randomizeStartPose(self, lower, upper):
-        self.environment['reset_conditions']['initial_positions'] = [ np.random.uniform(lower,upper), np.random.uniform(lower,upper),np.random.uniform(lower,upper), np.random.uniform(lower,upper),np.random.uniform(lower,upper),np.random.uniform(lower,upper) ]
-        self._pub.publish(ut_mara.get_trajectory_message(
-            self.environment['reset_conditions']['initial_positions'],
-            self.environment['joint_order'],
-            self.velocity))
+            table = "mara::table::table_collision"
+            if table in message.collision1_name or table in message.collision2_name:
+                self._collision_msg = message
 
     def randomizeTargetPose(self, obj_name, centerPoint=False):
         ms = ModelState()
@@ -539,8 +421,8 @@ class GazeboMARAOrientCollisionEnv(gym.Env):
 
     def wait_for_action(self, action):
         """Receives an action and loops until the robot reaches the pose set by the action.
-        
-        Note: This function can't be migrated to the ut_mara module since it reads constantly 
+
+        Note: This function can't be migrated to the ut_mara module since it reads constantly
         from the observation callback provided by /mara_controller/state.
         """
         action_finished = False
@@ -595,6 +477,8 @@ class GazeboMARAOrientCollisionEnv(gym.Env):
         # # Take an observation
         # TODO: program this better, check that ob is not None, etc.
         self.ob = self.take_observation()
+        print(action)
+        print(self.ob)
         while(self.ob is None):
             self.ob = self.take_observation()
 
@@ -603,7 +487,7 @@ class GazeboMARAOrientCollisionEnv(gym.Env):
         orientation_scale = 0.1
         self.reward_orient = - orientation_scale * ut_math.rmse_func(self.ob[self.scara_chain.getNrOfJoints()+3:(self.scara_chain.getNrOfJoints()+6)])
         #scale here the orientation because it should not be the main bias of the reward, position should be
-
+        print(self.iterator)
         if self._collision_msg is not None:
             if self._collision_msg.collision1_name is None:
                 raise AttributeError("collision1_name is None")
@@ -611,23 +495,16 @@ class GazeboMARAOrientCollisionEnv(gym.Env):
                 raise AttributeError("collision2_name is None")
 
             self.reward = (self.reward_dist + self.reward_orient) * 5.0
-
+            print("reseting")
             # ROS 2
             while not self.reset_sim.wait_for_service(timeout_sec=1.0):
                 self.node.get_logger().info('service not available, waiting again...')
 
-            future = self.reset_sim.call_async(Empty.Request())
+            reset_future = self.reset_sim.call_async(Empty.Request())
             rclpy.spin_until_future_complete(self.node, reset_future)
+            self._collision_msg = None
+            print("reseted")
 
-            pose = Pose()
-            pose.position.x = self.realgoal[0];
-            pose.position.y = self.realgoal[1];
-            pose.position.z = self.realgoal[2];
-            pose.orientation.x = 0;
-            pose.orientation.y= 0;
-            pose.orientation.z = 0;
-            pose.orientation.w = 0;
-            self._pub_link_state.publish(LinkState(link_name="target_link", pose=pose, reference_frame="world"))
 
         else:
             # here we want to fetch the positions of the end-effector which are nr_dof:nr_dof+3
@@ -649,7 +526,6 @@ class GazeboMARAOrientCollisionEnv(gym.Env):
         done = bool((abs(self.reward_dist) < 0.001) or (self.iterator>self.max_episode_steps) or (abs(self.reward_orient) < 0.001) )
 
         # Return the corresponding observations, rewards, etc.
-        self._collision_msg = None
         return self.ob, self.reward, done, {}
 
     def reset(self):
