@@ -14,6 +14,11 @@ register(
 )
 
 register(
+    id='MARACollision-v0',
+    entry_point='gym_gazebo2.envs.MARA:MARACollisionEnv',
+)
+
+register(
     id='MARAOrientCollision-v0',
     entry_point='gym_gazebo2.envs.MARA:GazeboMARAOrientCollisionEnv',
 )
