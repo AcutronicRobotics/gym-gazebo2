@@ -67,8 +67,6 @@ class MARAEnv(gym.Env):
         # class variables
         self._observation_msg = None
         self.obs = None
-        self.reward = None
-        self.reward_dist = None
         self.action_space = None
         self.realgoal = None
         self.max_episode_steps = 1000 # now used in all algorithms
@@ -317,12 +315,12 @@ class MARAEnv(gym.Env):
             self.ob = self.take_observation()
 
         # We want to fetch the positions of the end-effector which are nr_dof:nr_dof+3
-        self.reward_dist = ut_math.rmse_func(self.ob[self.scara_chain.getNrOfJoints():(self.scara_chain.getNrOfJoints()+3)])
-        if self.reward_dist < 0.005:
-            self.reward = 1 + self.reward_dist # Make the reward increase as the distance decreases
-            print("Reward is: ", self.reward)
+        reward_dist = ut_math.rmse_func(self.ob[self.scara_chain.getNrOfJoints():(self.scara_chain.getNrOfJoints()+3)])
+        if reward_dist < 0.005:
+            reward = 1 + reward_dist # Make the reward increase as the distance decreases
+            print("Reward is: ", reward)
         else:
-            self.reward = -self.reward_dist
+            reward = -reward_dist
 
         # Reset if there is a collision
         if self._collision_msg is not None:
@@ -334,10 +332,10 @@ class MARAEnv(gym.Env):
             self._collision_msg = None
 
         # Calculate if the env has been solved
-        done = bool( abs(self.reward_dist) < 0.005 ) or (self.iterator > self.max_episode_steps)
+        done = bool(reward_dist < 0.005) or (self.iterator > self.max_episode_steps)
 
         # Return the corresponding observations, rewards, etc.
-        return self.ob, self.reward, done, {}
+        return self.ob, reward, done, {}
 
     def reset(self):
         """
