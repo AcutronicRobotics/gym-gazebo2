@@ -80,7 +80,7 @@ class MARAEnv(gym.Env):
         #   Environment hyperparams
         #############################
         # Target, where should the agent reach
-        EE_POS_TGT = np.asmatrix([-0.5087683179567231 - 0.14134294, 0.18728049, (2.03314576-1.4808068867058566)*1.3333])
+        EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466])
         EE_ROT_TGT = np.asmatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
 
         EE_POINTS = np.asmatrix([[0, 0, 0]])
