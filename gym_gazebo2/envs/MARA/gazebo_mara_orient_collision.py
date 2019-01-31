@@ -372,6 +372,16 @@ class GazeboMARAOrientCollisionEnv(gym.Env):
 
             # Concatenate the information that defines the robot state
             # vector, typically denoted asrobot_id 'x'.
+            print("scara_num_joints")
+            print(self.scara_chain.getNrOfJoints())
+            print("last_observations")
+            print(last_observations)
+            print("ee_points")
+            print(ee_points)
+            print("rot_vec_err")
+            print(rot_vec_err)
+            print("ee_velocities")
+            print(ee_velocities)
             state = np.r_[np.reshape(last_observations, -1),
                           np.reshape(ee_points, -1),
                           np.reshape(rot_vec_err, -1),
@@ -388,7 +398,7 @@ class GazeboMARAOrientCollisionEnv(gym.Env):
         # resetting = False
         # while not action_finished:
         rclpy.spin_once(self.node)
-
+        collision_punishment = False
         if self._collision_msg is not None:
             if self._collision_msg.collision1_name is None:
                 raise AttributeError("collision1_name is None")
@@ -403,10 +413,12 @@ class GazeboMARAOrientCollisionEnv(gym.Env):
             rclpy.spin_until_future_complete(self.node, reset_future)
             self._collision_msg = None
 
+            collision_punishment = True
             # obs_message = self._observation_msg
             # if obs_message is not None:
             #     last_observation = ut_mara.process_observations(obs_message, self.environment)
             #     action_finished = ut_mara.positions_match(action, last_observation)
+        return collision_punishment
 
     def _seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -427,7 +439,7 @@ class GazeboMARAOrientCollisionEnv(gym.Env):
             self.environment['joint_order'],
             self.velocity))
         # Wait until the action is finished.
-        self.check_for_collision(action)
+        collision_punishment = self.check_for_collision(action)
 
         # # Take an observation
         # TODO: program this better, check that ob is not None, etc.
@@ -459,6 +471,9 @@ class GazeboMARAOrientCollisionEnv(gym.Env):
 
         else:
             self.reward = self.reward_dist
+
+        if collision_punishment:
+            self.reward = self.reward*10.0
 
         done = bool((abs(self.reward_dist) < 0.001) or (self.iterator>self.max_episode_steps) or (abs(self.reward_orient) < 0.001) )
 
