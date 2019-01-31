@@ -5,6 +5,7 @@ import numpy as np
 import copy
 import os
 import sys
+import transforms3d as tf
 from gym import utils, spaces
 from gym_gazebo2.utils import ut_generic, ut_launch, ut_mara, ut_math
 from gym.utils import seeding
@@ -34,7 +35,7 @@ class MSG_INVALID_JOINT_NAMES_DIFFER(Exception):
     """Error object exclusively raised by _process_observations."""
     pass
 
-class MARAEnv(gym.Env):
+class MARAOrientEnv(gym.Env):
     """
     TODO. Define the environment.
     """
@@ -79,7 +80,10 @@ class MARAEnv(gym.Env):
         #############################
         # Target, where should the agent reach
         EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466])
-        EE_ROT_TGT = np.asmatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        EE_ROT_TGT = np.asmatrix([
+                                [0.79660969, -0.51571238,  0.31536287],
+                                [0.51531424,  0.85207952,  0.09171542],
+                                [-0.31601302,  0.08944959,  0.94452874] ])
 
         EE_POINTS = np.asmatrix([[0, 0, 0]])
         EE_VELOCITIES = np.asmatrix([[0, 0, 0]])
@@ -133,6 +137,7 @@ class MARAEnv(gym.Env):
         ee_rot_tgt = EE_ROT_TGT
 
         # Initialize target end effector position
+        self.target_orientation = ee_rot_tgt
         self.realgoal = np.ndarray.flatten(get_ee_points(EE_POINTS, ee_pos_tgt, ee_rot_tgt).T)
 
         self.environment = {
@@ -162,7 +167,7 @@ class MARAEnv(gym.Env):
         # self._currently_resetting = [False for _ in range(1)]
         # self.reset_joint_angles = [None for _ in range(1)]
 
-        self.obs_dim = self.scara_chain.getNrOfJoints() + 6
+        self.obs_dim = self.scara_chain.getNrOfJoints() + 10
 
         # # Here idially we should find the control range of the robot. Unfortunatelly in ROS/KDL there is nothing like this.
         # # I have tested this with the mujoco enviroment and the output is always same low[-1.,-1.], high[1.,1.]
@@ -276,6 +281,13 @@ class MARAEnv(gym.Env):
                                                 base_link=self.environment['link_names'][0],
                                                 end_link=self.environment['link_names'][-1])
 
+            current_quaternion = tf.quaternions.mat2quat(rot) #[w, x, y ,z]
+            tgt_quartenion = tf.quaternions.mat2quat(self.target_orientation) #[w, x, y, z]
+
+            quat_error = current_quaternion * tgt_quartenion.conjugate()
+            vec, angle = tf.quaternions.quat2axangle(quat_error)
+            rot_vec_err = [vec[0], vec[1], vec[2], np.float64(angle)]
+
             current_ee_tgt = np.ndarray.flatten(get_ee_points(self.environment['end_effector_points'], translation, rot).T)
             ee_points = current_ee_tgt - self.realgoal
             ee_velocities = ut_mara.get_ee_points_velocities(ee_link_jacobians, self.environment['end_effector_points'], rot, last_observations)
@@ -284,6 +296,7 @@ class MARAEnv(gym.Env):
             # vector, typically denoted asrobot_id 'x'.
             state = np.r_[np.reshape(last_observations, -1),
                           np.reshape(ee_points, -1),
+                          np.reshape(rot_vec_err, -1),
                           np.reshape(ee_velocities, -1),]
 
             return state
@@ -318,7 +331,16 @@ class MARAEnv(gym.Env):
         reward_dist = ut_math.rmse_func(self.ob[self.scara_chain.getNrOfJoints():(self.scara_chain.getNrOfJoints()+3)])
         if reward_dist < 0.005:
             reward = 1 + reward_dist # Make the reward increase as the distance decreases
-            print("Reward is: ", reward)
+            # Include orient reward if and only if it is close enough to the target
+            # Fetch the orientation of the end-effector which are from nr_dof:nr_dof+3 to nr_dof:nr_dof+6
+            reward_orient = ut_math.rmse_func(self.ob[self.scara_chain.getNrOfJoints()+3:(self.scara_chain.getNrOfJoints()+6)])
+            orientation_scale = 0.1
+            if (reward_orient * orientation_scale) < 0.005:
+                reward = reward + reward_orient
+                print("Reward is: ", reward)
+            else:
+                reward = reward - reward_orient * orientation_scale
+                print("Reward (bad orient) is: ", reward)
         else:
             reward = -reward_dist
 
