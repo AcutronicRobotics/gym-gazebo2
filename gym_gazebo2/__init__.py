@@ -5,7 +5,7 @@ from gym.envs.registration import register
 # MARA
 register(
     id='MARA-v0',
-    entry_point='gym_gazebo2.envs.MARA:GazeboMARAEnv',
+    entry_point='gym_gazebo2.envs.MARA:MARAEnv',
 )
 
 register(
