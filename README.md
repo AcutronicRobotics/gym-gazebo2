@@ -44,7 +44,7 @@ The code for each environment group is housed in its own subdirectory
 #### Real Robot
 
 <p>
-<img src="/imgs/mara1_2.jpeg" align="left" height="150"> 
+<img src="/imgs/mara1_2.jpeg" align="left" height="150">
 
 MARA stands for Modular Articulated Robotic Arm and is a collaborative robotic arm with ROS 2.0 in each actuator, sensor or any other representative module. Each module has native ROS 2.0 support, can be physically extended in a seamless manner and delivers industrial-grade features including synchronization, deterministic communication latencies, a ROS 2.0 software and hardware component lifecycle, and more. Altogether, MARA empowers new possibilities and applications in the professional landscape of robotics. Learn more or even order one at [acutronicrobotics.com](https://acutronicrobotics.com)!
 </p>
@@ -81,11 +81,14 @@ usage: gazebo_mara_4actions.py [-h] [-g] [-r] [-v VELOCITY] [-m | -p PORT]
 MARA environment argument provider.
 
 optional arguments:
-  -h, --help            show this help message and exit
+  -h, --help            show this help message and exit.
   -g, --gzclient        Run user interface.
   -r, --real_speed      Execute the simulation in real speed. RTF=1.
-  -v VELOCITY, --velocity VELOCITY
-                        Set servo motor velocity. Keep < 1.41 for real speed.
+  -v, --velocity        Set servo motor velocity. Keep < 1.41 for real speed.
+  -env, --environment   Choose the environment name to be used.
+                        Choices: MARA, MARACollision, MARAOrient, MARACollisionOrient
+  -vs, --version        Choose the environment version to be used.
+                        Choices: v0
   -m, --multi_instance  Provide network segmentation to allow multiple
                         instances.
   -p PORT, --port PORT  Provide exact port to the network segmentation to
@@ -100,7 +103,7 @@ If you want to get faster simulation speeds, you should launch the simulation wi
 
 ```sh
 gzclient
-``` 
+```
 
 - If you used the `-m --multi_instance` option to provide network segmentation, do the following:
 
