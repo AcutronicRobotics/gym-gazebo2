@@ -17,11 +17,6 @@ def getArgsParserMARA():
     group.add_argument('-m', '--multi_instance', action='store_true', help='Provide network segmentation to allow multiple instances.')
     group.add_argument('-p', '--port', type=int, default=11345, help='Provide exact port to the network segmentation to allow multiple instances.')
 
-    #ros_rl
-    parser.add_argument('-env', '--environment', type=str, choices=['MARA', 'MARACollision', 'MARAOrient', 'MARACollisionOrient'], default='MARA', help='Choose the environment name to be used' )
-    parser.add_argument('-vs', '--version', type=str, choices=['v0'], default='v0', help='Choose the version of the environment to be used' )
-    parser.add_argument('-n', '--num_envs', type=int, default=1, choices=range(1,9), metavar="[1-8]", help='Select the number of concurrent instances to be executed.' )
-
     return parser
 
 def clean_old_files(temp_path, file_ending, days):
