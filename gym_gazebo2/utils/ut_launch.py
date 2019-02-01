@@ -4,7 +4,7 @@ import os
 import gym_gazebo2
 import pathlib
 from datetime import datetime
-from multiprocessing import Process
+from billiard import Process
 from gym_gazebo2.utils import ut_generic
 
 from launch import LaunchService, LaunchDescription
