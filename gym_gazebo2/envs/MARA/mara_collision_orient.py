@@ -161,6 +161,7 @@ class MARACollisionOrientEnv(gym.Env):
         _, self.ur_tree = treeFromFile(self.environment['tree_path'])
         # Retrieve a chain structure between the base and the start of the end effector.
         self.scara_chain = self.ur_tree.getChain(self.environment['link_names'][0], self.environment['link_names'][-1])
+        self.num_joints = self.scara_chain.getNrOfJoints()
         # Initialize a KDL Jacobian solver from the chain.
         self.jac_solver = ChainJntToJacSolver(self.scara_chain)
         # TODO usfull???
@@ -168,12 +169,12 @@ class MARACollisionOrientEnv(gym.Env):
         # self._currently_resetting = [False for _ in range(1)]
         # self.reset_joint_angles = [None for _ in range(1)]
 
-        self.obs_dim = self.scara_chain.getNrOfJoints() + 10
+        self.obs_dim = self.num_joints + 10
 
         # # Here idially we should find the control range of the robot. Unfortunatelly in ROS/KDL there is nothing like this.
         # # I have tested this with the mujoco enviroment and the output is always same low[-1.,-1.], high[1.,1.]
-        low = -np.pi/2.0 * np.ones(self.scara_chain.getNrOfJoints())
-        high = np.pi/2.0 * np.ones(self.scara_chain.getNrOfJoints())
+        low = -np.pi/2.0 * np.ones(self.num_joints)
+        high = np.pi/2.0 * np.ones(self.num_joints)
         self.action_space = spaces.Box(low, high)
 
         high = np.inf*np.ones(self.obs_dim)
@@ -271,23 +272,21 @@ class MARACollisionOrientEnv(gym.Env):
         # Get Jacobians from present joint angles and KDL trees
         # The Jacobians consist of a 6x6 matrix getting its from from
         # (joint angles) x (len[x, y, z] + len[roll, pitch, yaw])
-        ee_link_jacobians = ut_mara.get_jacobians(last_observations, self.scara_chain.getNrOfJoints(), self.jac_solver)
+        ee_link_jacobians = ut_mara.get_jacobians(last_observations, self.num_joints, self.jac_solver)
         if self.environment['link_names'][-1] is None:
             print("End link is empty!!")
             return None
         else:
             translation, rot = forward_kinematics(self.scara_chain,
                                                 self.environment['link_names'],
-                                                last_observations[:self.scara_chain.getNrOfJoints()],
+                                                last_observations[:self.num_joints],
                                                 base_link=self.environment['link_names'][0],
                                                 end_link=self.environment['link_names'][-1])
 
             current_quaternion = tf.quaternions.mat2quat(rot) #[w, x, y ,z]
             tgt_quartenion = tf.quaternions.mat2quat(self.target_orientation) #[w, x, y, z]
-
-            quat_error = current_quaternion * tgt_quartenion.conjugate()
-            vec, angle = tf.quaternions.quat2axangle(quat_error)
-            rot_vec_err = [vec[0], vec[1], vec[2], np.float64(angle)]
+            
+            quat_error = ut_math.quaternion_product(current_quaternion, tf.quaternions.qconjugate(tgt_quartenion))
 
             current_ee_tgt = np.ndarray.flatten(get_ee_points(self.environment['end_effector_points'], translation, rot).T)
             ee_points = current_ee_tgt - self.realgoal
@@ -297,7 +296,7 @@ class MARACollisionOrientEnv(gym.Env):
             # vector, typically denoted asrobot_id 'x'.
             state = np.r_[np.reshape(last_observations, -1),
                           np.reshape(ee_points, -1),
-                          np.reshape(rot_vec_err, -1),
+                          np.reshape(quat_error, -1),
                           np.reshape(ee_velocities, -1),]
 
             return state
@@ -331,7 +330,7 @@ class MARACollisionOrientEnv(gym.Env):
 
         # Execute "action"
         self._pub.publish(ut_mara.get_trajectory_message(
-            action[:self.scara_chain.getNrOfJoints()],
+            action[:self.num_joints],
             self.environment['joint_order'],
             self.velocity))
 
@@ -342,7 +341,8 @@ class MARACollisionOrientEnv(gym.Env):
             self.ob = self.take_observation()
 
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
-        reward_dist = ut_math.rmse_func(self.ob[self.scara_chain.getNrOfJoints():(self.scara_chain.getNrOfJoints()+3)])
+        reward_dist = ut_math.rmse_func(self.ob[self.num_joints:(self.num_joints+3)])
+        #scale here the orientation because it should not be the main bias of the reward, position should be
 
         if self.collision():
             reward = -reward_dist * 10
@@ -353,7 +353,9 @@ class MARACollisionOrientEnv(gym.Env):
                 # Include orient reward if and only if it is close enough to the target
                 orientation_scale = 0.1
                 # Fetch the orientation of the end-effector which are from nr_dof:nr_dof+3 to nr_dof:nr_dof+6
-                reward_orient = orientation_scale * ut_math.rmse_func(self.ob[self.scara_chain.getNrOfJoints()+3:(self.scara_chain.getNrOfJoints()+6)])
+                self.reward_orient = - orientation_scale * 2 * np.arccos(abs(self.ob[self.num_joints+3]))
+                #scale here the orientation because it should not be the main bias of the reward, position should be
+                print(self.reward_orient)
                 if reward_orient < 0.005:
                     reward = reward + reward_orient * 10
                     print("Reward is: ", reward)
