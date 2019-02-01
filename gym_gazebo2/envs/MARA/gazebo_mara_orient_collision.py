@@ -8,6 +8,7 @@ from gym.utils import seeding
 from gym_gazebo2.utils import ut_gazebo, ut_generic, ut_launch, ut_mara, ut_math
 import copy
 import threading # Used for time locks to synchronize position data.
+import argparse
 
 from gazebo_msgs.srv import SpawnEntity, DeleteEntity, GetEntityState, SetEntityState
 from gazebo_msgs.msg import ContactState
@@ -54,7 +55,7 @@ class GazeboMARAOrientCollisionEnv(gym.Env):
             TODO: port everything to ROS 2 natively
         """
         # Manage command line args
-        args = ut_generic.getArgsMARA()
+        args = ut_generic.getArgsParserMARA().parse_args()
         self.gzclient = args.gzclient
         self.real_speed = args.real_speed
         self.velocity = args.velocity

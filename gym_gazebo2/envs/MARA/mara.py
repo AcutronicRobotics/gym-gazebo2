@@ -10,6 +10,7 @@ from gym_gazebo2.utils import ut_generic, ut_launch, ut_mara, ut_math
 from gym.utils import seeding
 from gazebo_msgs.srv import SpawnEntity
 from multiprocessing import Process
+import argparse
 
 # ROS 2
 import rclpy
@@ -44,7 +45,7 @@ class MARAEnv(gym.Env):
         Initialize the MARA environemnt
         """
         # Manage command line args
-        args = ut_generic.getArgsMARA()
+        args = ut_generic.getArgsParserMARA().parse_args()
         self.gzclient = args.gzclient
         self.real_speed = args.real_speed
         self.velocity = args.velocity
