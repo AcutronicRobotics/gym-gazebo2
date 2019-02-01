@@ -13,7 +13,8 @@ python3 python3 gg_random.py -g -r -v 0.2
 ```
 
 Expect something like this:
-![](/imgs/mara_example1.png)
+
+![](/imgs/mara_example1.gif)
 
 
 ### Example 2
@@ -28,4 +29,5 @@ python3 gg_random.py -g -v 10 -p 11177
 ```
 
 Expect something like this:
-![](/imgs/mara_example2.png)
+
+![](/imgs/mara_example2.gif)
