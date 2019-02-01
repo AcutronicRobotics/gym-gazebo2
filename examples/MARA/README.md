@@ -9,7 +9,7 @@ Here you will find debugging tools and simple scripts to verify the installation
 Run the simulation with visual interface `[-g]`, real world speed `[-r]` and set servor motor velocity to 0.2 rad/s `[-v 0.2]`
 ```sh
 gym-gazebo-ros2/examples/MARA
-python3 python3 gg_random.py -g -r -v 0.2
+python3 gg_random.py -g -r -v 0.2
 ```
 
 Expect something like this:
