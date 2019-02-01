@@ -85,10 +85,6 @@ optional arguments:
   -g, --gzclient        Run user interface.
   -r, --real_speed      Execute the simulation in real speed. RTF=1.
   -v, --velocity        Set servo motor velocity. Keep < 1.41 for real speed.
-  -env, --environment   Choose the environment name to be used.
-                        Choices: MARA, MARACollision, MARAOrient, MARACollisionOrient
-  -vs, --version        Choose the environment version to be used.
-                        Choices: v0
   -m, --multi_instance  Provide network segmentation to allow multiple
                         instances.
   -p PORT, --port PORT  Provide exact port to the network segmentation to
