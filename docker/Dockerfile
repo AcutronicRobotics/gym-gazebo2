@@ -38,5 +38,5 @@ RUN cd src/HRIM && python3 hrim.py generate models/actuator/servo/servo.xml \
 
 #Compile the work-space
 COPY missing-repos.repos .
-RUN bash -c "vcs import src < missing-repos.repos || true #Fix me!! && rm -rf /home/root/mara_ws/src/realtime_support/tlsf_cpp"
-RUN  bash -c "source /opt/ros/crystal/setup.bash && colcon build --merge-install --parallel-workers $(nproc)"
+RUN bash -c "vcs import src < missing-repos.repos || true # Fix me!!"
+RUN  bash -c "source /opt/ros/crystal/setup.bash && colcon build --merge-install --parallel-workers $(nproc) --packages-ignore orocos_kinematics_dynamics tlsf_cpp" 
