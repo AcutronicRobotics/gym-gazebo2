@@ -1,0 +1,37 @@
+ repositories:  
+   message_filters:
+     type: git
+     url: https://github.com/ros2/message_filters.git
+     version: 3.0.0
+   yaml_cpp_vendor:
+     type: git
+     url: https://github.com/ros2/yaml_cpp_vendor.git
+     version: 5.0.0
+   urdf:
+     type: git
+     url: https://github.com/ros2/urdf.git
+     version: ros2
+   urdfdom:
+     type: git
+     url: https://github.com/ros2/urdfdom.git
+     version: ros2
+   tinyxml_vendor:
+     type: git
+     url: https://github.com/ros2/tinyxml_vendor.git
+     version: 0.5.0
+   urdfdom_headers:
+     type: git
+     url: https://github.com/ros/urdfdom_headers.git
+     version: 1.0.2
+   realtime_support:
+     type: git
+     url: https://github.com/ros2/realtime_support.git
+     version: 0.6.0
+   geometry2:
+     type: git
+     url: https://github.com/ros2/geometry2.git
+     version: 0.10.1
+   orocos_kinematics_dynamics:
+     type: git
+     url: https://github.com/ros2/orocos_kinematics_dynamics.git
+     version: 3.1.0
