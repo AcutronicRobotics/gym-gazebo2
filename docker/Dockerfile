@@ -28,8 +28,8 @@ RUN cd ~/ && git clone -b 3.4.5 https://github.com/opencv/opencv.git && git clon
     && make -j $(nproc) && make install && rm -rf ~/opencv && rm -rf ~/opencv_contrib
 
 #Prepare work-space
-RUN mkdir ~/ros2_mara_ws
-WORKDIR /home/root/ros2_mara_ws/
+RUN mkdir /root/ros2_mara_ws
+WORKDIR /root/ros2_mara_ws/
 #RUN wget https://raw.githubusercontent.com/erlerobot/gym-gazebo2/master/provision/mara.repos && vcs import src < mara.repos #Keep this commented until the repo becomes public
 COPY src src
 #Generete HRIM packages
@@ -42,13 +42,13 @@ RUN bash -c "vcs import src < missing-repos.repos"
 RUN  bash -c "source /opt/ros/crystal/setup.bash && colcon build --merge-install --parallel-workers $(nproc) --packages-ignore orocos_kinematics_dynamics tlsf_cpp"
 #Baselines
 #RUN cd /home/root && git clone https://github.com/erlerobot/baselines && cd /home/root/baselines && pip3 install -e . #Private repo fix me!
-COPY baselines /home/root/baselines
-RUN cd /home/root/baselines && pip3 install -e .
+COPY baselines /root/baselines
+RUN cd /root/baselines && pip3 install -e .
 #URDF parser
-RUN cd /home/root/ && git clone https://github.com/ros/urdf_parser_py.git -b melodic-devel && cd /home/root/urdf_parser_py && pip3 install -e .
+RUN cd /root/ && git clone https://github.com/ros/urdf_parser_py.git -b melodic-devel && cd /root/urdf_parser_py && pip3 install -e .
 #OpenAI Gym
-RUN cd /home/root && git clone https://github.com/openai/gym && cd /home/root/gym && pip3 install -e .
+RUN cd /root && git clone https://github.com/openai/gym && cd /root/gym && pip3 install -e .
 #gym-gazebo2
 #RUN cd /home/root && git clone https://github.com/erlerobot/gym-gazebo2 && pip3 install -e . #Private repo fix me!
-COPY gym-gazebo-ros2 /home/root/gym-gazebo-ros2 
-RUN  cd /home/root/gym-gazebo-ros2 && pip3 install -e .
+COPY gym-gazebo-ros2 /root/gym-gazebo-ros2 
+RUN  cd /root/gym-gazebo-ros2 && pip3 install -e .
