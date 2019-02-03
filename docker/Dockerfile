@@ -6,7 +6,8 @@ RUN pip3 install \
     lxml \
     argcomplete \
     tensorflow \
-    transforms3d
+    transforms3d \
+    billiard
 
 RUN apt update -qq && apt install -y \
     python3-colcon-common-extensions \
