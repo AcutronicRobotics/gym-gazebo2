@@ -38,7 +38,7 @@ RUN cd src/HRIM && python3 hrim.py generate models/actuator/servo/servo.xml \
 
 #Compile the work-space
 COPY missing-repos.repos .
-RUN bash -c "vcs import src < missing-repos.repos || true # Fix me!!"
+RUN bash -c "vcs import src < missing-repos.repos"
 RUN  bash -c "source /opt/ros/crystal/setup.bash && colcon build --merge-install --parallel-workers $(nproc) --packages-ignore orocos_kinematics_dynamics tlsf_cpp"
 #Baselines
 #RUN cd /home/root && git clone https://github.com/erlerobot/baselines && cd /home/root/baselines && pip3 install -e . #Private repo fix me!
@@ -51,4 +51,4 @@ RUN cd /home/root && git clone https://github.com/openai/gym && cd /home/root/gy
 #gym-gazebo2
 #RUN cd /home/root && git clone https://github.com/erlerobot/gym-gazebo2 && pip3 install -e . #Private repo fix me!
 COPY gym-gazebo-ros2 /home/root/gym-gazebo-ros2 
-RUN cd /home/root/gym-gazebo-ros2 && pip3 install -e .
+RUN  cd /home/root/gym-gazebo-ros2 && pip3 install -e .
