@@ -40,7 +40,7 @@ RUN cd src/HRIM && python3 hrim.py generate models/actuator/servo/servo.xml \
 COPY missing-repos.repos .
 RUN bash -c "vcs import src < missing-repos.repos"
 RUN  bash -c "source /opt/ros/crystal/setup.bash && colcon build --merge-install --parallel-workers $(nproc) --packages-ignore orocos_kinematics_dynamics tlsf_cpp"
-RUN bash -c "touch ~/ros2_mara_ws/install/share/orocos_kdl/local_setup.sh ~/ros2_mara_ws/install/share/orocos_kdl/local_setup.bash"
+RUN bash -c "touch /root/ros2_mara_ws/install/share/orocos_kdl/local_setup.sh /root/ros2_mara_ws/install/share/orocos_kdl/local_setup.bash"
 #Baselines
 #RUN cd /home/root && git clone https://github.com/erlerobot/baselines && cd /home/root/baselines && pip3 install -e . #Private repo fix me!
 COPY baselines /root/baselines
