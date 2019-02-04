@@ -337,7 +337,7 @@ class MARAOrientEnv(gym.Env):
             # Fetch the orientation of the end-effector which are from nr_dof:nr_dof+3 to nr_dof:nr_dof+6
             reward_orient = orientation_scale * ut_math.rmse_func(self.ob[self.scara_chain.getNrOfJoints()+3:(self.scara_chain.getNrOfJoints()+6)])
             if reward_orient < 0.005:
-                reward = (reward - reward_orient) * 10
+                reward = reward - reward_orient
                 print("Reward is: ", reward)
             else:
                 reward = reward - reward_orient
