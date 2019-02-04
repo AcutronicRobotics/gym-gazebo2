@@ -47,3 +47,9 @@ mav.tlog.raw
 mav.parm
 terrain/
 Theano/
+
+#docker
+docker/*
+!docker/Dockerfile
+!docker/missing-repos.repos
+!docker/README.md
