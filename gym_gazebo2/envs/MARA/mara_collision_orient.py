@@ -285,7 +285,7 @@ class MARACollisionOrientEnv(gym.Env):
 
             current_quaternion = tf.quaternions.mat2quat(rot) #[w, x, y ,z]
             tgt_quartenion = tf.quaternions.mat2quat(self.target_orientation) #[w, x, y, z]
-            
+
             quat_error = ut_math.quaternion_product(current_quaternion, tf.quaternions.qconjugate(tgt_quartenion))
 
             current_ee_tgt = np.ndarray.flatten(get_ee_points(self.environment['end_effector_points'], translation, rot).T)
@@ -349,7 +349,7 @@ class MARACollisionOrientEnv(gym.Env):
             print("Reward (collided) is: ", reward)
         else:
             if reward_dist < 0.005:
-                reward = 1 + reward_dist # Make the reward increase as the distance decreases
+                reward = 1 - reward_dist # Make the reward increase as the distance decreases
                 # Include orient reward if and only if it is close enough to the target
                 orientation_scale = 0.1
                 # Fetch the orientation of the end-effector which are from nr_dof:nr_dof+3 to nr_dof:nr_dof+6
@@ -357,7 +357,7 @@ class MARACollisionOrientEnv(gym.Env):
                 #scale here the orientation because it should not be the main bias of the reward, position should be
                 print(self.reward_orient)
                 if reward_orient < 0.005:
-                    reward = reward + reward_orient * 10
+                    reward = reward + (1 - reward_orient)
                     print("Reward is: ", reward)
                 else:
                     reward = reward - reward_orient
