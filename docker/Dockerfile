@@ -30,7 +30,7 @@ RUN cd ~/ && git clone -b 3.4.5 https://github.com/opencv/opencv.git && git clon
 
 #Prepare work-space
 RUN mkdir /root/ros2_mara_ws
-WORKDIR /root/ros2ros2_mara_ws
+WORKDIR /root/ros2_mara_ws
 #RUN wget https://raw.githubusercontent.com/erlerobot/gym-gazebo-ros2/master/provision/mara.repos && vcs import src < mara.repos #Keep this commented until the repo becomes public
 COPY src src
 #Generete HRIM packages
