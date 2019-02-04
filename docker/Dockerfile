@@ -54,3 +54,6 @@ RUN cd /root && git clone https://github.com/openai/gym && cd /root/gym && pip3 
 #RUN cd /home/root && git clone https://github.com/erlerobot/gym-gazebo-ros2 && pip3 install -e . #Private repo fix me!
 COPY gym-gazebo-ros2 /root/gym-gazebo-ros2 
 RUN  cd /root/gym-gazebo-ros2 && pip3 install -e .
+#Load provisionin script
+RUN bash -c "echo 'source ~/gym-gazebo2/provision/mara_setup.sh' >> ~/.bashrc"
+RUN bash -c "source ~/.bashrc"
