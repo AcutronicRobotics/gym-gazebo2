@@ -30,6 +30,7 @@ RUN cd ~/ && git clone -b 3.4.5 https://github.com/opencv/opencv.git && git clon
 
 #Prepare work-space
 RUN mkdir /root/ros2_mara_ws
+WORKDIR /root/ros2ros2_mara_ws
 #RUN wget https://raw.githubusercontent.com/erlerobot/gym-gazebo-ros2/master/provision/mara.repos && vcs import src < mara.repos #Keep this commented until the repo becomes public
 COPY src src
 #Generete HRIM packages
@@ -51,7 +52,7 @@ RUN cd /root/ && git clone https://github.com/ros/urdf_parser_py.git -b melodic-
 RUN cd /root && git clone https://github.com/openai/gym && cd /root/gym && pip3 install -e .
 #gym-gazebo-ros2
 #RUN cd /home/root && git clone https://github.com/erlerobot/gym-gazebo-ros2 && pip3 install -e . #Private repo fix me!
-COPY gym-gazebo-ros2 /root/gym-gazebo-ros2 
+COPY gym-gazebo-ros2 /root/gym-gazebo-ros2
 RUN  cd /root/gym-gazebo-ros2 && pip3 install -e .
 #Load provisionin script
 RUN bash -c "echo 'source ~/gym-gazebo2/provision/mara_setup.sh' >> ~/.bashrc"
