@@ -11,7 +11,7 @@
   - [Baselines](#baselines)
   - [URDF Parser](#urdf-parser)
   - [OpenAI Gym](#openai-gym)
-  - [gym-gazebo2](#gym-gazebo2)
+  - [gym-gazebo-ros2](#gym-gazebo-ros2)
   - [Provisioning](#provisioning)
   
 ## ROS2 and Gazebo
@@ -56,7 +56,7 @@ Create the workspace and download source files:
 ```sh
 mkdir -p ~/ros2_mara_ws/src
 cd ~/ros2_mara_ws
-wget https://raw.githubusercontent.com/erlerobot/gym-gazebo2/master/provision/mara.repos
+wget https://raw.githubusercontent.com/erlerobot/gym-gazebo-ros2/master/provision/mara.repos
 vcs import src < mara.repos
 # Avoid compiling erroneus package
 touch ~/ros2_mara_ws/src/orocos_kinematics_dynamics/orocos_kinematics_dynamics/COLCON_IGNORE
@@ -152,14 +152,14 @@ git clone https://github.com/openai/gym
 cd gym
 pip3 install -e .
 ```
-### gym-gazebo2
+### gym-gazebo-ros2
 
-Install the gym-gazebo2 toolkit.
+Install the gym-gazebo-ros2 toolkit.
 
 ```sh
 cd ~
-git clone https://github.com/erlerobot/gym-gazebo2
-cd gym-gazebo2
+git clone https://github.com/erlerobot/gym-gazebo-ros2
+cd gym-gazebo-ros2
 pip3 install -e .
 ```
 ### Provisioning
@@ -167,7 +167,7 @@ pip3 install -e .
 First we need setup ROS2, MARA ROS2 workspace and Gazebo. It is convenient that the required environment variables are automatically added to your bash session every time a new shell is launched:
 
 ```sh
-echo "source ~/gym-gazebo2/provision/mara_setup.sh" >> ~/.bashrc
+echo "source ~/gym-gazebo-ros2/provision/mara_setup.sh" >> ~/.bashrc
 source ~/.bashrc
 ```
 
