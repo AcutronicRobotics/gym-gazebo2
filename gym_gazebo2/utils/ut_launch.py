@@ -74,26 +74,21 @@ def generate_launch_description_mara(gzclient, real_speed, multi_instance, port)
     urdf = os.path.join(get_package_share_directory('mara_description'), 'urdf', 'mara_robot_camera_top.urdf')
     mara = get_package_share_directory('mara_gazebo_plugins')
     install_dir = get_package_prefix('mara_gazebo_plugins')
-    ros2_ws_path = os.path.abspath(os.path.join(install_dir, os.pardir))
-    MARA_model_path = os.path.join(ros2_ws_path, 'src', 'MARA')
-    MARA_plugin_path = os.path.join(ros2_ws_path, 'src', 'MARA', 'mara_gazebo_plugins', 'build')
+
+    if 'GAZEBO_MODEL_PATH' in os.environ:
+        os.environ['GAZEBO_MODEL_PATH'] =  os.environ['GAZEBO_MODEL_PATH'] + ':' + install_dir + '/share'
+    else:
+        os.environ['GAZEBO_MODEL_PATH'] =  install_dir + "/share"
+
+    if 'GAZEBO_PLUGIN_PATH' in os.environ:
+        os.environ['GAZEBO_PLUGIN_PATH'] = os.environ['GAZEBO_PLUGIN_PATH'] + ':' + install_dir + '/lib'
+    else:
+        os.environ['GAZEBO_PLUGIN_PATH'] = install_dir + '/lib'
 
     if not real_speed:
         world_path = os.path.join(os.path.dirname(gym_gazebo2.__file__), 'worlds', 'empty__state_plugin__speed_up.world')
     else:
         world_path = os.path.join(os.path.dirname(gym_gazebo2.__file__), 'worlds', 'empty__state_plugin.world')
-
-    if 'GAZEBO_MODEL_PATH' in os.environ:
-        os.environ['GAZEBO_MODEL_PATH'] =  (os.environ['GAZEBO_MODEL_PATH'] + ':' + install_dir + 'share'
-                                            + ':' + MARA_model_path)
-    else:
-        os.environ['GAZEBO_MODEL_PATH'] =  install_dir + "/share" + ':' + MARA_model_path
-
-    if 'GAZEBO_PLUGIN_PATH' in os.environ:
-        os.environ['GAZEBO_PLUGIN_PATH'] = (os.environ['GAZEBO_PLUGIN_PATH'] + ':' + install_dir + '/lib'
-                                            + ':' + MARA_plugin_path)
-    else:
-        os.environ['GAZEBO_PLUGIN_PATH'] = install_dir + '/lib' + ':' + MARA_plugin_path
 
     if port != 11345:  # Default gazebo port
         os.environ["ROS_DOMAIN_ID"] = str(port)
