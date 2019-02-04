@@ -318,7 +318,7 @@ class MARAEnv(gym.Env):
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
         reward_dist = ut_math.rmse_func(self.ob[self.scara_chain.getNrOfJoints():(self.scara_chain.getNrOfJoints()+3)])
         if reward_dist < 0.005:
-            reward = 1 + reward_dist # Make the reward increase as the distance decreases
+            reward = 1 - reward_dist # Make the reward increase as the distance decreases
             print("Reward is: ", reward)
         else:
             reward = -reward_dist

@@ -336,7 +336,7 @@ class MARACollisionEnv(gym.Env):
             print("Reward (collided) is: ", reward)
         else:
             if reward_dist < 0.005:
-                reward = 1 + reward_dist # Make the reward increase as the distance decreases
+                reward = 1 - reward_dist # Make the reward increase as the distance decreases
                 print("Reward is: ", reward)
             else:
                 reward = -reward_dist
