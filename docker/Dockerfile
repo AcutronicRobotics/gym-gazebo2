@@ -31,7 +31,7 @@ RUN cd ~/ && git clone -b 3.4.5 https://github.com/opencv/opencv.git && git clon
 #Prepare work-space
 RUN mkdir /root/ros2_mara_ws
 WORKDIR /root/ros2_mara_ws/
-#RUN wget https://raw.githubusercontent.com/erlerobot/gym-gazebo2/master/provision/mara.repos && vcs import src < mara.repos #Keep this commented until the repo becomes public
+#RUN wget https://raw.githubusercontent.com/erlerobot/gym-gazebo-ros2/master/provision/mara.repos && vcs import src < mara.repos #Keep this commented until the repo becomes public
 COPY src src
 #Generete HRIM packages
 RUN cd src/HRIM && python3 hrim.py generate models/actuator/servo/servo.xml \
@@ -41,6 +41,7 @@ RUN cd src/HRIM && python3 hrim.py generate models/actuator/servo/servo.xml \
 COPY missing-repos.repos .
 RUN bash -c "vcs import src < missing-repos.repos"
 RUN  bash -c "source /opt/ros/crystal/setup.bash && colcon build --merge-install --parallel-workers $(nproc) --packages-ignore orocos_kinematics_dynamics tlsf_cpp"
+RUN bash -c "touch ~/ros2_mara_ws/install/share/orocos_kdl/local_setup.sh ~/ros2_mara_ws/install/share/orocos_kdl/local_setup.bash"
 #Baselines
 #RUN cd /home/root && git clone https://github.com/erlerobot/baselines && cd /home/root/baselines && pip3 install -e . #Private repo fix me!
 COPY baselines /root/baselines
@@ -49,7 +50,7 @@ RUN cd /root/baselines && pip3 install -e .
 RUN cd /root/ && git clone https://github.com/ros/urdf_parser_py.git -b melodic-devel && cd /root/urdf_parser_py && pip3 install -e .
 #OpenAI Gym
 RUN cd /root && git clone https://github.com/openai/gym && cd /root/gym && pip3 install -e .
-#gym-gazebo2
-#RUN cd /home/root && git clone https://github.com/erlerobot/gym-gazebo2 && pip3 install -e . #Private repo fix me!
+#gym-gazebo-ros2
+#RUN cd /home/root && git clone https://github.com/erlerobot/gym-gazebo-ros2 && pip3 install -e . #Private repo fix me!
 COPY gym-gazebo-ros2 /root/gym-gazebo-ros2 
 RUN  cd /root/gym-gazebo-ros2 && pip3 install -e .
