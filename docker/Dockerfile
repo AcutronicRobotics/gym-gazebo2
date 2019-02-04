@@ -57,3 +57,4 @@ RUN  cd /root/gym-gazebo-ros2 && pip3 install -e .
 #Load provisionin script
 RUN bash -c "echo 'source ~/gym-gazebo2/provision/mara_setup.sh' >> ~/.bashrc"
 RUN bash -c "source ~/.bashrc"
+WORKDIR /root/gym-gazebo-ros2/
