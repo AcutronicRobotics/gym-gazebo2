@@ -11,17 +11,17 @@ vcs import src < mara.repos
 vcs import src < missing-repos.repos
 git clone https://github.com/erlerobot/baselines
 git clone https://github.com/erlerobot/gym-gazebo-ros2
-docker build -t gym2 .
+docker build -t gg2 .
 ```
 
 ## Run the container
 
 ```shell
-docker rm gym2 || true && docker run -it --name=gym2 -h gym2 gym2
+docker rm gg2 || true && docker run -it --name=gg2 -h gym-gazebo2 gg2
 ```
 
 ## Launch gzclient (GUI)
-If you are already running the simulation in the default port, you can access the visual interface the followin way:
+If you are already running the simulation in the default port, you can access the visual interface the following way:
 ```shell
 cd gym-gazebo-ros2/docker
 sh gzclient.sh
