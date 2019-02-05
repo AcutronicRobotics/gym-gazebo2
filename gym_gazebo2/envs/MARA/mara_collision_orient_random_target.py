@@ -72,7 +72,7 @@ class MARACollisionOrientRandomTargetEnv(gym.Env):
         self.obs = None
         self.action_space = None
         self.realgoal = None
-        self.max_episode_steps = 10 # now used in all algorithms
+        self.max_episode_steps = 1000 # now used in all algorithms
         self.iterator = 0
         self.num_hits = 0
         self.reset_jnts = True
