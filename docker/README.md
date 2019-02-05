@@ -3,7 +3,7 @@
 ## Build the container
 
 ```shell
-git clone -b docker gym-gazebo-ros2
+git clone docker gym-gazebo-ros2
 cd gym-gazebo-ros2/docker
 mkdir src
 cp ../provision/mara.repos .
@@ -17,7 +17,7 @@ docker build -t gym2 .
 ## Run the container
 
 ```shell
-docker rm gym2 && docker run -it -h gym-gazebo2 gym2
+docker rm gym2 || true && docker run -it --name=gym -h gym2 gym2
 ```
 
 ## Launch gzclient (GUI)
