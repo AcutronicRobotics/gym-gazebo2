@@ -5,21 +5,22 @@ import numpy as np
 import copy
 import os
 import sys
+import transforms3d as tf
 from gym import utils, spaces
 from gym_gazebo2.utils import ut_generic, ut_launch, ut_mara, ut_math
 from gym.utils import seeding
 from gazebo_msgs.srv import SpawnEntity
 from multiprocessing import Process
 import argparse
-import transforms3d as tf
 
 # ROS 2
 import rclpy
 from rclpy.qos import QoSProfile, qos_profile_sensor_data
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint # Used for publishing scara joint angles.
 from control_msgs.msg import JointTrajectoryControllerState
-from gazebo_msgs.msg import ContactState
-from std_msgs.msg import String
+from gazebo_msgs.srv import SetEntityState
+from gazebo_msgs.msg import ContactState, ModelState, EntityState
+from std_msgs.msg import String, Empty as stdEmpty
 from std_srvs.srv import Empty
 from geometry_msgs.msg import Pose
 from ros2pkg.api import get_prefix_path
@@ -36,7 +37,7 @@ class MSG_INVALID_JOINT_NAMES_DIFFER(Exception):
     """Error object exclusively raised by _process_observations."""
     pass
 
-class MARACollisionEnv(gym.Env):
+class MARACollisionOrientRandomTargetEnv(gym.Env):
     """
     TODO. Define the environment.
     """
@@ -73,6 +74,7 @@ class MARACollisionEnv(gym.Env):
         self.realgoal = None
         self.max_episode_steps = 1000 # now used in all algorithms
         self.iterator = 0
+        self.num_hits = 0
         self.reset_jnts = True
         self._collision_msg = None
 
@@ -81,7 +83,10 @@ class MARACollisionEnv(gym.Env):
         #############################
         # Target, where should the agent reach
         EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466])
-        EE_ROT_TGT = np.asmatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        EE_ROT_TGT = np.asmatrix([
+                                [0.79660969, -0.51571238,  0.31536287],
+                                [0.51531424,  0.85207952,  0.09171542],
+                                [-0.31601302,  0.08944959,  0.94452874] ])
 
         EE_POINTS = np.asmatrix([[0, 0, 0]])
         EE_VELOCITIES = np.asmatrix([[0, 0, 0]])
@@ -92,6 +97,7 @@ class MARACollisionEnv(gym.Env):
         # # Topics for the robot publisher and subscriber.
         JOINT_PUBLISHER = '/mara_controller/command'
         JOINT_SUBSCRIBER = '/mara_controller/state'
+        LINK_STATE_PUBLISHER = '/gazebo/set_link_state'
 
         # joint names:
         MOTOR1_JOINT = 'motor1'
@@ -152,6 +158,7 @@ class MARACollisionEnv(gym.Env):
         self._sub = self.node.create_subscription(JointTrajectoryControllerState, JOINT_SUBSCRIBER, self.observation_callback, qos_profile=qos_profile_sensor_data)
         self._sub_coll = self.node.create_subscription(ContactState, '/gazebo_contacts', self.collision_callback)
         self.reset_sim = self.node.create_client(Empty, '/reset_simulation')
+        self.set_entity_state = self.node.create_client(SetEntityState, '/set_entity_state')
 
         # Initialize a tree structure from the robot urdf.
         #   note that the xacro of the urdf is updated by hand.
@@ -159,15 +166,16 @@ class MARACollisionEnv(gym.Env):
         _, self.ur_tree = treeFromFile(self.environment['tree_path'])
         # Retrieve a chain structure between the base and the start of the end effector.
         self.scara_chain = self.ur_tree.getChain(self.environment['link_names'][0], self.environment['link_names'][-1])
+        self.num_joints = self.scara_chain.getNrOfJoints()
         # Initialize a KDL Jacobian solver from the chain.
         self.jac_solver = ChainJntToJacSolver(self.scara_chain)
 
-        self.obs_dim = self.scara_chain.getNrOfJoints() + 6
+        self.obs_dim = self.num_joints + 10
 
         # # Here idially we should find the control range of the robot. Unfortunatelly in ROS/KDL there is nothing like this.
         # # I have tested this with the mujoco enviroment and the output is always same low[-1.,-1.], high[1.,1.]
-        low = -np.pi/2.0 * np.ones(self.scara_chain.getNrOfJoints())
-        high = np.pi/2.0 * np.ones(self.scara_chain.getNrOfJoints())
+        low = -np.pi/2.0 * np.ones(self.num_joints)
+        high = np.pi/2.0 * np.ones(self.num_joints)
         self.action_space = spaces.Box(low, high)
 
         high = np.inf*np.ones(self.obs_dim)
@@ -215,6 +223,7 @@ class MARACollisionEnv(gym.Env):
         pose.position.x = self.realgoal[0]
         pose.position.y = self.realgoal[1]
         pose.position.z = self.realgoal[2]
+
         pose.orientation.x = self.target_orientation[1]
         pose.orientation.y= self.target_orientation[2]
         pose.orientation.z = self.target_orientation[3]
@@ -265,16 +274,19 @@ class MARACollisionEnv(gym.Env):
         # Get Jacobians from present joint angles and KDL trees
         # The Jacobians consist of a 6x6 matrix getting its from from
         # (joint angles) x (len[x, y, z] + len[roll, pitch, yaw])
-        ee_link_jacobians = ut_mara.get_jacobians(last_observations, self.scara_chain.getNrOfJoints(), self.jac_solver)
+        ee_link_jacobians = ut_mara.get_jacobians(last_observations, self.num_joints, self.jac_solver)
         if self.environment['link_names'][-1] is None:
             print("End link is empty!!")
             return None
         else:
             translation, rot = forward_kinematics(self.scara_chain,
                                                 self.environment['link_names'],
-                                                last_observations[:self.scara_chain.getNrOfJoints()],
+                                                last_observations[:self.num_joints],
                                                 base_link=self.environment['link_names'][0],
                                                 end_link=self.environment['link_names'][-1])
+
+            current_quaternion = tf.quaternions.mat2quat(rot) #[w, x, y ,z]
+            quat_error = ut_math.quaternion_product(current_quaternion, tf.quaternions.qconjugate(self.target_orientation))
 
             current_ee_tgt = np.ndarray.flatten(get_ee_points(self.environment['end_effector_points'], translation, rot).T)
             ee_points = current_ee_tgt - self.realgoal
@@ -284,6 +296,7 @@ class MARACollisionEnv(gym.Env):
             # vector, typically denoted asrobot_id 'x'.
             state = np.r_[np.reshape(last_observations, -1),
                           np.reshape(ee_points, -1),
+                          np.reshape(quat_error, -1),
                           np.reshape(ee_velocities, -1),]
 
             return state
@@ -291,6 +304,43 @@ class MARACollisionEnv(gym.Env):
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
+
+    def randomizeTargetPose(self, obj_name='target'):
+        ms = ModelState()
+
+        # Workspace bounding box
+        EE_POS_TGT = np.asmatrix([ round(np.random.uniform(-0.615082, -0.35426), 5), round(np.random.uniform( -0.18471, 0.1475), 5), self.realgoal[2] ])
+
+        roll = 0.0
+        pitch = 0.0
+        yaw = np.random.uniform(-1.57, 1.57)
+        # transforms3d.taitbryan.euler2quat(z, y, x) --> [w, x, y, z]
+        q = tf.taitbryan.euler2quat(yaw, pitch, roll)
+        EE_ROT_TGT = tf.quaternions.quat2mat(q)
+        ee_tgt = np.ndarray.flatten(get_ee_points(self.environment['end_effector_points'], EE_POS_TGT, EE_ROT_TGT).T)
+
+        ms.pose.position.x = EE_POS_TGT[0,0]
+        ms.pose.position.y = EE_POS_TGT[0,1]
+        ms.pose.position.z = EE_POS_TGT[0,2]
+        ms.pose.orientation.x = q[1]
+        ms.pose.orientation.y = q[2]
+        ms.pose.orientation.z = q[3]
+        ms.pose.orientation.w = q[0]
+
+        while not self.set_entity_state.wait_for_service(timeout_sec=1.0):
+            self.node.get_logger().info('/set_entity_state service not available, waiting again...')
+
+        set_req = SetEntityState.Request()
+        set_req.state = EntityState()
+        set_req.state.name = "target"
+        set_req.state.pose = ms.pose
+        set_req.state.reference_frame = "world"
+
+        set_state_future = self.set_entity_state.call_async(set_req)
+        rclpy.spin_until_future_complete(self.node, set_state_future)
+
+        self.realgoal = ee_tgt
+        self.target_orientation = q
 
     def collision(self):
         # Reset if there is a collision
@@ -300,6 +350,25 @@ class MARACollisionEnv(gym.Env):
 
             reset_future = self.reset_sim.call_async(Empty.Request())
             rclpy.spin_until_future_complete(self.node, reset_future)
+
+            while not self.set_entity_state.wait_for_service(timeout_sec=1.0):
+                self.node.get_logger().info('/set_entity_state service not available, waiting again...')
+
+            set_req = SetEntityState.Request()
+            set_req.state = EntityState()
+            set_req.state.name = "target"
+            set_req.state.pose.position.x = self.realgoal[0]
+            set_req.state.pose.position.y = self.realgoal[1]
+            set_req.state.pose.position.z = self.realgoal[2]
+            set_req.state.pose.orientation.x = self.target_orientation[1]
+            set_req.state.pose.orientation.y = self.target_orientation[2]
+            set_req.state.pose.orientation.z = self.target_orientation[3]
+            set_req.state.pose.orientation.w = self.target_orientation[0]
+            set_req.state.reference_frame = "world"
+
+            set_state_future = self.set_entity_state.call_async(set_req)
+            rclpy.spin_until_future_complete(self.node, set_state_future)
+
             self._collision_msg = None
             return True
         else:
@@ -317,7 +386,7 @@ class MARACollisionEnv(gym.Env):
 
         # Execute "action"
         self._pub.publish(ut_mara.get_trajectory_message(
-            action[:self.scara_chain.getNrOfJoints()],
+            action[:self.num_joints],
             self.environment['joint_order'],
             self.velocity))
 
@@ -328,18 +397,32 @@ class MARACollisionEnv(gym.Env):
             self.ob = self.take_observation()
 
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
-        reward_dist = ut_math.rmse_func(self.ob[self.scara_chain.getNrOfJoints():(self.scara_chain.getNrOfJoints()+3)])
+        reward_dist = ut_math.rmse_func(self.ob[self.num_joints:(self.num_joints+3)])
+        #scale here the orientation because it should not be the main bias of the reward, position should be
 
         if self.collision():
             reward = -reward_dist * 10
             print("Reward (collided) is: ", reward)
         else:
             if reward_dist < 0.005:
-                reward = 1 - reward_dist # Make the reward increase as the distance decreases
-                print("Reward is: ", reward)
+                # Make the reward increase as the distance decreases
+                reward = 1 - reward_dist
+                # Count as hit target
+                self.num_hits += 1
+                #scale here the orientation because it should not be the main bias of the reward, position should be
+                orientation_scale = 0.1
+                # Fetch the orientation of the end-effector which are from nr_dof:nr_dof+3 to nr_dof:nr_dof+6
+                self.reward_orient = - orientation_scale * 2 * np.arccos(abs(self.ob[self.num_joints+3]))
+                # Include orient reward if and only if it is close enough to the target
+                if reward_orient < 0.005:
+                    reward = (reward - reward_orient) * 10
+                    print("Reward is: ", reward)
+                else:
+                    reward = reward - reward_orient
+                    print("Reward (bad orient) is: ", reward)
             else:
                 reward = -reward_dist
-                print(reward)
+
         # Calculate if the env has been solved
         done = bool(reward_dist < 0.005) or (self.iterator > self.max_episode_steps)
 
@@ -351,6 +434,13 @@ class MARACollisionEnv(gym.Env):
         Reset the agent for a particular experiment condition.
         """
         self.iterator = 0
+
+        if self.num_hits >= 40:
+            self.randomizeTargetPose("target")
+            self.num_hits = 0
+
+            with open("/tmp/ros_rl2/MARACollisionOrientRandomTarget-v0/ppo2_lstm/targets.txt", 'a') as out:
+                out.write( str(self.realgoal) + '\n' )
 
         if self.reset_jnts is True:
             # Move to the initial position.
