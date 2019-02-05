@@ -136,8 +136,7 @@ class MARAEnv(gym.Env):
 
         # Initialize target end effector position
         self.realgoal = np.ndarray.flatten(get_ee_points(EE_POINTS, ee_pos_tgt, ee_rot_tgt).T)
-        quat = tf.quaternions.mat2quat(ee_rot_tgt) #[w, x, y, z]
-        self.target_orientation = quat
+        self.target_orientation = tf.quaternions.mat2quat(ee_rot_tgt) #[w, x, y, z]
 
         self.environment = {
             'joint_order': m_joint_order,
