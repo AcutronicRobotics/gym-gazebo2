@@ -5,6 +5,7 @@ import numpy as np
 import copy
 import os
 import sys
+import math
 import transforms3d as tf
 from gym import utils, spaces
 from gym_gazebo2.utils import ut_generic, ut_launch, ut_mara, ut_math
@@ -71,7 +72,7 @@ class MARACollisionOrientEnv(gym.Env):
         self.obs = None
         self.action_space = None
         self.realgoal = None
-        self.max_episode_steps = 1000 # now used in all algorithms
+        #self.max_episode_steps = 1000 # now used in all algorithms
         self.iterator = 0
         self.reset_jnts = True
         self._collision_msg = None
@@ -173,8 +174,8 @@ class MARACollisionOrientEnv(gym.Env):
 
         # # Here idially we should find the control range of the robot. Unfortunatelly in ROS/KDL there is nothing like this.
         # # I have tested this with the mujoco enviroment and the output is always same low[-1.,-1.], high[1.,1.]
-        low = -np.pi/2.0 * np.ones(self.num_joints)
-        high = np.pi/2.0 * np.ones(self.num_joints)
+        low = -np.pi/3.0 * np.ones(self.num_joints)
+        high = np.pi/3.0 * np.ones(self.num_joints)
         self.action_space = spaces.Box(low, high)
 
         high = np.inf*np.ones(self.obs_dim)
@@ -285,7 +286,7 @@ class MARACollisionOrientEnv(gym.Env):
 
             current_quaternion = tf.quaternions.mat2quat(rot) #[w, x, y ,z]
             tgt_quartenion = tf.quaternions.mat2quat(self.target_orientation) #[w, x, y, z]
-            
+
             quat_error = ut_math.quaternion_product(current_quaternion, tf.quaternions.qconjugate(tgt_quartenion))
 
             current_ee_tgt = np.ndarray.flatten(get_ee_points(self.environment['end_effector_points'], translation, rot).T)
@@ -318,6 +319,53 @@ class MARACollisionOrientEnv(gym.Env):
         else:
             return False
 
+    def original_reward_function(self):
+        if self.collision():
+            reward = - self.reward_dist * 10
+            print("Reward (collided) is: ", reward)
+        else:
+            if self.reward_dist < 0.005:
+                reward = 1 + self.reward_dist # Make the reward increase as the distance decreases
+                # Include orient reward if and only if it is close enough to the target
+                orientation_scale = 0.1
+                # Fetch the orientation of the end-effector which are from nr_dof:nr_dof+3 to nr_dof:nr_dof+6
+                reward_orient = - orientation_scale * self.reward_orientation
+                #scale here the orientation because it should not be the main bias of the reward, position should be
+
+                if reward_orient < 0.005:
+                    reward = reward + reward_orient * 10
+                    print("Reward is: ", reward)
+                else:
+                    reward = reward - reward_orient
+                    print("Reward (bad orient) is: ", reward)
+            else:
+                reward = - self.reward_dist
+        pass
+
+    def new_reward_function(self):
+        alpha = 3
+        beta = 3
+        gamma = 0.8
+        delta = 20
+
+        distance_reward = (math.exp(-alpha*self.reward_dist)-math.exp(-alpha))/(1-math.exp(-alpha))
+
+        orientation_reward = ((1-math.exp(-beta*abs((self.reward_orientation-math.pi)/math.pi))+gamma)/(1+gamma))
+
+        if self.collision():
+            #collision_reward = 0
+            #print("Collision")
+            collision_reward = delta*(1-math.exp(-self.reward_dist))
+        else:
+            collision_reward = 0
+
+        if self.reward_dist < 0.05 and self.reward_orientation <0.05:
+            done_reward = 10
+        else:
+            done_reward = 0
+
+        return 2*distance_reward*orientation_reward-2-collision_reward + done_reward
+
     def step(self, action):
         """
         Implement the environment step abstraction. Execute action and returns:
@@ -341,33 +389,16 @@ class MARACollisionOrientEnv(gym.Env):
             self.ob = self.take_observation()
 
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
-        reward_dist = ut_math.rmse_func(self.ob[self.num_joints:(self.num_joints+3)])
+        self.reward_dist = ut_math.rmse_func(self.ob[self.num_joints:(self.num_joints+3)])
+        self.reward_orientation = 2 * np.arccos(abs(self.ob[self.num_joints+3]))
         #scale here the orientation because it should not be the main bias of the reward, position should be
 
-        if self.collision():
-            reward = -reward_dist * 10
-            print("Reward (collided) is: ", reward)
-        else:
-            if reward_dist < 0.005:
-                reward = 1 + reward_dist # Make the reward increase as the distance decreases
-                # Include orient reward if and only if it is close enough to the target
-                orientation_scale = 0.1
-                # Fetch the orientation of the end-effector which are from nr_dof:nr_dof+3 to nr_dof:nr_dof+6
-                self.reward_orient = - orientation_scale * 2 * np.arccos(abs(self.ob[self.num_joints+3]))
-                #scale here the orientation because it should not be the main bias of the reward, position should be
-                print(self.reward_orient)
-                if reward_orient < 0.005:
-                    reward = reward + reward_orient * 10
-                    print("Reward is: ", reward)
-                else:
-                    reward = reward - reward_orient
-                    print("Reward (bad orient) is: ", reward)
-            else:
-                reward = -reward_dist
+        #reward = self.original_reward_function()
+        reward = self.new_reward_function()
 
         # Calculate if the env has been solved
-        done = bool(reward_dist < 0.005) or (self.iterator > self.max_episode_steps)
-
+        #done = bool(self.iterator > self.max_episode_steps)
+        done = False
         # Return the corresponding observations, rewards, etc.
         return self.ob, reward, done, {}
 
