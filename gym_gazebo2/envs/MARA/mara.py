@@ -11,6 +11,7 @@ from gym.utils import seeding
 from gazebo_msgs.srv import SpawnEntity
 from multiprocessing import Process
 import argparse
+import transforms3d as tf
 
 # ROS 2
 import rclpy
