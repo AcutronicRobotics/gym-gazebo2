@@ -343,7 +343,7 @@ class MARACollisionOrientEnv(gym.Env):
         beta = 3
         gamma = 0.8
         delta = 20
-
+        
         distance_reward = (math.exp(-alpha*self.reward_dist)-math.exp(-alpha))/(1-math.exp(-alpha))
 
         orientation_reward = ((1-math.exp(-beta*abs((self.reward_orientation-math.pi)/math.pi))+gamma)/(1+gamma))
