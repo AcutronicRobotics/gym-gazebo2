@@ -138,8 +138,9 @@ class MARACollisionOrientEnv(gym.Env):
         ee_rot_tgt = EE_ROT_TGT
 
         # Initialize target end effector position
-        self.target_orientation = ee_rot_tgt
         self.realgoal = np.ndarray.flatten(get_ee_points(EE_POINTS, ee_pos_tgt, ee_rot_tgt).T)
+        quat = tf.quaternions.mat2quat(ee_rot_tgt) #[w, x, y, z]
+        self.target_orientation = quat
 
         self.environment = {
             'joint_order': m_joint_order,
@@ -164,10 +165,6 @@ class MARACollisionOrientEnv(gym.Env):
         self.num_joints = self.scara_chain.getNrOfJoints()
         # Initialize a KDL Jacobian solver from the chain.
         self.jac_solver = ChainJntToJacSolver(self.scara_chain)
-        # TODO usfull???
-        # self._observations_stale = [False for _ in range(1)]
-        # self._currently_resetting = [False for _ in range(1)]
-        # self.reset_joint_angles = [None for _ in range(1)]
 
         self.obs_dim = self.num_joints + 10
 
@@ -219,13 +216,13 @@ class MARACollisionOrientEnv(gym.Env):
                     </robot>"
 
         pose = Pose()
-        pose.position.x = EE_POS_TGT[0,0];
-        pose.position.y = EE_POS_TGT[0,1];
-        pose.position.z = EE_POS_TGT[0,2];
-        pose.orientation.x = 0.0;
-        pose.orientation.y= 0.0;
-        pose.orientation.z = 0.0;
-        pose.orientation.w = 0.0;
+        pose.position.x = self.realgoal[0]
+        pose.position.y = self.realgoal[1]
+        pose.position.z = self.realgoal[2]
+        pose.orientation.x = self.target_orientation[1]
+        pose.orientation.y= self.target_orientation[2]
+        pose.orientation.z = self.target_orientation[3]
+        pose.orientation.w = self.target_orientation[0]
 
         #override previous spawn_request element.
         self.spawn_request = SpawnEntity.Request()
@@ -233,7 +230,7 @@ class MARACollisionOrientEnv(gym.Env):
         self.spawn_request.xml = model_xml
         self.spawn_request.robot_namespace = ""
         self.spawn_request.initial_pose = pose
-        self.spawn_request.reference_frame = ""
+        self.spawn_request.reference_frame = "world"
 
         #ROS2 Spawn Entity
         target_future = spawn_cli.call_async(self.spawn_request)
@@ -284,9 +281,8 @@ class MARACollisionOrientEnv(gym.Env):
                                                 end_link=self.environment['link_names'][-1])
 
             current_quaternion = tf.quaternions.mat2quat(rot) #[w, x, y ,z]
-            tgt_quartenion = tf.quaternions.mat2quat(self.target_orientation) #[w, x, y, z]
 
-            quat_error = ut_math.quaternion_product(current_quaternion, tf.quaternions.qconjugate(tgt_quartenion))
+            quat_error = ut_math.quaternion_product(current_quaternion, tf.quaternions.qconjugate(self.target_orientation))
 
             current_ee_tgt = np.ndarray.flatten(get_ee_points(self.environment['end_effector_points'], translation, rot).T)
             ee_points = current_ee_tgt - self.realgoal
