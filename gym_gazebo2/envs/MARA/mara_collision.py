@@ -357,7 +357,6 @@ class MARACollisionEnv(gym.Env):
                 self.environment['reset_conditions']['initial_positions'],
                 self.environment['joint_order'],
                 self.velocity))
-            time.sleep(self.velocity)
 
         # Take an observation
         self.ob = self.take_observation()
