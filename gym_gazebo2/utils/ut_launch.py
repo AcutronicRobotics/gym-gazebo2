@@ -71,29 +71,24 @@ def generate_launch_description_mara(gzclient, real_speed, multi_instance, port)
         Args:
             real_speed: bool   True if RTF must be set to 1, False if RTF must be set to maximum.
     """
-    urdf = os.path.join(get_package_share_directory('mara_description'), 'urdf', 'mara_robot_camera_top.urdf')
+    urdf = os.path.join(get_package_share_directory('mara_description'), 'urdf', 'mara_robot_gripper_140.urdf')
     mara = get_package_share_directory('mara_gazebo_plugins')
     install_dir = get_package_prefix('mara_gazebo_plugins')
-    ros2_ws_path = os.path.abspath(os.path.join(install_dir, os.pardir))
-    MARA_model_path = os.path.join(ros2_ws_path, 'src', 'MARA')
-    MARA_plugin_path = os.path.join(ros2_ws_path, 'src', 'MARA', 'mara_gazebo_plugins', 'build')
+
+    if 'GAZEBO_MODEL_PATH' in os.environ:
+        os.environ['GAZEBO_MODEL_PATH'] =  os.environ['GAZEBO_MODEL_PATH'] + ':' + install_dir + '/share'
+    else:
+        os.environ['GAZEBO_MODEL_PATH'] =  install_dir + "/share"
+
+    if 'GAZEBO_PLUGIN_PATH' in os.environ:
+        os.environ['GAZEBO_PLUGIN_PATH'] = os.environ['GAZEBO_PLUGIN_PATH'] + ':' + install_dir + '/lib'
+    else:
+        os.environ['GAZEBO_PLUGIN_PATH'] = install_dir + '/lib'
 
     if not real_speed:
         world_path = os.path.join(os.path.dirname(gym_gazebo2.__file__), 'worlds', 'empty__state_plugin__speed_up.world')
     else:
         world_path = os.path.join(os.path.dirname(gym_gazebo2.__file__), 'worlds', 'empty__state_plugin.world')
-
-    if 'GAZEBO_MODEL_PATH' in os.environ:
-        os.environ['GAZEBO_MODEL_PATH'] =  (os.environ['GAZEBO_MODEL_PATH'] + ':' + install_dir + 'share'
-                                            + ':' + MARA_model_path)
-    else:
-        os.environ['GAZEBO_MODEL_PATH'] =  install_dir + "/share" + ':' + MARA_model_path
-
-    if 'GAZEBO_PLUGIN_PATH' in os.environ:
-        os.environ['GAZEBO_PLUGIN_PATH'] = (os.environ['GAZEBO_PLUGIN_PATH'] + ':' + install_dir + '/lib'
-                                            + ':' + MARA_plugin_path)
-    else:
-        os.environ['GAZEBO_PLUGIN_PATH'] = install_dir + '/lib' + ':' + MARA_plugin_path
 
     if port != 11345:  # Default gazebo port
         os.environ["ROS_DOMAIN_ID"] = str(port)
@@ -135,7 +130,7 @@ def generate_launch_description_mara(gzclient, real_speed, multi_instance, port)
             env=envs
         ),
         Node(package='robot_state_publisher', node_executable='robot_state_publisher', output='screen', arguments=[urdf]),
-        Node(package='mara_utils_scripts', node_executable='spawn_entity.py', output='screen'),
+        Node(package='mara_utils_scripts', node_executable='spawn_mara_gripper_140.py', output='screen'),
         Node(package='hros_cognition_mara_components', node_executable='hros_cognition_mara_components', output='screen',
             arguments=["-motors", install_dir + "/share/hros_cognition_mara_components/link_order.yaml"]),
         Node(package='mara_contact_publisher', node_executable='mara_contact_publisher', output='screen', arguments=[urdf])
