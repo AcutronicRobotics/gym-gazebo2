@@ -17,7 +17,7 @@ docker build -t gym2 .
 ## Run the container
 
 ```shell
-docker rm gym2 || true && docker run -it --name=gym -h gym2 gym2
+docker rm gym2 || true && docker run -it --name=gym2 -h gym2 gym2
 ```
 
 ## Launch gzclient (GUI)
