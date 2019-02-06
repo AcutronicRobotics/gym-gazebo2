@@ -72,7 +72,7 @@ class MARACollisionOrientEnv(gym.Env):
         self.obs = None
         self.action_space = None
         self.realgoal = None
-        #self.max_episode_steps = 1000 # now used in all algorithms
+        self.max_episode_steps = 1024 # now used in all algorithms
         self.iterator = 0
         self.reset_jnts = True
         self._collision_msg = None
@@ -341,16 +341,16 @@ class MARACollisionOrientEnv(gym.Env):
         alpha = 3
         beta = 3
         gamma = 0.8
-        delta = 20
+        #delta = 20
 
         distance_reward = (math.exp(-alpha*self.reward_dist)-math.exp(-alpha))/(1-math.exp(-alpha))
 
         orientation_reward = ((1-math.exp(-beta*abs((self.reward_orientation-math.pi)/math.pi))+gamma)/(1+gamma))
 
         if self.collision():
-            #collision_reward = 0
+            collision_reward = 0
             #print("Collision")
-            collision_reward = delta*(1-math.exp(-self.reward_dist))
+            #collision_reward = delta*(1-math.exp(-self.reward_dist))
         else:
             collision_reward = 0
 
@@ -392,8 +392,8 @@ class MARACollisionOrientEnv(gym.Env):
         reward = self.new_reward_function()
 
         # Calculate if the env has been solved
-        #done = bool(self.iterator > self.max_episode_steps)
-        done = False
+        done = bool(self.iterator > self.max_episode_steps)
+        #done = False
         # Return the corresponding observations, rewards, etc.
         return self.ob, reward, done, {}
 
@@ -409,6 +409,7 @@ class MARACollisionOrientEnv(gym.Env):
                 self.environment['reset_conditions']['initial_positions'],
                 self.environment['joint_order'],
                 self.velocity))
+            time.sleep(self.velocity)
 
         # Take an observation
         self.ob = self.take_observation()
