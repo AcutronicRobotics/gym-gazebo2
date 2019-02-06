@@ -355,7 +355,7 @@ class MARACollisionOrientEnv(gym.Env):
             collision_reward = 0
 
         if self.reward_dist < 0.05 and self.reward_orientation <0.05:
-            done_reward = 10
+            done_reward = 50
         else:
             done_reward = 0
 
