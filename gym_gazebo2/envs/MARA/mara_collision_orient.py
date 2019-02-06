@@ -153,7 +153,7 @@ class MARACollisionOrientEnv(gym.Env):
         # Subscribe to the appropriate topics, taking into account the particular robot
         self._pub = self.node.create_publisher(JointTrajectory, JOINT_PUBLISHER, qos_profile=qos_profile_sensor_data)
         self._sub = self.node.create_subscription(JointTrajectoryControllerState, JOINT_SUBSCRIBER, self.observation_callback, qos_profile=qos_profile_sensor_data)
-        self._sub_coll = self.node.create_subscription(ContactState, '/gazebo_contacts', self.collision_callback)
+        self._sub_coll = self.node.create_subscription(ContactState, '/gazebo_contacts', self.collision_callback, qos_profile=qos_profile_sensor_data)
         self.reset_sim = self.node.create_client(Empty, '/reset_simulation')
 
         # Initialize a tree structure from the robot urdf.
