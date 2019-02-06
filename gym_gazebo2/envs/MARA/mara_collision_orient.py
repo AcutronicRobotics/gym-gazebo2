@@ -17,7 +17,7 @@ import argparse
 # ROS 2
 import rclpy
 from rclpy.qos import QoSProfile, qos_profile_sensor_data
-from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint # Used for publishing scara joint angles.
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint # Used for publishing mara joint angles.
 from control_msgs.msg import JointTrajectoryControllerState
 from gazebo_msgs.msg import ContactState
 from std_msgs.msg import String
@@ -161,10 +161,10 @@ class MARACollisionOrientEnv(gym.Env):
         # The urdf must be compiled.
         _, self.ur_tree = treeFromFile(self.environment['tree_path'])
         # Retrieve a chain structure between the base and the start of the end effector.
-        self.scara_chain = self.ur_tree.getChain(self.environment['link_names'][0], self.environment['link_names'][-1])
-        self.num_joints = self.scara_chain.getNrOfJoints()
+        self.mara_chain = self.ur_tree.getChain(self.environment['link_names'][0], self.environment['link_names'][-1])
+        self.num_joints = self.mara_chain.getNrOfJoints()
         # Initialize a KDL Jacobian solver from the chain.
-        self.jac_solver = ChainJntToJacSolver(self.scara_chain)
+        self.jac_solver = ChainJntToJacSolver(self.mara_chain)
 
         self.obs_dim = self.num_joints + 10
 
@@ -274,7 +274,7 @@ class MARACollisionOrientEnv(gym.Env):
             print("End link is empty!!")
             return None
         else:
-            translation, rot = forward_kinematics(self.scara_chain,
+            translation, rot = forward_kinematics(self.mara_chain,
                                                 self.environment['link_names'],
                                                 last_observations[:self.num_joints],
                                                 base_link=self.environment['link_names'][0],

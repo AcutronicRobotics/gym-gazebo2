@@ -16,7 +16,7 @@ import argparse
 # ROS 2
 import rclpy
 from rclpy.qos import QoSProfile, qos_profile_sensor_data
-from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint # Used for publishing scara joint angles.
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint # Used for publishing mara joint angles.
 from control_msgs.msg import JointTrajectoryControllerState
 from gazebo_msgs.msg import ContactState
 from std_msgs.msg import String
@@ -160,16 +160,16 @@ class MARAOrientEnv(gym.Env):
         # The urdf must be compiled.
         _, self.ur_tree = treeFromFile(self.environment['tree_path'])
         # Retrieve a chain structure between the base and the start of the end effector.
-        self.scara_chain = self.ur_tree.getChain(self.environment['link_names'][0], self.environment['link_names'][-1])
+        self.mara_chain = self.ur_tree.getChain(self.environment['link_names'][0], self.environment['link_names'][-1])
         # Initialize a KDL Jacobian solver from the chain.
-        self.jac_solver = ChainJntToJacSolver(self.scara_chain)
+        self.jac_solver = ChainJntToJacSolver(self.mara_chain)
 
-        self.obs_dim = self.scara_chain.getNrOfJoints() + 10
+        self.obs_dim = self.mara_chain.getNrOfJoints() + 10
 
         # # Here idially we should find the control range of the robot. Unfortunatelly in ROS/KDL there is nothing like this.
         # # I have tested this with the mujoco enviroment and the output is always same low[-1.,-1.], high[1.,1.]
-        low = -np.pi/2.0 * np.ones(self.scara_chain.getNrOfJoints())
-        high = np.pi/2.0 * np.ones(self.scara_chain.getNrOfJoints())
+        low = -np.pi/2.0 * np.ones(self.mara_chain.getNrOfJoints())
+        high = np.pi/2.0 * np.ones(self.mara_chain.getNrOfJoints())
         self.action_space = spaces.Box(low, high)
 
         high = np.inf*np.ones(self.obs_dim)
@@ -267,14 +267,14 @@ class MARAOrientEnv(gym.Env):
         # Get Jacobians from present joint angles and KDL trees
         # The Jacobians consist of a 6x6 matrix getting its from from
         # (joint angles) x (len[x, y, z] + len[roll, pitch, yaw])
-        ee_link_jacobians = ut_mara.get_jacobians(last_observations, self.scara_chain.getNrOfJoints(), self.jac_solver)
+        ee_link_jacobians = ut_mara.get_jacobians(last_observations, self.mara_chain.getNrOfJoints(), self.jac_solver)
         if self.environment['link_names'][-1] is None:
             print("End link is empty!!")
             return None
         else:
-            translation, rot = forward_kinematics(self.scara_chain,
+            translation, rot = forward_kinematics(self.mara_chain,
                                                 self.environment['link_names'],
-                                                last_observations[:self.scara_chain.getNrOfJoints()],
+                                                last_observations[:self.mara_chain.getNrOfJoints()],
                                                 base_link=self.environment['link_names'][0],
                                                 end_link=self.environment['link_names'][-1])
 
@@ -313,7 +313,7 @@ class MARAOrientEnv(gym.Env):
 
         # Execute "action"
         self._pub.publish(ut_mara.get_trajectory_message(
-            action[:self.scara_chain.getNrOfJoints()],
+            action[:self.mara_chain.getNrOfJoints()],
             self.environment['joint_order'],
             self.velocity))
 
@@ -324,13 +324,13 @@ class MARAOrientEnv(gym.Env):
             self.ob = self.take_observation()
 
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
-        reward_dist = ut_math.rmse_func(self.ob[self.scara_chain.getNrOfJoints():(self.scara_chain.getNrOfJoints()+3)])
+        reward_dist = ut_math.rmse_func(self.ob[self.mara_chain.getNrOfJoints():(self.mara_chain.getNrOfJoints()+3)])
         if reward_dist < 0.005:
             reward = 1 - reward_dist # Make the reward increase as the distance decreases
             # Include orient reward if and only if it is close enough to the target
             orientation_scale = 0.1
             # Fetch the orientation of the end-effector which are from nr_dof:nr_dof+3 to nr_dof:nr_dof+6
-            reward_orient = orientation_scale * ut_math.rmse_func(self.ob[self.scara_chain.getNrOfJoints()+3:(self.scara_chain.getNrOfJoints()+6)])
+            reward_orient = orientation_scale * ut_math.rmse_func(self.ob[self.mara_chain.getNrOfJoints()+3:(self.mara_chain.getNrOfJoints()+6)])
             if reward_orient < 0.005:
                 reward = reward + (1 - reward_orient)
                 print("Reward is: ", reward)
