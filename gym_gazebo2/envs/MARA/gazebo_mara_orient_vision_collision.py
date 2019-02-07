@@ -12,7 +12,7 @@ import os
 import numpy as np
 from gym import utils, spaces
 from gym.utils import seeding
-from gym_gazebo2.utils import ut_gazebo, ut_generic, ut_launch, ut_mara, ut_math
+from gym_gazebo2.utils import ut_gazebo, ut_generic, ut_launch, ut_mara, ut_math, ut_gazebo
 import copy
 import threading # Used for time locks to synchronize position data.
 import argparse
@@ -320,35 +320,8 @@ class GazeboMARAOrientVisionCollisionEnv(gym.Env):
             print("Predicted target is: ", self.realgoal)
             self.detect_target_once = 0
 
-            model_xml = "<?xml version=\"1.0\"?> \
-                        <robot name=\"myfirst\"> \
-                          <link name=\"world\"> \
-                          </link>\
-                          <link name=\"sphere0\">\
-                            <visual>\
-                              <geometry>\
-                                <sphere radius=\"0.01\"/>\
-                              </geometry>\
-                              <origin xyz=\"0 0 0\"/>\
-                              <material name=\"rojotransparente\">\
-                                  <ambient>0.5 0.5 1.0 0.1</ambient>\
-                                  <diffuse>0.5 0.5 1.0 0.1</diffuse>\
-                              </material>\
-                            </visual>\
-                            <inertial>\
-                              <mass value=\"5.0\"/>\
-                              <inertia ixx=\"1.0\" ixy=\"0.0\" ixz=\"0.0\" iyy=\"1.0\" iyz=\"0.0\" izz=\"1.0\"/>\
-                            </inertial>\
-                          </link>\
-                          <joint name=\"world_to_base\" type=\"fixed\"> \
-                            <origin xyz=\"0 0 0\" rpy=\"0 0 0\"/>\
-                            <parent link=\"world\"/>\
-                            <child link=\"sphere0\"/>\
-                          </joint>\
-                          <gazebo reference=\"sphere0\">\
-                            <material>Gazebo/GreenTransparent</material>\
-                          </gazebo>\
-                        </robot>"
+            model_xml = ut_gazebo.get_target_sdf()
+
             robot_namespace = ""
             pose = Pose()
             pose.position.x = EE_POS_TGT[0,0];

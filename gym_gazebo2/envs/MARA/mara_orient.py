@@ -7,7 +7,7 @@ import os
 import sys
 import transforms3d as tf
 from gym import utils, spaces
-from gym_gazebo2.utils import ut_generic, ut_launch, ut_mara, ut_math
+from gym_gazebo2.utils import ut_generic, ut_launch, ut_mara, ut_math, ut_gazebo
 from gym.utils import seeding
 from gazebo_msgs.srv import SpawnEntity
 from multiprocessing import Process
@@ -183,35 +183,7 @@ class MARAOrientEnv(gym.Env):
         while not spawn_cli.wait_for_service(timeout_sec=1.0):
             self.node.get_logger().info('service not available, waiting again...')
 
-        model_xml = "<?xml version=\"1.0\"?> \
-                    <robot name=\"myfirst\"> \
-                      <link name=\"world\"> \
-                      </link>\
-                      <link name=\"cylinder0\">\
-                        <visual>\
-                          <geometry>\
-                            <sphere radius=\"0.01\"/>\
-                          </geometry>\
-                          <origin xyz=\"0 0 0\"/>\
-                          <material name=\"rojotransparente\">\
-                              <ambient>0.5 0.5 1.0 0.1</ambient>\
-                              <diffuse>0.5 0.5 1.0 0.1</diffuse>\
-                          </material>\
-                        </visual>\
-                        <inertial>\
-                          <mass value=\"5.0\"/>\
-                          <inertia ixx=\"1.0\" ixy=\"0.0\" ixz=\"0.0\" iyy=\"1.0\" iyz=\"0.0\" izz=\"1.0\"/>\
-                        </inertial>\
-                      </link>\
-                      <joint name=\"world_to_base\" type=\"fixed\"> \
-                        <origin xyz=\"0 0 0\" rpy=\"0 0 0\"/>\
-                        <parent link=\"world\"/>\
-                        <child link=\"cylinder0\"/>\
-                      </joint>\
-                      <gazebo reference=\"cylinder0\">\
-                        <material>Gazebo/GreenTransparent</material>\
-                      </gazebo>\
-                    </robot>"
+        model_xml = ut_gazebo.get_target_sdf()
 
         pose = Pose()
         pose.position.x = self.realgoal[0]
