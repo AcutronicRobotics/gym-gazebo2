@@ -302,16 +302,16 @@ class MARACollisionEnv(gym.Env):
         reward_dist = ut_math.rmse_func(self.ob[self.mara_chain.getNrOfJoints():(self.mara_chain.getNrOfJoints()+3)])
 
         if self.collision():
-            reward = -reward_dist * 2
+            reward = -reward_dist * 1.5
         else:
-            if reward_dist < 0.005:
+            if reward_dist < 0.001:
                 reward = 1 - reward_dist # Make the reward increase as the distance decreases
                 print("Reward is: ", reward)
             else:
                 reward = -reward_dist
-                
+
         # Calculate if the env has been solved
-        done = bool(reward_dist < 0.005) or (self.iterator > self.max_episode_steps)
+        done = bool(reward_dist < 0.001) or (self.iterator > self.max_episode_steps)
 
         # Return the corresponding observations, rewards, etc.
         return self.ob, reward, done, {}
