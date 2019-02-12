@@ -304,14 +304,14 @@ class MARACollisionEnv(gym.Env):
         if self.collision():
             reward = -reward_dist * 1.5
         else:
-            if reward_dist < 0.001:
+            if reward_dist < 0.005:
                 reward = 1 - reward_dist # Make the reward increase as the distance decreases
                 print("Reward is: ", reward)
             else:
                 reward = -reward_dist
 
         # Calculate if the env has been solved
-        done = bool(reward_dist < 0.001) or (self.iterator > self.max_episode_steps)
+        done = bool(reward_dist < 0.005) or (self.iterator > self.max_episode_steps)
 
         # Return the corresponding observations, rewards, etc.
         return self.ob, reward, done, {}
