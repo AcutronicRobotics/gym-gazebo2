@@ -98,6 +98,8 @@ def get_trajectory_message(action, joint_order, velocity, robot_id=0):
     target.positions = action_float
     target.velocities = [velocity]*action.size
 
+    target.time_from_start.nanosec  = 1000000
+
     action_msg.points = [target]
     return action_msg
 

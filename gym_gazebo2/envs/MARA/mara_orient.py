@@ -168,8 +168,8 @@ class MARAOrientEnv(gym.Env):
 
         # # Here idially we should find the control range of the robot. Unfortunatelly in ROS/KDL there is nothing like this.
         # # I have tested this with the mujoco enviroment and the output is always same low[-1.,-1.], high[1.,1.]
-        low = -np.pi/2.0 * np.ones(self.mara_chain.getNrOfJoints())
-        high = np.pi/2.0 * np.ones(self.mara_chain.getNrOfJoints())
+        low = -np.pi/4.0 * np.ones(self.mara_chain.getNrOfJoints())
+        high = np.pi/4.0 * np.ones(self.mara_chain.getNrOfJoints())
         self.action_space = spaces.Box(low, high)
 
         high = np.inf*np.ones(self.obs_dim)

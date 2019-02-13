@@ -5,6 +5,7 @@ import numpy as np
 import copy
 import os
 import sys
+import math
 from gym import utils, spaces
 from gym_gazebo2.utils import ut_generic, ut_launch, ut_mara, ut_math, ut_gazebo
 from gym.utils import seeding
@@ -36,7 +37,7 @@ class MSG_INVALID_JOINT_NAMES_DIFFER(Exception):
     """Error object exclusively raised by _process_observations."""
     pass
 
-class MARACollisionEnv(gym.Env):
+class MARACollisionRewEnv(gym.Env):
     """
     TODO. Define the environment.
     """
@@ -71,7 +72,7 @@ class MARACollisionEnv(gym.Env):
         self.obs = None
         self.action_space = None
         self.realgoal = None
-        self.max_episode_steps = 1000 # now used in all algorithms
+        self.max_episode_steps = 1024 # now used in all algorithms
         self.iterator = 0
         self.reset_jnts = True
         self._collision_msg = None
@@ -80,8 +81,13 @@ class MARACollisionEnv(gym.Env):
         #   Environment hyperparams
         #############################
         # Target, where should the agent reach
-        EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466])
-        EE_ROT_TGT = np.asmatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        # EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466])
+        EE_POS_TGT = np.asmatrix([-0.386752, -0.000756, 1.40557])
+        # EE_ROT_TGT = np.asmatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+
+        EE_ROT_TGT = np.asmatrix([ -0.5984601,  0.0000000, -0.8011526],
+                                 [0.0000000,  1.0000000,  0.0000000],
+                                 [0.8011526,  0.0000000, -0.5984601 ])
 
         EE_POINTS = np.asmatrix([[0, 0, 0]])
         EE_VELOCITIES = np.asmatrix([[0, 0, 0]])
@@ -165,8 +171,8 @@ class MARACollisionEnv(gym.Env):
 
         # # Here idially we should find the control range of the robot. Unfortunatelly in ROS/KDL there is nothing like this.
         # # I have tested this with the mujoco enviroment and the output is always same low[-1.,-1.], high[1.,1.]
-        low = -np.pi/2.0 * np.ones(self.mara_chain.getNrOfJoints())
-        high = np.pi/2.0 * np.ones(self.mara_chain.getNrOfJoints())
+        low = -np.pi/4.0 * np.ones(self.mara_chain.getNrOfJoints())
+        high = np.pi/4.0 * np.ones(self.mara_chain.getNrOfJoints())
         self.action_space = spaces.Box(low, high)
 
         high = np.inf*np.ones(self.obs_dim)
@@ -213,7 +219,11 @@ class MARACollisionEnv(gym.Env):
         """
         Callback method for the subscriber of JointTrajectoryControllerState
         """
+        print("obs callback")
+        # if not np.array_equal(self._observation_msg, message):
         self._observation_msg =  message
+        # else:
+            # print("Msg is same")
 
     def collision_callback(self, message):
         """
@@ -227,8 +237,10 @@ class MARACollisionEnv(gym.Env):
         Take observation from the environment and return it.
         :return: state.
         """
+
         # Take an observation
         rclpy.spin_once(self.node)
+
         obs_message = self._observation_msg
         if obs_message is None:
             print("Last observation is empty")
@@ -255,10 +267,14 @@ class MARACollisionEnv(gym.Env):
             ee_velocities = ut_mara.get_ee_points_velocities(ee_link_jacobians, self.environment['end_effector_points'], rot, last_observations)
 
             # Concatenate the information that defines the robot state
-            # vector, typically denoted asrobot_id 'x'.
+            '''
+
+            '''
             state = np.r_[np.reshape(last_observations, -1),
                           np.reshape(ee_points, -1),
                           np.reshape(ee_velocities, -1),]
+
+            # self._observation_msg = None
 
             return state
 
@@ -300,6 +316,8 @@ class MARACollisionEnv(gym.Env):
         while(self.ob is None):
             print("step: observation is Empty")
             self.ob = self.take_observation()
+        print("action: \n", action)
+        print("observation: \n", self.ob)
 
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
         reward_dist = ut_math.rmse_func(self.ob[self.mara_chain.getNrOfJoints():(self.mara_chain.getNrOfJoints()+3)])

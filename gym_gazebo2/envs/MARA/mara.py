@@ -165,8 +165,8 @@ class MARAEnv(gym.Env):
 
         # # Here idially we should find the control range of the robot. Unfortunatelly in ROS/KDL there is nothing like this.
         # # I have tested this with the mujoco enviroment and the output is always same low[-1.,-1.], high[1.,1.]
-        low = -np.pi/2.0 * np.ones(self.mara_chain.getNrOfJoints())
-        high = np.pi/2.0 * np.ones(self.mara_chain.getNrOfJoints())
+        low = -np.pi/4.0 * np.ones(self.mara_chain.getNrOfJoints())
+        high = np.pi/4.0 * np.ones(self.mara_chain.getNrOfJoints())
         self.action_space = spaces.Box(low, high)
 
         high = np.inf*np.ones(self.obs_dim)
@@ -303,7 +303,9 @@ class MARAEnv(gym.Env):
             self._collision_msg = None
 
         # Calculate if the env has been solved
-        done = bool(reward_dist < 0.005) or (self.iterator > self.max_episode_steps)
+        done = bool(reward_dist < 0.005) #or (self.iterator > self.max_episode_steps)
+
+        # print("reward: \n", reward)
 
         # Return the corresponding observations, rewards, etc.
         return self.ob, reward, done, {}

@@ -37,3 +37,8 @@ register(
     id='MARAOrientVision-v0',
     entry_point='gym_gazebo2.envs.MARA:GazeboMARAOrientVisionEnv',
 )
+
+register(
+    id='MARACollisionRew-v0',
+    entry_point='gym_gazebo2.envs.MARA:MARACollisionRewEnv',
+)
