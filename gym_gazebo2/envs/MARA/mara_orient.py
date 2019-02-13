@@ -82,9 +82,9 @@ class MARAOrientEnv(gym.Env):
         # Target, where should the agent reach
         EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466])
         EE_ROT_TGT = np.asmatrix([
-                                [0.79660969, -0.51571238,  0.31536287],
-                                [0.51531424,  0.85207952,  0.09171542],
-                                [-0.31601302,  0.08944959,  0.94452874] ])
+                                [-0.4480736, 0.0000000,  0.8939967],
+                                [0.0000000,  1.0000000,  0.0000000],
+                                [-0.8939967,  0.0000000,  -0.4480736] ])
 
         EE_POINTS = np.asmatrix([[0, 0, 0]])
         EE_VELOCITIES = np.asmatrix([[0, 0, 0]])
