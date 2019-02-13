@@ -93,6 +93,7 @@ class MARACollisionOrientEnv(gym.Env):
                                 [0.0000000,  1.0000000,  0.0000000],
                                 [0.8011526,  0.0000000, -0.5984601 ] ])
 
+
         EE_POINTS = np.asmatrix([[0, 0, 0]])
         EE_VELOCITIES = np.asmatrix([[0, 0, 0]])
 
