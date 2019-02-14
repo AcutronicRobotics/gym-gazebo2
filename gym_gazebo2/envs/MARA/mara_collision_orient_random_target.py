@@ -82,11 +82,10 @@ class MARACollisionOrientRandomTargetEnv(gym.Env):
         #   Environment hyperparams
         #############################
         # Target, where should the agent reach
-        EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466])
-        EE_ROT_TGT = np.asmatrix([
-                                [-0.4480736, 0.0000000,  0.8939967],
-                                [0.0000000,  1.0000000,  0.0000000],
-                                [-0.8939967,  0.0000000,  -0.4480736] ])
+        EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466]) # close to the table
+        EE_ROT_TGT = np.asmatrix([ [0., 0., 1.], [0., 1., 0.], [-1., 0., 0.] ]) # arrow looking down
+        # EE_POS_TGT = np.asmatrix([-0.386752, -0.000756, 1.40557]) # easy point
+        # EE_ROT_TGT = np.asmatrix([ [-1., 0., 0.], [0., 1., 0.], [-0., 0., -1.] ]) # arrow looking opposite to MARA
 
         EE_POINTS = np.asmatrix([[0, 0, 0]])
         EE_VELOCITIES = np.asmatrix([[0, 0, 0]])

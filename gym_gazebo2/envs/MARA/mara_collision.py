@@ -80,8 +80,9 @@ class MARACollisionEnv(gym.Env):
         #   Environment hyperparams
         #############################
         # Target, where should the agent reach
-        EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466])
-        EE_ROT_TGT = np.asmatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        # EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466]) # close to the table
+        EE_POS_TGT = np.asmatrix([-0.386752, -0.000756, 1.40557]) # easy point
+        EE_ROT_TGT = np.asmatrix([ [1., 0., 0.], [0., 1., 0.], [0., 0., 1.] ])
 
         EE_POINTS = np.asmatrix([[0, 0, 0]])
         EE_VELOCITIES = np.asmatrix([[0, 0, 0]])
@@ -229,14 +230,12 @@ class MARACollisionEnv(gym.Env):
         obs_message = self._observation_msg
 
         while obs_message is None:
-            #print("Last observation is empty")
             rclpy.spin_once(self.node)
             obs_message = self._observation_msg
 
         # Collect the end effector points and velocities in cartesian coordinates for the process_observations state.
         # Collect the present joint angles and velocities from ROS for the state.
         last_observations = ut_mara.process_observations(obs_message, self.environment)
-        print("OBS: "+str(last_observations))
         #Set observation to None after it has been read.
         self._observation_msg = None
 
@@ -298,10 +297,6 @@ class MARACollisionEnv(gym.Env):
             action[:self.mara_chain.getNrOfJoints()],
             self.environment['joint_order'],
             self.velocity))
-
-
-        print("\nSTEP")
-        print("ACT: "+str(action))
 
         # Take an observation
         self.ob = self.take_observation()
