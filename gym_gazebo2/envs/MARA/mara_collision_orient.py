@@ -81,17 +81,10 @@ class MARACollisionOrientEnv(gym.Env):
         #   Environment hyperparams
         #############################
         # Target, where should the agent reach
-        # EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466])
-        # EE_ROT_TGT = np.asmatrix([
-        #                         [0.79660969, -0.51571238,  0.31536287],
-        #                         [0.51531424,  0.85207952,  0.09171542],
-        #                         [-0.31601302,  0.08944959,  0.94452874] ])
-
-        EE_POS_TGT = np.asmatrix([-0.386752, -0.000756, 1.40557])
-        EE_ROT_TGT = np.asmatrix([
-                                [-0.5984601,  0.0000000, -0.8011526],
-                                [0.0000000,  1.0000000,  0.0000000],
-                                [0.8011526,  0.0000000, -0.5984601 ] ])
+        # EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466]) # close to the table
+        # EE_ROT_TGT = np.asmatrix([ [0., 0., 1.], [0., 1., 0.], [-1., 0., 0.] ]) # arrow looking down
+        EE_POS_TGT = np.asmatrix([-0.386752, -0.000756, 1.40557]) # easy point
+        EE_ROT_TGT = np.asmatrix([ [-1., 0., 0.], [0., 1., 0.], [-0., 0., -1.] ]) # arrow looking opposite to MARA
 
 
         EE_POINTS = np.asmatrix([[0, 0, 0]])
@@ -250,12 +243,16 @@ class MARACollisionOrientEnv(gym.Env):
         # Take an observation
         rclpy.spin_once(self.node)
         obs_message = self._observation_msg
-        if obs_message is None:
-            print("Last observation is empty")
-            return None
+
+        while obs_message is None:
+            #print("Last observation is empty")
+            rclpy.spin_once(self.node)
+            obs_message = self._observation_msg
         # Collect the end effector points and velocities in cartesian coordinates for the process_observations state.
         # Collect the present joint angles and velocities from ROS for the state.
         last_observations = ut_mara.process_observations(obs_message, self.environment)
+
+        self._observation_msg = None
         # Get Jacobians from present joint angles and KDL trees
         # The Jacobians consist of a 6x6 matrix getting its from from
         # (joint angles) x (len[x, y, z] + len[roll, pitch, yaw])
@@ -271,18 +268,14 @@ class MARACollisionOrientEnv(gym.Env):
                                                 end_link=self.environment['link_names'][-1])
 
             current_quaternion = tf.quaternions.mat2quat(rot) #[w, x, y ,z]
-
             quat_error = ut_math.quaternion_product(current_quaternion, tf.quaternions.qconjugate(self.target_orientation))
 
             current_ee_tgt = np.ndarray.flatten(get_ee_points(self.environment['end_effector_points'], translation, rot).T)
             ee_points = current_ee_tgt - self.realgoal
-            if ee_points[2] < 0:
-                # print("Under the target!")
-                # print(current_ee_tgt)
-                # print(self.realgoal)
+
+            if ee_points[2] < 0:# penalize if the gripper goes under the height of the target
                 ee_points[2] = ee_points[2]*100
-                self.rew_coll += 1
-                # print(ee_points)
+                self.rew_coll += 1 # number of penalizations inflicted
 
             ee_velocities = ut_mara.get_ee_points_velocities(ee_link_jacobians, self.environment['end_effector_points'], rot, last_observations)
 
@@ -345,10 +338,7 @@ class MARACollisionOrientEnv(gym.Env):
         distance_reward = (math.exp(-alpha*self.reward_dist)-math.exp(-alpha))/(1-math.exp(-alpha))
 
         orientation_reward = ((1-math.exp(-beta*abs((self.reward_orientation-math.pi)/math.pi))+gamma)/(1+gamma))
-
         if self.collision():
-            #collision_reward = 0
-            #print("Collision")
             self.collided += 1
             collision_reward = delta*(1-math.exp(-self.reward_dist))
         else:
@@ -379,9 +369,6 @@ class MARACollisionOrientEnv(gym.Env):
 
         # Take an observation
         self.ob = self.take_observation()
-        while(self.ob is None):
-            print("step: observation is Empty")
-            self.ob = self.take_observation()
 
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
         self.reward_dist = ut_math.rmse_func(self.ob[self.num_joints:(self.num_joints+3)])
@@ -449,8 +436,6 @@ class MARACollisionOrientEnv(gym.Env):
 
         # Take an observation
         self.ob = self.take_observation()
-        while(self.ob is None):
-            self.ob = self.take_observation()
 
         # Return the corresponding observation
         return self.ob
