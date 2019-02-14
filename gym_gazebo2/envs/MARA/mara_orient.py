@@ -3,6 +3,7 @@ gym.logger.set_level(40) # hide warnings
 import time
 import numpy as np
 import copy
+import math
 import os
 import sys
 import transforms3d as tf
@@ -282,41 +283,41 @@ class MARAOrientEnv(gym.Env):
 
             return state
 
-        def collision(self):
-            # Reset if there is a collision
-            if self._collision_msg is not None:
-                while not self.reset_sim.wait_for_service(timeout_sec=1.0):
-                    self.node.get_logger().info('service not available, waiting again...')
+    def collision(self):
+        # Reset if there is a collision
+        if self._collision_msg is not None:
+            while not self.reset_sim.wait_for_service(timeout_sec=1.0):
+                self.node.get_logger().info('service not available, waiting again...')
 
-                reset_future = self.reset_sim.call_async(Empty.Request())
-                rclpy.spin_until_future_complete(self.node, reset_future)
-                #rclpy.spin_once(self.node)
-                self._collision_msg = None
-                return True
-            else:
-                return False
+            reset_future = self.reset_sim.call_async(Empty.Request())
+            rclpy.spin_until_future_complete(self.node, reset_future)
+            #rclpy.spin_once(self.node)
+            self._collision_msg = None
+            return True
+        else:
+            return False
 
-        def reward_function():
-            alpha = 5
-            beta = 3
-            gamma = 3
-            delta = 3
+    def reward_function(self):
+        alpha = 5
+        beta = 3
+        gamma = 3
+        delta = 3
 
-            distance_reward = (math.exp(-alpha*self.reward_dist)-math.exp(-alpha))/(1-math.exp(-alpha))
+        distance_reward = (math.exp(-alpha*self.reward_dist)-math.exp(-alpha))/(1-math.exp(-alpha))
 
-            orientation_reward = ((1-math.exp(-beta*abs((self.reward_orientation-math.pi)/math.pi))+gamma)/(1+gamma))
-            if self.collision():
-                self.collided += 1
-                collision_reward = 0
-            else:
-                collision_reward = 0
+        orientation_reward = ((1-math.exp(-beta*abs((self.reward_orientation-math.pi)/math.pi))+gamma)/(1+gamma))
+        if self.collision():
+            self.collided += 1
+            collision_reward = 0
+        else:
+            collision_reward = 0
 
-            if self.reward_dist < 0.005:
-                close_reward = 10
-            else:
-                close_reward = 0
+        if self.reward_dist < 0.005:
+            close_reward = 10
+        else:
+            close_reward = 0
 
-            return 2*distance_reward*orientation_reward - 2 - collision_reward + close_reward
+        return 2*distance_reward*orientation_reward - 2 - collision_reward + close_reward
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -348,7 +349,7 @@ class MARAOrientEnv(gym.Env):
         self.reward_dist = ut_math.rmse_func(self.ob[self.num_joints:(self.num_joints+3)])
         self.reward_orientation = 2 * np.arccos(abs(self.ob[self.num_joints+3]))
 
-        reward = self.new_reward_function()
+        reward = self.reward_function()
 
         self.buffer_dist_rewards.append(self.reward_dist)
         self.buffer_orient_rewards.append(self.reward_orientation)

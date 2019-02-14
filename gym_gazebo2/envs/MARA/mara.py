@@ -3,6 +3,7 @@ gym.logger.set_level(40) # hide warnings
 import time
 import numpy as np
 import copy
+import math
 import os
 import sys
 from gym import utils, spaces
@@ -277,7 +278,7 @@ class MARAEnv(gym.Env):
 
             return state
 
-    def reward_function():
+    def reward_function(self):
         alpha = 5
         beta = 3
         gamma = 3
@@ -324,7 +325,7 @@ class MARAEnv(gym.Env):
 
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
         self.reward_dist = ut_math.rmse_func(self.ob[self.num_joints:(self.num_joints+3)])
-        reward = self.new_reward_function()
+        reward = self.reward_function()
 
         self.buffer_dist_rewards.append(self.reward_dist)
         self.buffer_orient_rewards.append(0)

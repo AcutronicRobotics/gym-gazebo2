@@ -3,6 +3,7 @@ gym.logger.set_level(40) # hide warnings
 import time
 import numpy as np
 import copy
+import math
 import os
 import sys
 from gym import utils, spaces
@@ -298,7 +299,7 @@ class MARACollisionEnv(gym.Env):
         else:
             return False
 
-    def reward_function():
+    def reward_function(self):
         alpha = 5
         beta = 3
         gamma = 3
@@ -344,6 +345,7 @@ class MARACollisionEnv(gym.Env):
         #scale here the orientation because it should not be the main bias of the reward, position should be
 
         reward = self.reward_function()
+
         self.buffer_dist_rewards.append(self.reward_dist)
         self.buffer_orient_rewards.append(0)
         self.buffer_tot_rewards.append(reward)

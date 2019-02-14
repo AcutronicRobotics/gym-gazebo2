@@ -3,6 +3,7 @@ gym.logger.set_level(40) # hide warnings
 import time
 import numpy as np
 import copy
+import math
 import os
 import sys
 import transforms3d as tf
@@ -360,7 +361,7 @@ class MARACollisionOrientRandomTargetEnv(gym.Env):
         else:
             return False
 
-    def reward_function():
+    def reward_function(self):
         alpha = 5
         beta = 3
         gamma = 3
