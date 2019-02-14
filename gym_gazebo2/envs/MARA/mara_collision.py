@@ -224,7 +224,7 @@ class MARACollisionEnv(gym.Env):
         Take observation from the environment and return it.
         :return: state.
         """
-        # Take an observation
+        # # Take an observation
         rclpy.spin_once(self.node)
         obs_message = self._observation_msg
 

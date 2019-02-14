@@ -76,6 +76,11 @@ class MARACollisionRewEnv(gym.Env):
         self.iterator = 0
         self.reset_jnts = True
         self._collision_msg = None
+        self._observations_stale = False
+
+        self.episode = 0
+        self.collided = 0
+        self.rew_coll = 0
 
         #############################
         #   Environment hyperparams
@@ -85,9 +90,9 @@ class MARACollisionRewEnv(gym.Env):
         EE_POS_TGT = np.asmatrix([-0.386752, -0.000756, 1.40557])
         # EE_ROT_TGT = np.asmatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
 
-        EE_ROT_TGT = np.asmatrix([ -0.5984601,  0.0000000, -0.8011526],
-                                 [0.0000000,  1.0000000,  0.0000000],
-                                 [0.8011526,  0.0000000, -0.5984601 ])
+        EE_ROT_TGT = np.asmatrix([[-1,   0.,  0.],
+                                  [ 0.,  1.,  0.],
+                                  [ 0.,  0., -1.]])
 
         EE_POINTS = np.asmatrix([[0, 0, 0]])
         EE_VELOCITIES = np.asmatrix([[0, 0, 0]])
@@ -221,7 +226,8 @@ class MARACollisionRewEnv(gym.Env):
         """
         print("obs callback")
         # if not np.array_equal(self._observation_msg, message):
-        self._observation_msg =  message
+        self._observations_stale = False
+        self._observation_msg = message
         # else:
             # print("Msg is same")
 
@@ -237,44 +243,50 @@ class MARACollisionRewEnv(gym.Env):
         Take observation from the environment and return it.
         :return: state.
         """
-
-        # Take an observation
         rclpy.spin_once(self.node)
+        if self._observations_stale is False:
+            # rclpy.spin_once(self.node)
+            # while obs_message is None:
+            #     #print("Last observation is empty")
+            #     rclpy.spin_once(self.node)
+            #     obs_message = self._observation_msg
 
-        obs_message = self._observation_msg
-        if obs_message is None:
-            print("Last observation is empty")
-            return None
-        # Collect the end effector points and velocities in cartesian coordinates for the process_observations state.
-        # Collect the present joint angles and velocities from ROS for the state.
-        last_observations = ut_mara.process_observations(obs_message, self.environment)
-        # Get Jacobians from present joint angles and KDL trees
-        # The Jacobians consist of a 6x6 matrix getting its from from
-        # (joint angles) x (len[x, y, z] + len[roll, pitch, yaw])
-        ee_link_jacobians = ut_mara.get_jacobians(last_observations, self.mara_chain.getNrOfJoints(), self.jac_solver)
-        if self.environment['link_names'][-1] is None:
-            print("End link is empty!!")
-            return None
-        else:
-            translation, rot = forward_kinematics(self.mara_chain,
-                                                self.environment['link_names'],
-                                                last_observations[:self.mara_chain.getNrOfJoints()],
-                                                base_link=self.environment['link_names'][0],
-                                                end_link=self.environment['link_names'][-1])
 
-            current_ee_tgt = np.ndarray.flatten(get_ee_points(self.environment['end_effector_points'], translation, rot).T)
-            ee_points = current_ee_tgt - self.realgoal
-            ee_velocities = ut_mara.get_ee_points_velocities(ee_link_jacobians, self.environment['end_effector_points'], rot, last_observations)
+            obs_message = self._observation_msg
+            if obs_message is None:
+                # print("Last observation is empty")
+                return None
+            # Collect the end effector points and velocities in cartesian coordinates for the process_observations state.
+            # Collect the present joint angles and velocities from ROS for the state.
+            last_observations = ut_mara.process_observations(obs_message, self.environment)
+            # Get Jacobians from present joint angles and KDL trees
+            # The Jacobians consist of a 6x6 matrix getting its from from
+            # (joint angles) x (len[x, y, z] + len[roll, pitch, yaw])
+            ee_link_jacobians = ut_mara.get_jacobians(last_observations, self.mara_chain.getNrOfJoints(), self.jac_solver)
+            if self.environment['link_names'][-1] is None:
+                print("End link is empty!!")
+                return None
+            else:
+                translation, rot = forward_kinematics(self.mara_chain,
+                                                    self.environment['link_names'],
+                                                    last_observations[:self.mara_chain.getNrOfJoints()],
+                                                    base_link=self.environment['link_names'][0],
+                                                    end_link=self.environment['link_names'][-1])
 
-            # Concatenate the information that defines the robot state
-            '''
+                current_ee_tgt = np.ndarray.flatten(get_ee_points(self.environment['end_effector_points'], translation, rot).T)
+                ee_points = current_ee_tgt - self.realgoal
+                ee_velocities = ut_mara.get_ee_points_velocities(ee_link_jacobians, self.environment['end_effector_points'], rot, last_observations)
 
-            '''
-            state = np.r_[np.reshape(last_observations, -1),
-                          np.reshape(ee_points, -1),
-                          np.reshape(ee_velocities, -1),]
+                # Concatenate the information that defines the robot state
+                '''
 
-            # self._observation_msg = None
+                '''
+                state = np.r_[np.reshape(last_observations, -1),
+                              np.reshape(ee_points, -1),
+                              np.reshape(ee_velocities, -1),]
+
+            self._observation_msg = None
+
 
             return state
 
@@ -295,6 +307,33 @@ class MARACollisionRewEnv(gym.Env):
         else:
             return False
 
+    def new_reward_function(self):
+        alpha = 5
+        beta = 3
+        gamma = 3
+        delta = 3
+
+        distance_reward = (math.exp(-alpha*self.reward_dist)-math.exp(-alpha))/(1-math.exp(-alpha))
+
+        # orientation_reward = ((1-math.exp(-beta*abs((self.reward_orientation-math.pi)/math.pi))+gamma)/(1+gamma))
+        orientation_reward = 1.0
+
+        if self.collision():
+            #collision_reward = 0
+            #print("Collision")
+            self.collided += 1
+            collision_reward = delta*(1-math.exp(-self.reward_dist))
+        else:
+            collision_reward = 0
+
+        if self.reward_dist < 0.005:
+            close_reward = 10
+        else:
+            close_reward = 0
+
+        return 2*distance_reward*orientation_reward - 2 - collision_reward + close_reward
+
+
     def step(self, action):
         """
         Implement the environment step abstraction. Execute action and returns:
@@ -303,43 +342,69 @@ class MARACollisionRewEnv(gym.Env):
             - reward
             - done (status)
         """
-        self.iterator+=1
+        rclpy.spin_once(self.node)
+        if rclpy.ok():
+            self.iterator+=1
 
-        # Execute "action"
-        self._pub.publish(ut_mara.get_trajectory_message(
-            action[:self.mara_chain.getNrOfJoints()],
-            self.environment['joint_order'],
-            self.velocity))
+            # Execute "action"
+            self._pub.publish(ut_mara.get_trajectory_message(
+                action[:self.mara_chain.getNrOfJoints()],
+                self.environment['joint_order'],
+                self.velocity))
 
-        # Take an observation
-        self.ob = self.take_observation()
-        while(self.ob is None):
-            print("step: observation is Empty")
+            # Take an observation
             self.ob = self.take_observation()
-        print("action: \n", action)
-        print("observation: \n", self.ob)
+            while(self.ob is None):
+                # print("step: observation is Empty")
+                self.ob = self.take_observation()
+            # print("action: \n", action)
+            # print("observation: \n", self.ob)
 
-        # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
-        reward_dist = ut_math.rmse_func(self.ob[self.mara_chain.getNrOfJoints():(self.mara_chain.getNrOfJoints()+3)])
+            # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
+            self.reward_dist = ut_math.rmse_func(self.ob[self.mara_chain.getNrOfJoints():(self.mara_chain.getNrOfJoints()+3)])
 
-        distance_reward = (math.exp(-self.alpha*reward_dist)-math.exp(-self.alpha))/(1-math.exp(-self.alpha))
+            #reward = self.original_reward_function()
+            reward = self.new_reward_function()
 
-        if self.collision():
-            #collision_reward = 0
-            #print("Collision")
-            collision_reward = self.delta*(1-math.exp(-reward_dist))
-        else:
-            collision_reward = 0
+            # self.buffer_dist_rewards.append(self.reward_dist)
+            # self.buffer_orient_rewards.append(self.reward_orientation)
+            # self.buffer_tot_rewards.append(reward)
 
-        if reward_dist < 0.01:
-            close_reward = 10
-        else:
-            close_reward = 0
-
-        reward = 2 * distance_reward - 2 - collision_reward + close_reward
+            # if self.iterator % 100 == 0:
+            #     print("")
+            #     print("Distance reward: ", self.reward_dist)
+            #     print("Orientation reward: ",self.reward_orientation)
+            #     print("Total reward: ",reward)
+            if self.iterator % self.max_episode_steps == 0:
+                self.episode += 1
+            #     file = open("/tmp/ros_rl2/MARACollisionOrient-v0/ppo2_mlp/reward_log.txt","a")
+            #     file.write(",".join([str(self.episode),str(max(self.buffer_dist_rewards)),str(np.mean(self.buffer_dist_rewards)),str(min(self.buffer_dist_rewards)),\
+            #                                 str(max(self.buffer_orient_rewards)),str(np.mean(self.buffer_orient_rewards)),str(min(self.buffer_orient_rewards)),\
+            #                                 str(max(self.buffer_tot_rewards)),str(np.mean(self.buffer_tot_rewards)),str(min(self.buffer_tot_rewards)),\
+            #                                 str(self.collided),str(self.rew_coll)])+"\n")
+            #     file.close()
+                # print("Accumulated rewards stats")
+                # print("Max Distance reward: ", max(self.buffer_dist_rewards))
+                # print("Mean Distance reward: ", np.mean(self.buffer_dist_rewards))
+                # print("Min Distance reward: ", min(self.buffer_dist_rewards))
+                # print("Max Orientation reward: ", max(self.buffer_orient_rewards))
+                # print("Mean Orientation reward: ", np.mean(self.buffer_orient_rewards))
+                # print("Min Orientation reward: ", min(self.buffer_orient_rewards))
+                # print("Max Total reward: ", max(self.buffer_tot_rewards))
+                # print("Mean Total reward: ", np.mean(self.buffer_tot_rewards))
+                # print("Min Total reward: ", min(self.buffer_tot_rewards))
+                # print("Num collisions: ",self.collided)
+                # print("Num collisions reward applied: ",self.rew_coll)
+                # self.buffer_dist_rewards = []
+                # self.buffer_orient_rewards = []
+                # self.buffer_tot_rewards = []
+                self.collided = 0
+                self.rew_coll = 0
 
         # Calculate if the env has been solved
-        done = bool(reward_dist < 0.005) or (self.iterator > self.max_episode_steps)
+
+        done = bool(self.iterator == self.max_episode_steps)
+        self._observations_stale = True
 
         # Return the corresponding observations, rewards, etc.
         return self.ob, reward, done, {}
