@@ -162,7 +162,6 @@ class MARACollisionOrientEnv(gym.Env):
         _, self.ur_tree = treeFromFile(self.environment['tree_path'])
         # Retrieve a chain structure between the base and the start of the end effector.
         self.mara_chain = self.ur_tree.getChain(self.environment['link_names'][0], self.environment['link_names'][-1])
-        print(self.environment['link_names'][-1])
         self.num_joints = self.mara_chain.getNrOfJoints()
         # Initialize a KDL Jacobian solver from the chain.
         self.jac_solver = ChainJntToJacSolver(self.mara_chain)
@@ -343,7 +342,6 @@ class MARACollisionOrientEnv(gym.Env):
         distance_reward = (math.exp(-alpha*self.reward_dist)-math.exp(-alpha))/(1-math.exp(-alpha))
 
         orientation_reward = ((1-math.exp(-beta*abs((self.reward_orientation-math.pi)/math.pi))+gamma)/(1+gamma))
-        print(orientation_reward)
         if self.collision():
             #collision_reward = 0
             #print("Collision")
