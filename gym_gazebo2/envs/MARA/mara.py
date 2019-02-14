@@ -159,15 +159,16 @@ class MARAEnv(gym.Env):
         _, self.ur_tree = treeFromFile(self.environment['tree_path'])
         # Retrieve a chain structure between the base and the start of the end effector.
         self.mara_chain = self.ur_tree.getChain(self.environment['link_names'][0], self.environment['link_names'][-1])
+        self.num_joints = self.mara_chain.getNrOfJoints()
         # Initialize a KDL Jacobian solver from the chain.
         self.jac_solver = ChainJntToJacSolver(self.mara_chain)
 
-        self.obs_dim = self.mara_chain.getNrOfJoints() + 6
+        self.obs_dim = self.num_joints + 6
 
         # # Here idially we should find the control range of the robot. Unfortunatelly in ROS/KDL there is nothing like this.
         # # I have tested this with the mujoco enviroment and the output is always same low[-1.,-1.], high[1.,1.]
-        low = -np.pi/2.0 * np.ones(self.mara_chain.getNrOfJoints())
-        high = np.pi/2.0 * np.ones(self.mara_chain.getNrOfJoints())
+        low = -np.pi/2.0 * np.ones(self.num_joints)
+        high = np.pi/2.0 * np.ones(self.num_joints)
         self.action_space = spaces.Box(low, high)
 
         high = np.inf*np.ones(self.obs_dim)
@@ -207,6 +208,17 @@ class MARAEnv(gym.Env):
         # Seed the environment
         self.seed()
 
+        self.buffer_dist_rewards = [] # distances accumulated over each episode
+        self.buffer_orient_rewards = [] # angles accumulated over each episode
+        self.buffer_tot_rewards = [] # rewards accumulated over each episode
+
+        file = open("/tmp/ros_rl2/MARACollisionOrient-v0/ppo2_mlp/reward_log.txt","w")# write the stats of the training
+        file.write("episode,max_dist_rew,mean_dist_rew,min_dist_rew,max_ori_rew,mean_ori_rew,min_ori_rew,max_tot_rew,mean_tot_rew,min_tot_rew,num_coll,rew_coll\n")
+        file.close()
+        self.episode = 0 #episode number
+        self.collided = 0 #number of collisions by episode
+        self.rew_coll = 0 #number of times the gripper is under the target
+
     def observation_callback(self, message):
         """
         Callback method for the subscriber of JointTrajectoryControllerState
@@ -237,19 +249,24 @@ class MARAEnv(gym.Env):
         # Get Jacobians from present joint angles and KDL trees
         # The Jacobians consist of a 6x6 matrix getting its from from
         # (joint angles) x (len[x, y, z] + len[roll, pitch, yaw])
-        ee_link_jacobians = ut_mara.get_jacobians(last_observations, self.mara_chain.getNrOfJoints(), self.jac_solver)
+        ee_link_jacobians = ut_mara.get_jacobians(last_observations, self.num_joints, self.jac_solver)
         if self.environment['link_names'][-1] is None:
             print("End link is empty!!")
             return None
         else:
             translation, rot = forward_kinematics(self.mara_chain,
                                                 self.environment['link_names'],
-                                                last_observations[:self.mara_chain.getNrOfJoints()],
+                                                last_observations[:self.num_joints],
                                                 base_link=self.environment['link_names'][0],
                                                 end_link=self.environment['link_names'][-1])
 
             current_ee_tgt = np.ndarray.flatten(get_ee_points(self.environment['end_effector_points'], translation, rot).T)
             ee_points = current_ee_tgt - self.realgoal
+
+            if ee_points[2] < 0:# penalize if the gripper goes under the height of the target
+                ee_points[2] = ee_points[2]*100
+                self.rew_coll += 1 # number of penalizations inflicted
+
             ee_velocities = ut_mara.get_ee_points_velocities(ee_link_jacobians, self.environment['end_effector_points'], rot, last_observations)
 
             # Concatenate the information that defines the robot state
@@ -259,6 +276,25 @@ class MARAEnv(gym.Env):
                           np.reshape(ee_velocities, -1),]
 
             return state
+
+    def reward_function():
+        alpha = 5
+        beta = 3
+        gamma = 3
+        delta = 3
+
+        distance_reward = (math.exp(-alpha*self.reward_dist)-math.exp(-alpha))/(1-math.exp(-alpha))
+
+        orientation_reward = 1
+
+        collision_reward = 0
+
+        if self.reward_dist < 0.005:
+            close_reward = 10
+        else:
+            close_reward = 0
+
+        return 2*distance_reward*orientation_reward - 2 - collision_reward + close_reward
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -276,7 +312,7 @@ class MARAEnv(gym.Env):
 
         # Execute "action"
         self._pub.publish(ut_mara.get_trajectory_message(
-            action[:self.mara_chain.getNrOfJoints()],
+            action[:self.num_joints],
             self.environment['joint_order'],
             self.velocity))
 
@@ -287,24 +323,42 @@ class MARAEnv(gym.Env):
             self.ob = self.take_observation()
 
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
-        reward_dist = ut_math.rmse_func(self.ob[self.mara_chain.getNrOfJoints():(self.mara_chain.getNrOfJoints()+3)])
-        if reward_dist < 0.005:
-            reward = 1 - reward_dist # Make the reward increase as the distance decreases
-            print("Reward is: ", reward)
-        else:
-            reward = -reward_dist
+        self.reward_dist = ut_math.rmse_func(self.ob[self.num_joints:(self.num_joints+3)])
+        reward = self.new_reward_function()
 
-        # Reset if there is a collision
-        if self._collision_msg is not None:
-            while not self.reset_sim.wait_for_service(timeout_sec=1.0):
-                self.node.get_logger().info('service not available, waiting again...')
+        self.buffer_dist_rewards.append(self.reward_dist)
+        self.buffer_orient_rewards.append(0)
+        self.buffer_tot_rewards.append(reward)
 
-            reset_future = self.reset_sim.call_async(Empty.Request())
-            rclpy.spin_until_future_complete(self.node, reset_future)
-            self._collision_msg = None
+        if self.iterator % self.max_episode_steps == 0:
+            self.episode += 1
+            file = open("/tmp/ros_rl2/MARACollisionOrient-v0/ppo2_mlp/reward_log.txt","a")
+            file.write(",".join([str(self.episode),str(max(self.buffer_dist_rewards)),str(np.mean(self.buffer_dist_rewards)),str(min(self.buffer_dist_rewards)),\
+                                        str(max(self.buffer_orient_rewards)),str(np.mean(self.buffer_orient_rewards)),str(min(self.buffer_orient_rewards)),\
+                                        str(max(self.buffer_tot_rewards)),str(np.mean(self.buffer_tot_rewards)),str(min(self.buffer_tot_rewards)),\
+                                        str(self.collided),str(self.rew_coll)])+"\n")
+            file.close()
+            print("Accumulated rewards stats")
+            print("Max Distance reward: ", max(self.buffer_dist_rewards))
+            print("Mean Distance reward: ", np.mean(self.buffer_dist_rewards))
+            print("Min Distance reward: ", min(self.buffer_dist_rewards))
+            print("Max Orientation reward: ", max(self.buffer_orient_rewards))
+            print("Mean Orientation reward: ", np.mean(self.buffer_orient_rewards))
+            print("Min Orientation reward: ", min(self.buffer_orient_rewards))
+            print("Max Total reward: ", max(self.buffer_tot_rewards))
+            print("Mean Total reward: ", np.mean(self.buffer_tot_rewards))
+            print("Min Total reward: ", min(self.buffer_tot_rewards))
+            print("Num collisions: ",self.collided)
+            print("Num collisions reward applied: ",self.rew_coll)
+            self.buffer_dist_rewards = []
+            self.buffer_orient_rewards = []
+            self.buffer_tot_rewards = []
+            self.collided = 0
+            self.rew_coll = 0
 
         # Calculate if the env has been solved
-        done = bool(reward_dist < 0.005) or (self.iterator > self.max_episode_steps)
+
+        done = bool(self.iterator == self.max_episode_steps)
 
         # Return the corresponding observations, rewards, etc.
         return self.ob, reward, done, {}
