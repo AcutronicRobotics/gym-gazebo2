@@ -268,18 +268,14 @@ class MARACollisionOrientEnv(gym.Env):
                                                 end_link=self.environment['link_names'][-1])
 
             current_quaternion = tf.quaternions.mat2quat(rot) #[w, x, y ,z]
-
             quat_error = ut_math.quaternion_product(current_quaternion, tf.quaternions.qconjugate(self.target_orientation))
 
             current_ee_tgt = np.ndarray.flatten(get_ee_points(self.environment['end_effector_points'], translation, rot).T)
             ee_points = current_ee_tgt - self.realgoal
-            if ee_points[2] < 0:
-                # print("Under the target!")
-                # print(current_ee_tgt)
-                # print(self.realgoal)
+
+            if ee_points[2] < 0:# penalize if the gripper goes under the height of the target
                 ee_points[2] = ee_points[2]*100
-                self.rew_coll += 1
-                # print(ee_points)
+                self.rew_coll += 1 # number of penalizations inflicted
 
             ee_velocities = ut_mara.get_ee_points_velocities(ee_link_jacobians, self.environment['end_effector_points'], rot, last_observations)
 
@@ -343,8 +339,6 @@ class MARACollisionOrientEnv(gym.Env):
 
         orientation_reward = ((1-math.exp(-beta*abs((self.reward_orientation-math.pi)/math.pi))+gamma)/(1+gamma))
         if self.collision():
-            #collision_reward = 0
-            #print("Collision")
             self.collided += 1
             collision_reward = delta*(1-math.exp(-self.reward_dist))
         else:
