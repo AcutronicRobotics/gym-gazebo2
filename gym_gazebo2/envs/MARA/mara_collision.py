@@ -306,7 +306,7 @@ class MARACollisionEnv(gym.Env):
 
         distance_reward = (math.exp(-alpha*self.reward_dist)-math.exp(-alpha))/(1-math.exp(-alpha))
 
-        orientation_reward = ((1-math.exp(-beta*abs((self.reward_orientation-math.pi)/math.pi))+gamma)/(1+gamma))
+        orientation_reward = 1
         if self.collision():
             self.collided += 1
             collision_reward = delta*(1-math.exp(-self.reward_dist))
@@ -344,6 +344,9 @@ class MARACollisionEnv(gym.Env):
         #scale here the orientation because it should not be the main bias of the reward, position should be
 
         reward = self.reward_function()
+        self.buffer_dist_rewards.append(self.reward_dist)
+        self.buffer_orient_rewards.append(0)
+        self.buffer_tot_rewards.append(reward)
 
         # Calculate if the env has been solved
         done = bool(self.iterator == self.max_episode_steps)
