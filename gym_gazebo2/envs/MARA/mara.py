@@ -72,7 +72,7 @@ class MARAEnv(gym.Env):
         self.obs = None
         self.action_space = None
         self.realgoal = None
-        self.max_episode_steps = 1000 # now used in all algorithms
+        self.max_episode_steps = 1024 # This should match the nsteps in defaults
         self.iterator = 0
         self.reset_jnts = True
         self._collision_msg = None
