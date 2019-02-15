@@ -274,7 +274,7 @@ class MARACollisionOrientEnv(gym.Env):
             ee_points = current_ee_tgt - self.realgoal
 
             if ee_points[2] < 0:# penalize if the gripper goes under the height of the target
-                ee_points[2] = ee_points[2]*100
+                ee_points[2] = ee_points[2] + 99*ee_points[2]*max((1-self.episode/2000),0)
                 self.rew_coll += 1 # number of penalizations inflicted
 
             ee_velocities = ut_mara.get_ee_points_velocities(ee_link_jacobians, self.environment['end_effector_points'], rot, last_observations)
