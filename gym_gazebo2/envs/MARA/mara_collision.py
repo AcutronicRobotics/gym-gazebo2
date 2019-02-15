@@ -263,7 +263,7 @@ class MARACollisionEnv(gym.Env):
             translation, rot = forward_kinematics(self.mara_chain,
                                                 self.environment['link_names'],
                                                 last_observations[:self.num_joints],
-                                                base_link=self.environment['link_names'][0],
+                                                base_link=self.environment['link_names'][1],
                                                 end_link=self.environment['link_names'][-1])
 
             current_ee_tgt = np.ndarray.flatten(get_ee_points(self.environment['end_effector_points'], translation, rot).T)

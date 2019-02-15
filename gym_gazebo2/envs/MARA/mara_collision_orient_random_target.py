@@ -264,7 +264,7 @@ class MARACollisionOrientRandomTargetEnv(gym.Env):
             translation, rot = forward_kinematics(self.mara_chain,
                                                 self.environment['link_names'],
                                                 last_observations[:self.num_joints],
-                                                base_link=self.environment['link_names'][0],
+                                                base_link=self.environment['link_names'][1],
                                                 end_link=self.environment['link_names'][-1])
 
             current_quaternion = tf.quaternions.mat2quat(rot) #[w, x, y ,z]
