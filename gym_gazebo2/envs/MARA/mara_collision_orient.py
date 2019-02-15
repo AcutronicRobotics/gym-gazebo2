@@ -306,18 +306,18 @@ class MARACollisionOrientEnv(gym.Env):
         else:
             return False
 
-    def original_reward_function(self):
+    def original_compute_reward(self, reward_dist, reward_orientation):
         if self.collision():
-            reward = - self.reward_dist * 10
+            reward = -reward_dist * 10
             print("Reward (collided) is: ", reward)
         else:
-            if self.reward_dist < 0.005:
-                reward = 1 - self.reward_dist # Make the reward increase as the distance decreases
+            if reward_dist < 0.005:
+                reward = 1 - reward_dist # Make the reward increase as the distance decreases
                 # Include orient reward if and only if it is close enough to the target
+                #scale here the orientation because it should not be the main bias of the reward, position should be
                 orientation_scale = 0.1
                 # Fetch the orientation of the end-effector which are from nr_dof:nr_dof+3 to nr_dof:nr_dof+6
-                reward_orient = - orientation_scale * self.reward_orientation
-                #scale here the orientation because it should not be the main bias of the reward, position should be
+                reward_orient = -orientation_scale * reward_orientation
 
                 if reward_orient < 0.005:
                     reward = reward + reward_orient * 10
@@ -326,30 +326,30 @@ class MARACollisionOrientEnv(gym.Env):
                     reward = reward - reward_orient
                     print("Reward (bad orient) is: ", reward)
             else:
-                reward = - self.reward_dist
+                reward = -reward_dist
         pass
 
-    def new_reward_function(self):
+    def compute_reward(self, reward_dist, reward_orientation):
         alpha = 5
         beta = 3
         gamma = 3
         delta = 3
 
-        distance_reward = (math.exp(-alpha*self.reward_dist)-math.exp(-alpha))/(1-math.exp(-alpha))
+        distance_reward = ( math.exp(-alpha * reward_dist) - math.exp(-alpha) ) / ( 1 - math.exp(-alpha) )
+        orientation_reward = ( 1 - math.exp( -beta * abs( (reward_orientation - math.pi ) / math.pi ) ) + gamma ) / (1 + gamma)
 
-        orientation_reward = ((1-math.exp(-beta*abs((self.reward_orientation-math.pi)/math.pi))+gamma)/(1+gamma))
         if self.collision():
             self.collided += 1
-            collision_reward = delta*(1-math.exp(-self.reward_dist))
+            collision_reward = delta * ( 1 - math.exp(-reward_dist) )
         else:
             collision_reward = 0
 
-        if self.reward_dist < 0.005:
+        if reward_dist < 0.005:
             close_reward = 10
         else:
             close_reward = 0
 
-        return 2*distance_reward*orientation_reward - 2 - collision_reward + close_reward
+        return 2 * distance_reward * orientation_reward - 2 - collision_reward + close_reward
 
     def step(self, action):
         """
@@ -371,22 +371,19 @@ class MARACollisionOrientEnv(gym.Env):
         self.ob = self.take_observation()
 
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
-        self.reward_dist = ut_math.rmse_func(self.ob[self.num_joints:(self.num_joints+3)])
-        self.reward_orientation = 2 * np.arccos(abs(self.ob[self.num_joints+3]))
-        #scale here the orientation because it should not be the main bias of the reward, position should be
+        reward_dist = ut_math.rmse_func( self.ob[self.num_joints:(self.num_joints+3)] )
+        reward_orientation = 2 * np.arccos( abs( self.ob[self.num_joints+3] ) )
+        #reward = self.original_compute_reward(reward_dist, reward_orientation)
+        reward = self.compute_reward(reward_dist, reward_orientation)
 
-
-        #reward = self.original_reward_function()
-        reward = self.new_reward_function()
-
-        self.buffer_dist_rewards.append(self.reward_dist)
-        self.buffer_orient_rewards.append(self.reward_orientation)
+        self.buffer_dist_rewards.append(reward_dist)
+        self.buffer_orient_rewards.append(reward_orientation)
         self.buffer_tot_rewards.append(reward)
 
         # if self.iterator % 100 == 0:
         #     print("")
-        #     print("Distance reward: ", self.reward_dist)
-        #     print("Orientation reward: ",self.reward_orientation)
+        #     print("Distance reward: ", reward_dist)
+        #     print("Orientation reward: ", reward_orientation)
         #     print("Total reward: ",reward)
         if self.iterator % self.max_episode_steps == 0:
             self.episode += 1
