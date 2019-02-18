@@ -7,6 +7,7 @@ import math
 import os
 import sys
 from gym import utils, spaces
+from gym_gazebo2.utils.tree_urdf import treeFromFile
 from gym_gazebo2.utils import ut_generic, ut_launch, ut_mara, ut_math, ut_gazebo
 from gym.utils import seeding
 from gazebo_msgs.srv import SpawnEntity
@@ -27,7 +28,6 @@ from ros2pkg.api import get_prefix_path
 from builtin_interfaces.msg import Duration
 
 # Algorithm specific
-from baselines.agent.scara_arm.tree_urdf import treeFromFile # For KDL Jacobians
 from PyKDL import ChainJntToJacSolver # For KDL Jacobians
 
 # from custom baselines repository
@@ -81,8 +81,18 @@ class MARACollisionEnv(gym.Env):
         #   Environment hyperparams
         #############################
         # Target, where should the agent reach
-        EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466]) # close to the table
+        # EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466]) # close to the table
         # EE_POS_TGT = np.asmatrix([-0.386752, -0.000756, 1.40557]) # easy point
+        EE_POS_TGT = np.asmatrix([-0., -0.0001, 1.79167]) # ee_link start point
+        # EE_POS_TGT = np.asmatrix([-0., -0.0001, 1.79167 - 0.26]) # ee_link start point
+        # EE_POS_TGT = np.asmatrix([-0., -0.0001, 1.79167 - 0.24]) # ee_link - ee_link_distance start point
+        # EE_POS_TGT = np.asmatrix([0.000013, -0.001049, 1.551666]) # motor 6 start point
+        # EE_POS_TGT = np.asmatrix([0.000008, 0.105200, 1.404902]) # motor 5 start point
+        # EE_POS_TGT = np.asmatrix([0.000002, -0.000252, 1.244167]) # motor 4 start point
+        # EE_POS_TGT = np.asmatrix([0.000088, 0.109001, 1.094918]) # motor 3 start point
+        # EE_POS_TGT = np.asmatrix([0.000094, 0.118000, 0.894920]) # motor 2 start point
+        # EE_POS_TGT = np.asmatrix([0., 0., 0.73122]) # motor 1 start point
+
         EE_ROT_TGT = np.asmatrix([ [1., 0., 0.], [0., 1., 0.], [0., 0., 1.] ])
 
         EE_POINTS = np.asmatrix([[0, 0, 0]])
@@ -114,13 +124,13 @@ class MARACollisionEnv(gym.Env):
         MARA_MOTOR6_LINK = 'motor6_link'
         EE_LINK = 'ee_link'
 
-        # EE_LINK = 'ee_link'
         JOINT_ORDER = [MOTOR1_JOINT, MOTOR2_JOINT, MOTOR3_JOINT,
-                       MOTOR4_JOINT, MOTOR5_JOINT, MOTOR6_JOINT]
-        LINK_NAMES = [TABLE, BASE, MARA_MOTOR1_LINK, MARA_MOTOR2_LINK,
-                            MARA_MOTOR3_LINK, MARA_MOTOR4_LINK,
-                            MARA_MOTOR5_LINK, MARA_MOTOR6_LINK,
-                      EE_LINK]
+                        MOTOR4_JOINT, MOTOR5_JOINT, MOTOR6_JOINT]
+        LINK_NAMES = [ TABLE, BASE,
+                        MARA_MOTOR1_LINK, MARA_MOTOR2_LINK,
+                        MARA_MOTOR3_LINK, MARA_MOTOR4_LINK,
+                        MARA_MOTOR5_LINK, MARA_MOTOR6_LINK,
+                        EE_LINK]
 
         reset_condition = {
             'initial_positions': INITIAL_JOINTS,
@@ -157,9 +167,10 @@ class MARACollisionEnv(gym.Env):
         # Initialize a tree structure from the robot urdf.
         #   note that the xacro of the urdf is updated by hand.
         # The urdf must be compiled.
-        _, self.ur_tree = treeFromFile(self.environment['tree_path'])
+        _, self.mara_tree = treeFromFile(self.environment['tree_path'])
+
         # Retrieve a chain structure between the base and the start of the end effector.
-        self.mara_chain = self.ur_tree.getChain(self.environment['link_names'][0], self.environment['link_names'][-1])
+        self.mara_chain = self.mara_tree.getChain(self.environment['link_names'][0], self.environment['link_names'][-1])
         self.num_joints = self.mara_chain.getNrOfJoints()
         # Initialize a KDL Jacobian solver from the chain.
         self.jac_solver = ChainJntToJacSolver(self.mara_chain)
@@ -305,12 +316,12 @@ class MARACollisionEnv(gym.Env):
         gamma = 3
         delta = 3
 
-        distance_reward = (math.exp(-alpha*reward_dist)-math.exp(-alpha))/(1-math.exp(-alpha))
-
+        distance_reward = ( math.exp(-alpha * reward_dist) - math.exp(-alpha) ) / ( 1 - math.exp(-alpha) )
         orientation_reward = 1
+
         if self.collision():
             # self.collided += 1
-            collision_reward = delta*(1-math.exp(-reward_dist))
+            collision_reward = delta * ( 1 - math.exp(-reward_dist) )
         else:
             collision_reward = 0
 
@@ -329,13 +340,13 @@ class MARACollisionEnv(gym.Env):
             - reward
             - done (status)
         """
-        self.iterator+=1
+        self.iterator += 1
 
         # Execute "action"
-        self._pub.publish(ut_mara.get_trajectory_message(
+        self._pub.publish( ut_mara.get_trajectory_message(
             action[:self.num_joints],
             self.environment['joint_order'],
-            self.velocity))
+            self.velocity) )
 
         # Take an observation
         self.ob = self.take_observation()
