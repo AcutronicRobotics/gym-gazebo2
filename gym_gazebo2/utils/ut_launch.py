@@ -65,13 +65,12 @@ def get_exclusive_network_parameters():
     return {'ros_domain_id':str(random_port),
      'gazebo_master_uri':"http://localhost:" + str(random_port)}
 
-def generate_launch_description_mara(gzclient, real_speed, multi_instance, port):
+def generate_launch_description_mara(gzclient, real_speed, multi_instance, port, urdf):
     """
         Returns ROS2 LaunchDescription object.
         Args:
             real_speed: bool   True if RTF must be set to 1, False if RTF must be set to maximum.
     """
-    urdf = os.path.join(get_package_share_directory('mara_description'), 'urdf', 'mara_robot_gripper_140.urdf')
     mara = get_package_share_directory('mara_gazebo_plugins')
     install_dir = get_package_prefix('mara_gazebo_plugins')
 
