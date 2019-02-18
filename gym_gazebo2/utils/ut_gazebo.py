@@ -29,9 +29,9 @@ def get_target_sdf():
                     <sdf version='1.6'>
                       <model name='target'>
                         <link name='cylinder0'>
-                          <pose frame=''>0 0 0 0 -0 0</pose>
+                          <pose frame=''>0 0 0 0 0 0</pose>
                           <inertial>
-                            <pose frame=''>0 0 0 0 -0 0</pose>
+                            <pose frame=''>0 0 0 0 0 0</pose>
                             <mass>5</mass>
                             <inertia>
                               <ixx>1</ixx>
@@ -48,7 +48,7 @@ def get_target_sdf():
                           <enable_wind>0</enable_wind>
                           <kinematic>0</kinematic>
                           <visual name='cylinder0_visual'>
-                            <pose frame=''>0 0 0 0 -0 0</pose>
+                            <pose frame=''>0 0 0 0 0 0</pose>
                             <geometry>
                               <sphere>
                                 <radius>0.01</radius>
@@ -56,12 +56,12 @@ def get_target_sdf():
                             </geometry>
                             <material>
                               <script>
-                                <name>Gazebo/GreenTransparent</name>
+                                <name>Gazebo/Green</name>
                                 <uri>file://media/materials/scripts/gazebo.material</uri>
                               </script>
                               <shader type='pixel'/>
                             </material>
-                            <transparency>0</transparency>
+                            <transparency>0.1</transparency>
                             <cast_shadows>1</cast_shadows>
                           </visual>
                         </link>
