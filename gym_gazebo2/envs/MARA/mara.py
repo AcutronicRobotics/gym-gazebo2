@@ -53,11 +53,13 @@ class MARAEnv(gym.Env):
         self.velocity = args.velocity
         self.multi_instance = args.multi_instance
         self.port = args.port
+        # Set the path of the corresponding URDF file
+        URDF_PATH = get_prefix_path("mara_description") + "/share/mara_description/urdf/mara_robot_gripper_140.urdf"
 
         # Launch mara in a new Process
         ut_launch.start_launch_servide_process(
             ut_launch.generate_launch_description_mara(
-                self.gzclient, self.real_speed, self.multi_instance, self.port))
+                self.gzclient, self.real_speed, self.multi_instance, self.port, URDF_PATH))
 
         # Wait a bit for the spawn process.
         # TODO, replace sleep function.
@@ -127,9 +129,6 @@ class MARAEnv(gym.Env):
              'initial_velocities': []
         }
         #############################
-
-        # Set the path of the corresponding URDF file from "assets"
-        URDF_PATH = get_prefix_path("mara_description") + "/share/mara_description/urdf/mara_robot_gripper_140.urdf"
 
         m_joint_order = copy.deepcopy(JOINT_ORDER)
         m_link_names = copy.deepcopy(LINK_NAMES)
