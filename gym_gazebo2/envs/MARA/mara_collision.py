@@ -7,6 +7,7 @@ import math
 import os
 import sys
 from gym import utils, spaces
+from gym_gazebo2.utils.tree_urdf import treeFromFile
 from gym_gazebo2.utils import ut_generic, ut_launch, ut_mara, ut_math, ut_gazebo
 from gym.utils import seeding
 from gazebo_msgs.srv import SpawnEntity
@@ -27,7 +28,6 @@ from ros2pkg.api import get_prefix_path
 from builtin_interfaces.msg import Duration
 
 # Algorithm specific
-from baselines.agent.scara_arm.tree_urdf import treeFromFile # For KDL Jacobians
 from PyKDL import ChainJntToJacSolver # For KDL Jacobians
 
 # from custom baselines repository
@@ -53,11 +53,13 @@ class MARACollisionEnv(gym.Env):
         self.velocity = args.velocity
         self.multi_instance = args.multi_instance
         self.port = args.port
+        # Set the path of the corresponding URDF file
+        URDF_PATH = get_prefix_path("mara_description") + "/share/mara_description/urdf/mara_robot_gripper_140.urdf"
 
         # Launch mara in a new Process
         ut_launch.start_launch_servide_process(
             ut_launch.generate_launch_description_mara(
-                self.gzclient, self.real_speed, self.multi_instance, self.port))
+                self.gzclient, self.real_speed, self.multi_instance, self.port, URDF_PATH))
 
         # Wait a bit for the spawn process.
         # TODO, replace sleep function.
@@ -81,9 +83,9 @@ class MARACollisionEnv(gym.Env):
         #   Environment hyperparams
         #############################
         # Target, where should the agent reach
-        EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466]) # close to the table
-        # EE_POS_TGT = np.asmatrix([-0.386752, -0.000756, 1.40557]) # easy point
-        EE_ROT_TGT = np.asmatrix([ [1., 0., 0.], [0., 1., 0.], [0., 0., 1.] ])
+        # EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466]) # close to the table
+        EE_POS_TGT = np.asmatrix([-0.386752, -0.000756, 1.40557]) # easy point
+        EE_ROT_TGT = np.asmatrix([ [-1., 0., 0.], [0., 1., 0.], [-0., 0., -1.] ]) # arrow looking opposite to MARA
 
         EE_POINTS = np.asmatrix([[0, 0, 0]])
         EE_VELOCITIES = np.asmatrix([[0, 0, 0]])
@@ -102,10 +104,13 @@ class MARACollisionEnv(gym.Env):
         MOTOR4_JOINT = 'motor4'
         MOTOR5_JOINT = 'motor5'
         MOTOR6_JOINT = 'motor6'
+        EE_LINK = 'ee_link'
 
         # Set constants for links
+        WORLD = 'world'
         TABLE = 'table'
         BASE = 'base_link'
+        BASE_ROBOT = 'base_robot'
         MARA_MOTOR1_LINK = 'motor1_link'
         MARA_MOTOR2_LINK = 'motor2_link'
         MARA_MOTOR3_LINK = 'motor3_link'
@@ -114,22 +119,18 @@ class MARACollisionEnv(gym.Env):
         MARA_MOTOR6_LINK = 'motor6_link'
         EE_LINK = 'ee_link'
 
-        # EE_LINK = 'ee_link'
-        JOINT_ORDER = [MOTOR1_JOINT, MOTOR2_JOINT, MOTOR3_JOINT,
-                       MOTOR4_JOINT, MOTOR5_JOINT, MOTOR6_JOINT]
-        LINK_NAMES = [TABLE, BASE, MARA_MOTOR1_LINK, MARA_MOTOR2_LINK,
-                            MARA_MOTOR3_LINK, MARA_MOTOR4_LINK,
-                            MARA_MOTOR5_LINK, MARA_MOTOR6_LINK,
-                      EE_LINK]
+        JOINT_ORDER = [MOTOR1_JOINT,MOTOR2_JOINT, MOTOR3_JOINT,
+                        MOTOR4_JOINT, MOTOR5_JOINT, MOTOR6_JOINT]
+        LINK_NAMES = [ WORLD, TABLE, BASE, BASE_ROBOT,
+                        MARA_MOTOR1_LINK, MARA_MOTOR2_LINK,
+                        MARA_MOTOR3_LINK, MARA_MOTOR4_LINK,
+                        MARA_MOTOR5_LINK, MARA_MOTOR6_LINK, EE_LINK]
 
         reset_condition = {
             'initial_positions': INITIAL_JOINTS,
              'initial_velocities': []
         }
         #############################
-
-        # Set the path of the corresponding URDF file from "assets"
-        URDF_PATH = get_prefix_path("mara_description") + "/share/mara_description/urdf/mara_robot_gripper_140.urdf"
 
         m_joint_order = copy.deepcopy(JOINT_ORDER)
         m_link_names = copy.deepcopy(LINK_NAMES)
@@ -157,9 +158,10 @@ class MARACollisionEnv(gym.Env):
         # Initialize a tree structure from the robot urdf.
         #   note that the xacro of the urdf is updated by hand.
         # The urdf must be compiled.
-        _, self.ur_tree = treeFromFile(self.environment['tree_path'])
+        _, self.mara_tree = treeFromFile(self.environment['tree_path'])
+
         # Retrieve a chain structure between the base and the start of the end effector.
-        self.mara_chain = self.ur_tree.getChain(self.environment['link_names'][0], self.environment['link_names'][-1])
+        self.mara_chain = self.mara_tree.getChain(self.environment['link_names'][0], self.environment['link_names'][-1])
         self.num_joints = self.mara_chain.getNrOfJoints()
         # Initialize a KDL Jacobian solver from the chain.
         self.jac_solver = ChainJntToJacSolver(self.mara_chain)
@@ -217,7 +219,7 @@ class MARACollisionEnv(gym.Env):
         # file.write("episode,max_dist_rew,mean_dist_rew,min_dist_rew,max_ori_rew,mean_ori_rew,min_ori_rew,max_tot_rew,mean_tot_rew,min_tot_rew,num_coll,rew_coll\n")
         # file.close()
         self.episode = 0 #episode number
-        # self.collided = 0 #number of collisions by episode
+        self.collided = 0 #number of collisions by episode
         self.rew_coll = 0 #number of times the gripper is under the target
 
     def observation_callback(self, message):
@@ -238,7 +240,7 @@ class MARACollisionEnv(gym.Env):
         Take observation from the environment and return it.
         :return: state.
         """
-        # Take an observation
+        # # Take an observation
         rclpy.spin_once(self.node)
         obs_message = self._observation_msg
 
@@ -299,27 +301,27 @@ class MARACollisionEnv(gym.Env):
         else:
             return False
 
-    def reward_function(self):
+    def compute_reward(self, reward_dist):
         alpha = 5
         beta = 3
         gamma = 3
         delta = 3
 
-        distance_reward = (math.exp(-alpha*self.reward_dist)-math.exp(-alpha))/(1-math.exp(-alpha))
-
+        distance_reward = ( math.exp(-alpha * reward_dist) - math.exp(-alpha) ) / ( 1 - math.exp(-alpha) )
         orientation_reward = 1
+
         if self.collision():
             # self.collided += 1
-            collision_reward = delta*(1-math.exp(-self.reward_dist))
+            collision_reward = delta * ( 1 - math.exp(-reward_dist) )
         else:
             collision_reward = 0
 
-        if self.reward_dist < 0.005:
+        if reward_dist < 0.005:
             close_reward = 10
         else:
             close_reward = 0
 
-        return 2*distance_reward*orientation_reward - 2 - collision_reward + close_reward
+        return 2 * distance_reward * orientation_reward - 2 - collision_reward + close_reward
 
     def step(self, action):
         """
@@ -329,24 +331,22 @@ class MARACollisionEnv(gym.Env):
             - reward
             - done (status)
         """
-        self.iterator+=1
+        self.iterator += 1
 
         # Execute "action"
-        self._pub.publish(ut_mara.get_trajectory_message(
+        self._pub.publish( ut_mara.get_trajectory_message(
             action[:self.num_joints],
             self.environment['joint_order'],
-            self.velocity))
+            self.velocity) )
 
         # Take an observation
         self.ob = self.take_observation()
 
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
-        self.reward_dist = ut_math.rmse_func(self.ob[self.num_joints:(self.num_joints+3)])
-        #scale here the orientation because it should not be the main bias of the reward, position should be
+        reward_dist = ut_math.rmse_func( self.ob[self.num_joints:(self.num_joints+3)] )
+        reward = self.compute_reward(reward_dist)
 
-        reward = self.reward_function()
-
-        # self.buffer_dist_rewards.append(self.reward_dist)
+        # self.buffer_dist_rewards.append(reward_dist)
         # self.buffer_orient_rewards.append(0)
         # self.buffer_tot_rewards.append(reward)
 
