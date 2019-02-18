@@ -592,8 +592,8 @@ class GazeboMARAOrientVisionEnv(gym.Env):
 
     def wait_for_action(self, action):
         """Receives an action and loops until the robot reaches the pose set by the action.
-        
-        Note: This function can't be migrated to the ut_mara module since it reads constantly 
+
+        Note: This function can't be migrated to the ut_mara module since it reads constantly
         from the observation callback provided by /mara_controller/state.
         """
         action_finished = False

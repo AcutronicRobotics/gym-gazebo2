@@ -85,7 +85,7 @@ class MARAEnv(gym.Env):
         # Target, where should the agent reach
         # EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466]) # close to the table
         EE_POS_TGT = np.asmatrix([-0.386752, -0.000756, 1.40557]) # easy point
-        EE_ROT_TGT = np.asmatrix([ [1., 0., 0.], [0., 1., 0.], [0., 0., 1.] ])
+        EE_ROT_TGT = np.asmatrix([ [-1., 0., 0.], [0., 1., 0.], [-0., 0., -1.] ]) # arrow looking opposite to MARA
 
         EE_POINTS = np.asmatrix([[0, 0, 0]])
         EE_VELOCITIES = np.asmatrix([[0, 0, 0]])
@@ -97,6 +97,7 @@ class MARAEnv(gym.Env):
         JOINT_PUBLISHER = '/mara_controller/command'
         JOINT_SUBSCRIBER = '/mara_controller/state'
 
+
         # joint names:
         MOTOR1_JOINT = 'motor1'
         MOTOR2_JOINT = 'motor2'
@@ -104,10 +105,13 @@ class MARAEnv(gym.Env):
         MOTOR4_JOINT = 'motor4'
         MOTOR5_JOINT = 'motor5'
         MOTOR6_JOINT = 'motor6'
+        EE_LINK = 'ee_link'
 
         # Set constants for links
+        WORLD = 'world'
         TABLE = 'table'
         BASE = 'base_link'
+        BASE_ROBOT = 'base_robot'
         MARA_MOTOR1_LINK = 'motor1_link'
         MARA_MOTOR2_LINK = 'motor2_link'
         MARA_MOTOR3_LINK = 'motor3_link'
@@ -116,13 +120,12 @@ class MARAEnv(gym.Env):
         MARA_MOTOR6_LINK = 'motor6_link'
         EE_LINK = 'ee_link'
 
-        # EE_LINK = 'ee_link'
-        JOINT_ORDER = [MOTOR1_JOINT, MOTOR2_JOINT, MOTOR3_JOINT,
-                       MOTOR4_JOINT, MOTOR5_JOINT, MOTOR6_JOINT]
-        LINK_NAMES = [TABLE, BASE, MARA_MOTOR1_LINK, MARA_MOTOR2_LINK,
-                            MARA_MOTOR3_LINK, MARA_MOTOR4_LINK,
-                            MARA_MOTOR5_LINK, MARA_MOTOR6_LINK,
-                      EE_LINK]
+        JOINT_ORDER = [MOTOR1_JOINT,MOTOR2_JOINT, MOTOR3_JOINT,
+                        MOTOR4_JOINT, MOTOR5_JOINT, MOTOR6_JOINT]
+        LINK_NAMES = [ WORLD, TABLE, BASE, BASE_ROBOT,
+                        MARA_MOTOR1_LINK, MARA_MOTOR2_LINK,
+                        MARA_MOTOR3_LINK, MARA_MOTOR4_LINK,
+                        MARA_MOTOR5_LINK, MARA_MOTOR6_LINK, EE_LINK]
 
         reset_condition = {
             'initial_positions': INITIAL_JOINTS,
@@ -210,16 +213,16 @@ class MARAEnv(gym.Env):
         # Seed the environment
         self.seed()
 
-        self.buffer_dist_rewards = [] # distances accumulated over each episode
-        self.buffer_orient_rewards = [] # angles accumulated over each episode
-        self.buffer_tot_rewards = [] # rewards accumulated over each episode
-
-        file = open("/tmp/ros_rl2/MARACollisionOrient-v0/ppo2_mlp/reward_log.txt","w")# write the stats of the training
-        file.write("episode,max_dist_rew,mean_dist_rew,min_dist_rew,max_ori_rew,mean_ori_rew,min_ori_rew,max_tot_rew,mean_tot_rew,min_tot_rew,num_coll,rew_coll\n")
-        file.close()
+        # self.buffer_dist_rewards = [] # distances accumulated over each episode
+        # self.buffer_orient_rewards = [] # angles accumulated over each episode
+        # self.buffer_tot_rewards = [] # rewards accumulated over each episode
+        #
+        # file = open("/tmp/ros_rl2/MARACollisionOrient-v0/ppo2_mlp/reward_log.txt","w")# write the stats of the training
+        # file.write("episode,max_dist_rew,mean_dist_rew,min_dist_rew,max_ori_rew,mean_ori_rew,min_ori_rew,max_tot_rew,mean_tot_rew,min_tot_rew,num_coll,rew_coll\n")
+        # file.close()
         self.episode = 0 #episode number
-        self.collided = 0 #number of collisions by episode
-        self.rew_coll = 0 #number of times the gripper is under the target
+        # self.collided = 0 #number of collisions by episode
+        # self.rew_coll = 0 #number of times the gripper is under the target
 
     def observation_callback(self, message):
         """
@@ -267,7 +270,7 @@ class MARAEnv(gym.Env):
 
             if current_ee_tgt[2] < self.realgoal[2]: # penalize if the gripper goes under the height of the target
                 ee_points[2] = ee_points[2] + 99 * ee_points[2] * max( (1 - self.episode/2000), 0 )
-                self.rew_coll += 1 # number of penalizations inflicted
+                # self.rew_coll += 1 # number of penalizations inflicted
 
             ee_velocities = ut_mara.get_ee_points_velocities(ee_link_jacobians, self.environment['end_effector_points'], rot, last_observations)
 
@@ -326,35 +329,35 @@ class MARAEnv(gym.Env):
         reward_dist = ut_math.rmse_func( self.ob[self.num_joints:(self.num_joints+3)] )
         reward = self.compute_reward(reward_dist)
 
-        self.buffer_dist_rewards.append(reward_dist)
-        self.buffer_orient_rewards.append(0)
-        self.buffer_tot_rewards.append(reward)
-
+        # self.buffer_dist_rewards.append(reward_dist)
+        # self.buffer_orient_rewards.append(0)
+        # self.buffer_tot_rewards.append(reward)
+        #
         if self.iterator % self.max_episode_steps == 0:
             self.episode += 1
-            file = open("/tmp/ros_rl2/MARACollisionOrient-v0/ppo2_mlp/reward_log.txt","a")
-            file.write(",".join([str(self.episode),str(max(self.buffer_dist_rewards)),str(np.mean(self.buffer_dist_rewards)),str(min(self.buffer_dist_rewards)),\
-                                        str(max(self.buffer_orient_rewards)),str(np.mean(self.buffer_orient_rewards)),str(min(self.buffer_orient_rewards)),\
-                                        str(max(self.buffer_tot_rewards)),str(np.mean(self.buffer_tot_rewards)),str(min(self.buffer_tot_rewards)),\
-                                        str(self.collided),str(self.rew_coll)])+"\n")
-            file.close()
-            print("Accumulated rewards stats")
-            print("Max Distance reward: ", max(self.buffer_dist_rewards))
-            print("Mean Distance reward: ", np.mean(self.buffer_dist_rewards))
-            print("Min Distance reward: ", min(self.buffer_dist_rewards))
-            print("Max Orientation reward: ", max(self.buffer_orient_rewards))
-            print("Mean Orientation reward: ", np.mean(self.buffer_orient_rewards))
-            print("Min Orientation reward: ", min(self.buffer_orient_rewards))
-            print("Max Total reward: ", max(self.buffer_tot_rewards))
-            print("Mean Total reward: ", np.mean(self.buffer_tot_rewards))
-            print("Min Total reward: ", min(self.buffer_tot_rewards))
-            print("Num collisions: ",self.collided)
-            print("Num collisions reward applied: ",self.rew_coll)
-            self.buffer_dist_rewards = []
-            self.buffer_orient_rewards = []
-            self.buffer_tot_rewards = []
-            self.collided = 0
-            self.rew_coll = 0
+        #     file = open("/tmp/ros_rl2/MARACollisionOrient-v0/ppo2_mlp/reward_log.txt","a")
+        #     file.write(",".join([str(self.episode),str(max(self.buffer_dist_rewards)),str(np.mean(self.buffer_dist_rewards)),str(min(self.buffer_dist_rewards)),\
+        #                                 str(max(self.buffer_orient_rewards)),str(np.mean(self.buffer_orient_rewards)),str(min(self.buffer_orient_rewards)),\
+        #                                 str(max(self.buffer_tot_rewards)),str(np.mean(self.buffer_tot_rewards)),str(min(self.buffer_tot_rewards)),\
+        #                                 str(self.collided),str(self.rew_coll)])+"\n")
+        #     file.close()
+        #     print("Accumulated rewards stats")
+        #     print("Max Distance reward: ", max(self.buffer_dist_rewards))
+        #     print("Mean Distance reward: ", np.mean(self.buffer_dist_rewards))
+        #     print("Min Distance reward: ", min(self.buffer_dist_rewards))
+        #     print("Max Orientation reward: ", max(self.buffer_orient_rewards))
+        #     print("Mean Orientation reward: ", np.mean(self.buffer_orient_rewards))
+        #     print("Min Orientation reward: ", min(self.buffer_orient_rewards))
+        #     print("Max Total reward: ", max(self.buffer_tot_rewards))
+        #     print("Mean Total reward: ", np.mean(self.buffer_tot_rewards))
+        #     print("Min Total reward: ", min(self.buffer_tot_rewards))
+        #     print("Num collisions: ",self.collided)
+        #     print("Num collisions reward applied: ",self.rew_coll)
+        #     self.buffer_dist_rewards = []
+        #     self.buffer_orient_rewards = []
+        #     self.buffer_tot_rewards = []
+        #     self.collided = 0
+        #     self.rew_coll = 0
 
         # Calculate if the env has been solved
 
