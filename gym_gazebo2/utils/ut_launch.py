@@ -133,6 +133,6 @@ def generate_launch_description_mara(gzclient, real_speed, multi_instance, port)
         Node(package='mara_utils_scripts', node_executable='spawn_mara_gripper_140.py', output='screen'),
         Node(package='hros_cognition_mara_components', node_executable='hros_cognition_mara_components', output='screen',
             arguments=["-motors", install_dir + "/share/hros_cognition_mara_components/link_order.yaml"]),
-        Node(package='mara_contact_publisher', node_executable='mara_contact_publisher', output='screen', arguments=[urdf])
+        Node(package='mara_contact_publisher', node_executable='mara_contact_publisher', output='screen')
     ])
     return ld

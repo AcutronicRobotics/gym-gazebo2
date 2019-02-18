@@ -2,7 +2,7 @@ import numpy as np
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from PyKDL import Jacobian, JntArray # For KDL Jacobians
 
-def process_observations(message, agent, robot_id=0):
+def process_observations(message, agent):
     """
     Helper fuinction to convert a ROS message to joint angles and velocities.
     Check for and handle the case where a message is either malformed
@@ -25,7 +25,7 @@ def process_observations(message, agent, robot_id=0):
             #     print("Joints differ")
         return np.array(message.actual.positions) # + message.actual.velocities
 
-def get_jacobians(state, number_of_joints, jac_solver, robot_id=0):
+def get_jacobians(state, number_of_joints, jac_solver):
     """
     Produce a Jacobian from the urdf that maps from joint angles to x, y, z.
     This makes a 6x6 matrix from 6 joint angles to x, y, z and 3 angles.
@@ -83,7 +83,7 @@ def get_ee_points_velocities(ref_jacobian, ee_points, ref_rot, joint_velocities)
                                                    ref_rot.dot(ee_points.T).T)
     return ee_velocities.reshape(-1)
 
-def get_trajectory_message(action, joint_order, velocity, robot_id=0):
+def get_trajectory_message(action, joint_order, velocity):
     """
     Helper function.
     Wraps an action vector of joint angles into a JointTrajectory message.
