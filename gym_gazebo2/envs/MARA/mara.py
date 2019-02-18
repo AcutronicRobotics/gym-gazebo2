@@ -72,7 +72,7 @@ class MARAEnv(gym.Env):
         self.obs = None
         self.action_space = None
         self.realgoal = None
-        self.max_episode_steps = 1000 # now used in all algorithms
+        self.max_episode_steps = 1024 # This should match the nsteps in defaults
         self.iterator = 0
         self.reset_jnts = True
         self._collision_msg = None
@@ -260,14 +260,14 @@ class MARAEnv(gym.Env):
             translation, rot = forward_kinematics(self.mara_chain,
                                                 self.environment['link_names'],
                                                 last_observations[:self.num_joints],
-                                                base_link=self.environment['link_names'][0],
+                                                base_link=self.environment['link_names'][0], # make the table as the base to get the world coordinate system
                                                 end_link=self.environment['link_names'][-1])
 
             current_ee_tgt = np.ndarray.flatten(get_ee_points(self.environment['end_effector_points'], translation, rot).T)
             ee_points = current_ee_tgt - self.realgoal
 
-            if ee_points[2] < 0:# penalize if the gripper goes under the height of the target
-                ee_points[2] = ee_points[2]*100
+            if current_ee_tgt[2] < self.realgoal[2]: # penalize if the gripper goes under the height of the target
+                ee_points[2] = ee_points[2] + 99 * ee_points[2] * max( (1 - self.episode/2000), 0 )
                 self.rew_coll += 1 # number of penalizations inflicted
 
             ee_velocities = ut_mara.get_ee_points_velocities(ee_link_jacobians, self.environment['end_effector_points'], rot, last_observations)
@@ -280,24 +280,22 @@ class MARAEnv(gym.Env):
 
             return state
 
-    def reward_function(self):
+    def compute_reward(self, reward_dist):
         alpha = 5
         beta = 3
         gamma = 3
         delta = 3
 
-        distance_reward = (math.exp(-alpha*self.reward_dist)-math.exp(-alpha))/(1-math.exp(-alpha))
-
+        distance_reward = ( math.exp(-alpha * reward_dist) - math.exp(-alpha) ) / ( 1 - math.exp(-alpha) )
         orientation_reward = 1
-
         collision_reward = 0
 
-        if self.reward_dist < 0.005:
+        if reward_dist < 0.005:
             close_reward = 10
         else:
             close_reward = 0
 
-        return 2*distance_reward*orientation_reward - 2 - collision_reward + close_reward
+        return 2 * distance_reward * orientation_reward - 2 - collision_reward + close_reward
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -326,10 +324,10 @@ class MARAEnv(gym.Env):
             self.ob = self.take_observation()
 
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
-        self.reward_dist = ut_math.rmse_func(self.ob[self.num_joints:(self.num_joints+3)])
-        reward = self.reward_function()
+        reward_dist = ut_math.rmse_func( self.ob[self.num_joints:(self.num_joints+3)] )
+        reward = self.compute_reward(reward_dist)
 
-        self.buffer_dist_rewards.append(self.reward_dist)
+        self.buffer_dist_rewards.append(reward_dist)
         self.buffer_orient_rewards.append(0)
         self.buffer_tot_rewards.append(reward)
 

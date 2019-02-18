@@ -72,7 +72,9 @@ class MARACollisionRewEnv(gym.Env):
         self.obs = None
         self.action_space = None
         self.realgoal = None
+
         self.max_episode_steps = 1024 # now used in all algorithms
+
         self.iterator = 0
         self.reset_jnts = True
         self._collision_msg = None
@@ -242,49 +244,36 @@ class MARACollisionRewEnv(gym.Env):
         :return: state.
         """
         rclpy.spin_once(self.node)
-        if self._observations_stale is False:
-            # rclpy.spin_once(self.node)
-            # while obs_message is None:
-            #     #print("Last observation is empty")
-            #     rclpy.spin_once(self.node)
-            #     obs_message = self._observation_msg
+        obs_message = self._observation_msg
+        if obs_message is None:
+            print("Last observation is empty")
+            return None
+        # Collect the end effector points and velocities in cartesian coordinates for the process_observations state.
+        # Collect the present joint angles and velocities from ROS for the state.
+        last_observations = ut_mara.process_observations(obs_message, self.environment)
+        # Get Jacobians from present joint angles and KDL trees
+        # The Jacobians consist of a 6x6 matrix getting its from from
+        # (joint angles) x (len[x, y, z] + len[roll, pitch, yaw])
+        ee_link_jacobians = ut_mara.get_jacobians(last_observations, self.mara_chain.getNrOfJoints(), self.jac_solver)
+        if self.environment['link_names'][-1] is None:
+            print("End link is empty!!")
+            return None
+        else:
+            translation, rot = forward_kinematics(self.mara_chain,
+                                                self.environment['link_names'],
+                                                last_observations[:self.mara_chain.getNrOfJoints()],
+                                                base_link=self.environment['link_names'][0], # make the table as the base to get the world coordinate system
+                                                end_link=self.environment['link_names'][-1])
 
+            current_ee_tgt = np.ndarray.flatten(get_ee_points(self.environment['end_effector_points'], translation, rot).T)
+            ee_points = current_ee_tgt - self.realgoal
+            ee_velocities = ut_mara.get_ee_points_velocities(ee_link_jacobians, self.environment['end_effector_points'], rot, last_observations)
 
-            obs_message = self._observation_msg
-            if obs_message is None:
-                # print("Last observation is empty")
-                return None
-            # Collect the end effector points and velocities in cartesian coordinates for the process_observations state.
-            # Collect the present joint angles and velocities from ROS for the state.
-            last_observations = ut_mara.process_observations(obs_message, self.environment)
-            # Get Jacobians from present joint angles and KDL trees
-            # The Jacobians consist of a 6x6 matrix getting its from from
-            # (joint angles) x (len[x, y, z] + len[roll, pitch, yaw])
-            ee_link_jacobians = ut_mara.get_jacobians(last_observations, self.mara_chain.getNrOfJoints(), self.jac_solver)
-            if self.environment['link_names'][-1] is None:
-                print("End link is empty!!")
-                return None
-            else:
-                translation, rot = forward_kinematics(self.mara_chain,
-                                                    self.environment['link_names'],
-                                                    last_observations[:self.mara_chain.getNrOfJoints()],
-                                                    base_link=self.environment['link_names'][0],
-                                                    end_link=self.environment['link_names'][-1])
-
-                current_ee_tgt = np.ndarray.flatten(get_ee_points(self.environment['end_effector_points'], translation, rot).T)
-                ee_points = current_ee_tgt - self.realgoal
-                ee_velocities = ut_mara.get_ee_points_velocities(ee_link_jacobians, self.environment['end_effector_points'], rot, last_observations)
-
-                # Concatenate the information that defines the robot state
-                '''
-
-                '''
-                state = np.r_[np.reshape(last_observations, -1),
-                              np.reshape(ee_points, -1),
-                              np.reshape(ee_velocities, -1),]
-
-            self._observation_msg = None
-
+            # Concatenate the information that defines the robot state
+            # vector, typically denoted asrobot_id 'x'.
+            state = np.r_[np.reshape(last_observations, -1),
+                          np.reshape(ee_points, -1),
+                          np.reshape(ee_velocities, -1),]
 
             return state
 
