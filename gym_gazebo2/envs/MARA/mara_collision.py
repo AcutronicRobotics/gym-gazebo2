@@ -106,16 +106,23 @@ class MARACollisionEnv(gym.Env):
         JOINT_SUBSCRIBER = '/mara_controller/state'
 
         # joint names:
+        BASE_JOINT  = 'joint_bases'
         MOTOR1_JOINT = 'motor1'
+        MOTOR1_COVER_JOINT = 'motor1_cover_joint'
         MOTOR2_JOINT = 'motor2'
         MOTOR3_JOINT = 'motor3'
+        MOTOR3_COVER_JOINT = 'motor3_cover_joint'
         MOTOR4_JOINT = 'motor4'
         MOTOR5_JOINT = 'motor5'
+        MOTOR5_COVER_JOINT = 'motor5_cover_joint'
         MOTOR6_JOINT = 'motor6'
+        EE_LINK = 'ee_link'
 
         # Set constants for links
+        WORLD = 'world'
         TABLE = 'table'
         BASE = 'base_link'
+        BASE_ROBOT = 'base_robot'
         MARA_MOTOR1_LINK = 'motor1_link'
         MARA_MOTOR2_LINK = 'motor2_link'
         MARA_MOTOR3_LINK = 'motor3_link'
@@ -123,14 +130,13 @@ class MARACollisionEnv(gym.Env):
         MARA_MOTOR5_LINK = 'motor5_link'
         MARA_MOTOR6_LINK = 'motor6_link'
         EE_LINK = 'ee_link'
+        TOOL0 = 'tool0'
 
-        JOINT_ORDER = [MOTOR1_JOINT, MOTOR2_JOINT, MOTOR3_JOINT,
-                        MOTOR4_JOINT, MOTOR5_JOINT, MOTOR6_JOINT]
-        LINK_NAMES = [ TABLE, BASE,
-                        MARA_MOTOR1_LINK, MARA_MOTOR2_LINK,
+        JOINT_ORDER = [MOTOR1_JOINT,MOTOR2_JOINT, MOTOR3_JOINT,
+                       MOTOR4_JOINT, MOTOR5_JOINT, MOTOR6_JOINT]
+        LINK_NAMES = [ WORLD, TABLE, BASE, BASE_ROBOT, MARA_MOTOR1_LINK, MARA_MOTOR2_LINK,
                         MARA_MOTOR3_LINK, MARA_MOTOR4_LINK,
-                        MARA_MOTOR5_LINK, MARA_MOTOR6_LINK,
-                        EE_LINK]
+                        MARA_MOTOR5_LINK, MARA_MOTOR6_LINK, EE_LINK]
 
         reset_condition = {
             'initial_positions': INITIAL_JOINTS,
