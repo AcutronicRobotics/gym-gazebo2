@@ -84,17 +84,7 @@ class MARACollisionEnv(gym.Env):
         #############################
         # Target, where should the agent reach
         # EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466]) # close to the table
-        # EE_POS_TGT = np.asmatrix([-0.386752, -0.000756, 1.40557]) # easy point
-        EE_POS_TGT = np.asmatrix([-0., -0.0001, 1.79167]) # ee_link start point
-        # EE_POS_TGT = np.asmatrix([-0., -0.0001, 1.79167 - 0.26]) # ee_link start point
-        # EE_POS_TGT = np.asmatrix([-0., -0.0001, 1.79167 - 0.24]) # ee_link - ee_link_distance start point
-        # EE_POS_TGT = np.asmatrix([0.000013, -0.001049, 1.551666]) # motor 6 start point
-        # EE_POS_TGT = np.asmatrix([0.000008, 0.105200, 1.404902]) # motor 5 start point
-        # EE_POS_TGT = np.asmatrix([0.000002, -0.000252, 1.244167]) # motor 4 start point
-        # EE_POS_TGT = np.asmatrix([0.000088, 0.109001, 1.094918]) # motor 3 start point
-        # EE_POS_TGT = np.asmatrix([0.000094, 0.118000, 0.894920]) # motor 2 start point
-        # EE_POS_TGT = np.asmatrix([0., 0., 0.73122]) # motor 1 start point
-
+        EE_POS_TGT = np.asmatrix([-0.386752, -0.000756, 1.40557]) # easy point
         EE_ROT_TGT = np.asmatrix([ [1., 0., 0.], [0., 1., 0.], [0., 0., 1.] ])
 
         EE_POINTS = np.asmatrix([[0, 0, 0]])
@@ -108,15 +98,11 @@ class MARACollisionEnv(gym.Env):
         JOINT_SUBSCRIBER = '/mara_controller/state'
 
         # joint names:
-        BASE_JOINT  = 'joint_bases'
         MOTOR1_JOINT = 'motor1'
-        MOTOR1_COVER_JOINT = 'motor1_cover_joint'
         MOTOR2_JOINT = 'motor2'
         MOTOR3_JOINT = 'motor3'
-        MOTOR3_COVER_JOINT = 'motor3_cover_joint'
         MOTOR4_JOINT = 'motor4'
         MOTOR5_JOINT = 'motor5'
-        MOTOR5_COVER_JOINT = 'motor5_cover_joint'
         MOTOR6_JOINT = 'motor6'
         EE_LINK = 'ee_link'
 
@@ -132,11 +118,11 @@ class MARACollisionEnv(gym.Env):
         MARA_MOTOR5_LINK = 'motor5_link'
         MARA_MOTOR6_LINK = 'motor6_link'
         EE_LINK = 'ee_link'
-        TOOL0 = 'tool0'
 
         JOINT_ORDER = [MOTOR1_JOINT,MOTOR2_JOINT, MOTOR3_JOINT,
-                       MOTOR4_JOINT, MOTOR5_JOINT, MOTOR6_JOINT]
-        LINK_NAMES = [ WORLD, TABLE, BASE, BASE_ROBOT, MARA_MOTOR1_LINK, MARA_MOTOR2_LINK,
+                        MOTOR4_JOINT, MOTOR5_JOINT, MOTOR6_JOINT]
+        LINK_NAMES = [ WORLD, TABLE, BASE, BASE_ROBOT,
+                        MARA_MOTOR1_LINK, MARA_MOTOR2_LINK,
                         MARA_MOTOR3_LINK, MARA_MOTOR4_LINK,
                         MARA_MOTOR5_LINK, MARA_MOTOR6_LINK, EE_LINK]
 
