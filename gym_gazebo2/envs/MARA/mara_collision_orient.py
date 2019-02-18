@@ -81,10 +81,10 @@ class MARACollisionOrientEnv(gym.Env):
         #   Environment hyperparams
         #############################
         # Target, where should the agent reach
-        # EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466]) # close to the table
-        # EE_ROT_TGT = np.asmatrix([ [0., 0., 1.], [0., 1., 0.], [-1., 0., 0.] ]) # arrow looking down
-        EE_POS_TGT = np.asmatrix([-0.386752, -0.000756, 1.40557]) # easy point
-        EE_ROT_TGT = np.asmatrix([ [-1., 0., 0.], [0., 1., 0.], [-0., 0., -1.] ]) # arrow looking opposite to MARA
+        EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466]) # close to the table
+        EE_ROT_TGT = np.asmatrix([ [0., 0., 1.], [0., 1., 0.], [-1., 0., 0.] ]) # arrow looking down
+        # EE_POS_TGT = np.asmatrix([-0.386752, -0.000756, 1.40557]) # easy point
+        # EE_ROT_TGT = np.asmatrix([ [-1., 0., 0.], [0., 1., 0.], [-0., 0., -1.] ]) # arrow looking opposite to MARA
 
 
         EE_POINTS = np.asmatrix([[0, 0, 0]])
@@ -274,7 +274,7 @@ class MARACollisionOrientEnv(gym.Env):
             ee_points = current_ee_tgt - self.realgoal
 
             if current_ee_tgt[2] < self.realgoal[2]: # penalize if the gripper goes under the height of the target
-                ee_points[2] = ee_points[2] + 99 * ee_points[2] * max( (1 - self.episode/2000), 0 )
+                ee_points[2] = ee_points[2] + 99 * ee_points[2] * max( (1 - self.episode/1000), 0 )
                 self.rew_coll += 1 # number of penalizations inflicted
 
             ee_velocities = ut_mara.get_ee_points_velocities(ee_link_jacobians, self.environment['end_effector_points'], rot, last_observations)
@@ -329,27 +329,29 @@ class MARACollisionOrientEnv(gym.Env):
                 reward = - self.reward_dist
         pass
 
-    def new_reward_function(self):
+    def new_reward_function(reward_dist,reward_orientation):
         alpha = 5
         beta = 3
         gamma = 3
         delta = 3
 
-        distance_reward = (math.exp(-alpha*self.reward_dist)-math.exp(-alpha))/(1-math.exp(-alpha))
+        distance_reward = (math.exp(-alpha*reward_dist)-math.exp(-alpha))/(1-math.exp(-alpha))
 
-        orientation_reward = ((1-math.exp(-beta*abs((self.reward_orientation-math.pi)/math.pi))+gamma)/(1+gamma))
+        #orientation_reward = ((1-math.exp(-beta*abs((self.reward_orientation-math.pi)/math.pi))+gamma)/(1+gamma))
+        orientation_reward = (1-((reward_orientation-math.pi)/math.pi)**beta+gamma)/(1+gamma)
+
         if self.collision():
             self.collided += 1
-            collision_reward = delta*(1-math.exp(-self.reward_dist))
+            collision_reward = delta*(1-math.exp(-reward_dist))
         else:
             collision_reward = 0
 
-        if self.reward_dist < 0.005:
+        if reward_dist < 0.005:
             close_reward = 10
         else:
             close_reward = 0
 
-        return 2*distance_reward*orientation_reward - 2 - collision_reward + close_reward
+        return 1*(distance_reward*orientation_reward - 1) - collision_reward + close_reward
 
     def step(self, action):
         """
@@ -371,13 +373,13 @@ class MARACollisionOrientEnv(gym.Env):
         self.ob = self.take_observation()
 
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
-        self.reward_dist = ut_math.rmse_func(self.ob[self.num_joints:(self.num_joints+3)])
-        self.reward_orientation = 2 * np.arccos(abs(self.ob[self.num_joints+3]))
+        reward_dist = ut_math.rmse_func(self.ob[self.num_joints:(self.num_joints+3)])
+        reward_orientation = 2 * np.arccos(abs(self.ob[self.num_joints+3]))
         #scale here the orientation because it should not be the main bias of the reward, position should be
 
 
         #reward = self.original_reward_function()
-        reward = self.new_reward_function()
+        reward = self.new_reward_function(reward_dist,reward_orientation)
 
         self.buffer_dist_rewards.append(self.reward_dist)
         self.buffer_orient_rewards.append(self.reward_orientation)
