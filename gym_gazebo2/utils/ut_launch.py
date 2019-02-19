@@ -23,6 +23,7 @@ def start_launch_servide_process(ld):
     ls = LaunchService()
     ls.include_launch_description(ld)
     p = Process(target=ls.run)
+    p.daemon = True #The daemon process is terminated automatically before the main program exits, to avoid leaving orphaned processes running
     p.start()
 
 def is_port_in_use(port):
