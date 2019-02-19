@@ -376,25 +376,6 @@ class MARACollisionOrientEnv(gym.Env):
         self.ob = self.take_observation()
 
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
-<<<<<<< HEAD
-        reward_dist = ut_math.rmse_func(self.ob[self.num_joints:(self.num_joints+3)])
-        reward_orientation = 2 * np.arccos(abs(self.ob[self.num_joints+3]))
-        #scale here the orientation because it should not be the main bias of the reward, position should be
-
-
-        #reward = self.original_reward_function()
-        reward = self.new_reward_function(reward_dist,reward_orientation)
-
-        self.buffer_dist_rewards.append(self.reward_dist)
-        self.buffer_orient_rewards.append(self.reward_orientation)
-        self.buffer_tot_rewards.append(reward)
-
-        # if self.iterator % 100 == 0:
-        #     print("")
-        #     print("Distance reward: ", self.reward_dist)
-        #     print("Orientation reward: ",self.reward_orientation)
-        #     print("Total reward: ",reward)
-=======
         reward_dist = ut_math.rmse_func( self.ob[self.num_joints:(self.num_joints+3)] )
         reward_orientation = 2 * np.arccos( abs( self.ob[self.num_joints+3] ) )
         #reward = self.original_compute_reward(reward_dist, reward_orientation)
@@ -409,7 +390,7 @@ class MARACollisionOrientEnv(gym.Env):
         # #     print("Distance reward: ", reward_dist)
         # #     print("Orientation reward: ", reward_orientation)
         # #     print("Total reward: ",reward)
->>>>>>> d6d9fc66dff912c9ddfeaa0b206362a66340eea0
+
         if self.iterator % self.max_episode_steps == 0:
             self.episode += 1
         #     file = open("/tmp/ros_rl2/MARACollisionOrient-v0/ppo2_mlp/reward_log.txt","a")
