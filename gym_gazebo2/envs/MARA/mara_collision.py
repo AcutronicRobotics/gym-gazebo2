@@ -92,6 +92,7 @@ class MARACollisionEnv(gym.Env):
 
         # Initial joint position
         INITIAL_JOINTS = np.array([0., 0., 0., 0., 0., 0.])
+        # INITIAL_JOINTS = np.array([0., 0., 0., 0., -1.57, 0.])
 
         # # Topics for the robot publisher and subscriber.
         JOINT_PUBLISHER = '/mara_controller/command'
@@ -170,8 +171,8 @@ class MARACollisionEnv(gym.Env):
 
         # # Here idially we should find the control range of the robot. Unfortunatelly in ROS/KDL there is nothing like this.
         # # I have tested this with the mujoco enviroment and the output is always same low[-1.,-1.], high[1.,1.]
-        low = -np.pi/2.0 * np.ones(self.num_joints)
-        high = np.pi/2.0 * np.ones(self.num_joints)
+        low = -np.pi/3.0 * np.ones(self.num_joints)
+        high = np.pi/3.0 * np.ones(self.num_joints)
         self.action_space = spaces.Box(low, high)
 
         high = np.inf*np.ones(self.obs_dim)
@@ -311,7 +312,7 @@ class MARACollisionEnv(gym.Env):
         orientation_reward = 1
 
         if self.collision():
-            # self.collided += 1
+            self.collided += 1
             collision_reward = delta * ( 1 - math.exp(-reward_dist) )
         else:
             collision_reward = 0
@@ -341,6 +342,9 @@ class MARACollisionEnv(gym.Env):
 
         # Take an observation
         self.ob = self.take_observation()
+
+        # print("action: \n", action)
+        # print("observation: \n", self.ob)
 
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
         reward_dist = ut_math.rmse_func( self.ob[self.num_joints:(self.num_joints+3)] )
@@ -376,7 +380,7 @@ class MARACollisionEnv(gym.Env):
         #     self.buffer_dist_rewards = []
         #     self.buffer_orient_rewards = []
         #     self.buffer_tot_rewards = []
-        #     self.collided = 0
+            self.collided = 0
             self.rew_coll = 0
 
         # Return the corresponding observations, rewards, etc.

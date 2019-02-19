@@ -94,6 +94,7 @@ class MARAOrientEnv(gym.Env):
         # Initial joint position
         INITIAL_JOINTS = np.array([0., 0., 0., 0., 0., 0.])
 
+
         # # Topics for the robot publisher and subscriber.
         JOINT_PUBLISHER = '/mara_controller/command'
         JOINT_SUBSCRIBER = '/mara_controller/state'
