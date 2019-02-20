@@ -74,7 +74,7 @@ class MARAOrientEnv(gym.Env):
         self.obs = None
         self.action_space = None
         self.realgoal = None
-        self.max_episode_steps = None
+        self.max_episode_steps = 1024
         self.iterator = 0
         self.reset_jnts = True
         self._collision_msg = None
@@ -241,7 +241,7 @@ class MARAOrientEnv(gym.Env):
 
     def set_episode_size(self, episode_size):
         self.max_episode_steps = episode_size
-        
+
     def take_observation(self):
         """
         Take observation from the environment and return it.
