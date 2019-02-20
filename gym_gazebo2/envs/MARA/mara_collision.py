@@ -274,7 +274,7 @@ class MARACollisionEnv(gym.Env):
             ee_velocities = ut_mara.get_ee_points_velocities(ee_link_jacobians, self.environment['end_effector_points'], rot, last_observations)
 
             if current_ee_tgt[2] < self.realgoal[2]: # penalize if the gripper goes under the height of the target
-                ee_points[2] = ee_points[2] + 99 * ee_points[2] * max( (1 - self.episode/2000), 0 )
+                ee_points[2] = ee_points[2] + 99 * ee_points[2] * max( (1 - self.episode/1000), 0 )
                 self.rew_coll += 1 # number of penalizations inflicted
 
             # Concatenate the information that defines the robot state
@@ -322,7 +322,7 @@ class MARACollisionEnv(gym.Env):
         else:
             close_reward = 0
 
-        return 2 * distance_reward * orientation_reward - 2 - collision_reward + close_reward
+        return distance_reward * orientation_reward - 1 - collision_reward + close_reward
 
     def step(self, action):
         """
