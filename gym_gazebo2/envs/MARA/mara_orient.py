@@ -74,7 +74,7 @@ class MARAOrientEnv(gym.Env):
         self.obs = None
         self.action_space = None
         self.realgoal = None
-        self.max_episode_steps = 1024 # This should match the nsteps in defaults
+        self.max_episode_steps = None
         self.iterator = 0
         self.reset_jnts = True
         self._collision_msg = None
@@ -239,6 +239,9 @@ class MARAOrientEnv(gym.Env):
         if message.collision1_name != message.collision2_name:
                 self._collision_msg = message
 
+    def set_episode_size(self, episode_size):
+        self.max_episode_steps = episode_size
+        
     def take_observation(self):
         """
         Take observation from the environment and return it.
