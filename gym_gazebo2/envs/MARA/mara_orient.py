@@ -314,9 +314,9 @@ class MARAOrientEnv(gym.Env):
         distance_reward = ( math.exp(-alpha * reward_dist) - math.exp(-alpha) ) / ( 1 - math.exp(-alpha) )
         orientation_reward = ( 1 - math.exp(-beta * abs( (reward_orientation - math.pi) / math.pi ) ) + gamma ) / (1 + gamma)
         collision_reward = 0
-        #
-        # if self.collision():
-        #     self.collided += 1
+        
+        if self.collision():
+            self.collided += 1
 
         if reward_dist < 0.005:
             close_reward = 10

@@ -83,8 +83,8 @@ class MARAEnv(gym.Env):
         #   Environment hyperparams
         #############################
         # Target, where should the agent reach
-        # EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466]) # close to the table
-        EE_POS_TGT = np.asmatrix([-0.386752, -0.000756, 1.40557]) # easy point
+        EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466]) # close to the table
+        # EE_POS_TGT = np.asmatrix([-0.386752, -0.000756, 1.40557]) # easy point
         EE_ROT_TGT = np.asmatrix([ [-1., 0., 0.], [0., 1., 0.], [-0., 0., -1.] ]) # arrow looking opposite to MARA
 
         EE_POINTS = np.asmatrix([[0, 0, 0]])
@@ -285,6 +285,20 @@ class MARAEnv(gym.Env):
 
             return state
 
+    def collision(self):
+        # Reset if there is a collision
+        if self._collision_msg is not None:
+            while not self.reset_sim.wait_for_service(timeout_sec=1.0):
+                self.node.get_logger().info('service not available, waiting again...')
+
+            reset_future = self.reset_sim.call_async(Empty.Request())
+            rclpy.spin_until_future_complete(self.node, reset_future)
+            #rclpy.spin_once(self.node)
+            self._collision_msg = None
+            return True
+        else:
+            return False
+
     def compute_reward(self, reward_dist):
         alpha = 5
         beta = 3
@@ -294,6 +308,9 @@ class MARAEnv(gym.Env):
         distance_reward = ( math.exp(-alpha * reward_dist) - math.exp(-alpha) ) / ( 1 - math.exp(-alpha) )
         orientation_reward = 1
         collision_reward = 0
+
+        if self.collision():
+            self.collided += 1
 
         if reward_dist < 0.005:
             close_reward = 10
