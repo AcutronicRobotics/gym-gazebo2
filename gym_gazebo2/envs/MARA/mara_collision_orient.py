@@ -278,9 +278,9 @@ class MARACollisionOrientEnv(gym.Env):
             current_ee_tgt = np.ndarray.flatten(get_ee_points(self.environment['end_effector_points'], translation, rot).T)
             ee_points = current_ee_tgt - self.realgoal
 
-            if current_ee_tgt[2] < self.realgoal[2]: # penalize if the gripper goes under the height of the target
-                ee_points[2] = ee_points[2] + 99 * ee_points[2] * max( (1 - self.episode/500), 0 )
-                self.rew_coll += 1 # number of penalizations inflicted
+            # if current_ee_tgt[2] < self.realgoal[2]: # penalize if the gripper goes under the height of the target
+            #     ee_points[2] = ee_points[2] + 99 * ee_points[2] * max( (1 - self.episode/500), 0 )
+            #     self.rew_coll += 1 # number of penalizations inflicted
 
             ee_velocities = ut_mara.get_ee_points_velocities(ee_link_jacobians, self.environment['end_effector_points'], rot, last_observations)
 
@@ -312,6 +312,7 @@ class MARACollisionOrientEnv(gym.Env):
             return False
 
     def original_compute_reward(self, reward_dist, reward_orientation):
+
         if self.collision():
             reward = -reward_dist * 10
             print("Reward (collided) is: ", reward)
@@ -332,7 +333,8 @@ class MARACollisionOrientEnv(gym.Env):
                     print("Reward (bad orient) is: ", reward)
             else:
                 reward = -reward_dist
-        pass
+
+        return reward
 
     def compute_reward(self, reward_dist, reward_orientation):
 
@@ -355,9 +357,7 @@ class MARACollisionOrientEnv(gym.Env):
         else:
             close_reward = 0
 
-
         return distance_reward * orientation_reward - 1 - collision_reward + close_reward
-
 
     def step(self, action):
         """
