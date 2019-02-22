@@ -221,7 +221,7 @@ class MARAEnv(gym.Env):
         # file.write("episode,max_dist_rew,mean_dist_rew,min_dist_rew,max_ori_rew,mean_ori_rew,min_ori_rew,max_tot_rew,mean_tot_rew,min_tot_rew,num_coll,rew_coll\n")
         # file.close()
         self.episode = 0 #episode number
-        # self.collided = 0 #number of collisions by episode
+        self.collided = 0 #number of collisions by episode
         # self.rew_coll = 0 #number of times the gripper is under the target
 
     def observation_callback(self, message):
