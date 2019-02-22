@@ -376,7 +376,7 @@ class MARAEnv(gym.Env):
         #     self.buffer_dist_rewards = []
         #     self.buffer_orient_rewards = []
         #     self.buffer_tot_rewards = []
-        #     self.collided = 0
+            self.collided = 0
         #     self.rew_coll = 0
 
         # Calculate if the env has been solved
