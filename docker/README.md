@@ -5,10 +5,6 @@
 ```shell
 git clone docker gym-gazebo-ros2
 cd gym-gazebo-ros2/docker
-mkdir src
-cp ../provision/mara.repos .
-vcs import src < mara.repos
-vcs import src < missing-repos.repos
 git clone https://github.com/erlerobot/baselines
 git clone https://github.com/erlerobot/gym-gazebo-ros2
 docker build -t gg2 .
