@@ -355,7 +355,7 @@ class MARACollisionEnv(gym.Env):
 
         collided = self.collision()
 
-        reward = self.compute_reward(reward_dist, collision)
+        reward = self.compute_reward(reward_dist, collided)
 
         # self.buffer_dist_rewards.append(reward_dist)
         # self.buffer_tot_rewards.append(reward)
