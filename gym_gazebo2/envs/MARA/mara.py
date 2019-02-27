@@ -317,7 +317,7 @@ class MARAEnv(gym.Env):
         else:
             close_reward = 0
 
-        return 2 * distance_reward * orientation_reward - 2 - collision_reward + close_reward
+        return distance_reward * orientation_reward - 1 - collision_reward + close_reward
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
