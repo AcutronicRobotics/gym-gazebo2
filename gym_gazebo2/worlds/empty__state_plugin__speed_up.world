@@ -23,7 +23,7 @@
     </include>
     <!-- Speed up the simulation to the maximum -->
     <physics type="ode">
-      <max_step_size>0.00105</max_step_size>
+      <max_step_size>0.001</max_step_size>
       <real_time_update_rate>0</real_time_update_rate>
       <ode>
         <solver>
@@ -32,5 +32,12 @@
       </ode>
     </physics>
 
+    <gui fullscreen='0'>
+      <camera name='user_camera'>
+        <pose frame=''>0 -3 2 0 0.3 1.57</pose>
+        <view_controller>orbit</view_controller>
+        <projection_type>perspective</projection_type>
+      </camera>
+    </gui>
   </world>
 </sdf>

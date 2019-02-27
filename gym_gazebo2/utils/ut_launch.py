@@ -85,11 +85,6 @@ def generate_launch_description_mara(gzclient, real_speed, multi_instance, port,
     else:
         os.environ['GAZEBO_PLUGIN_PATH'] = install_dir + '/lib'
 
-    if not real_speed:
-        world_path = os.path.join(os.path.dirname(gym_gazebo2.__file__), 'worlds', 'empty__state_plugin__speed_up.world')
-    else:
-        world_path = os.path.join(os.path.dirname(gym_gazebo2.__file__), 'worlds', 'empty__state_plugin.world')
-
     if port != 11345:  # Default gazebo port
         os.environ["ROS_DOMAIN_ID"] = str(port)
         os.environ["GAZEBO_MASTER_URI"] = "http://localhost:" + str(port)
@@ -124,14 +119,29 @@ def generate_launch_description_mara(gzclient, real_speed, multi_instance, port,
         gazebo_cmd = "gzserver"
 
     # Creation of ROS2 LaunchDescription obj.
-    ld = LaunchDescription([
-        ExecuteProcess(
-            cmd=[gazebo_cmd,'--verbose', '-s', 'libgazebo_ros_factory.so', '-s', 'libgazebo_ros_init.so', world_path], output='screen',
-            env=envs
-        ),
-        Node(package='mara_utils_scripts', node_executable='spawn_mara_gripper_140.py', output='screen'),
-        Node(package='hros_cognition_mara_components', node_executable='hros_cognition_mara_components', output='screen',
-            arguments=["-motors", install_dir + "/share/hros_cognition_mara_components/link_order.yaml"]),
-        Node(package='mara_contact_publisher', node_executable='mara_contact_publisher', output='screen')
-    ])
+
+    if real_speed:
+        world_path = os.path.join(os.path.dirname(gym_gazebo2.__file__), 'worlds', 'empty__state_plugin.world')
+        ld = LaunchDescription([
+            ExecuteProcess(
+                cmd=[gazebo_cmd,'--verbose', '-s', 'libgazebo_ros_factory.so', '-s', 'libgazebo_ros_init.so', world_path], output='screen',
+                env=envs
+            ),
+            Node(package='mara_utils_scripts', node_executable='spawn_mara_gripper_140_run.py', output='screen'),
+            Node(package='hros_cognition_mara_components', node_executable='hros_cognition_mara_components', output='screen',
+                arguments=["-motors", install_dir + "/share/hros_cognition_mara_components/link_order.yaml"]),
+            Node(package='mara_contact_publisher', node_executable='mara_contact_publisher', output='screen')
+        ])
+    else:
+        world_path = os.path.join(os.path.dirname(gym_gazebo2.__file__), 'worlds', 'empty__state_plugin__speed_up.world')
+        ld = LaunchDescription([
+            ExecuteProcess(
+                cmd=[gazebo_cmd,'--verbose', '-s', 'libgazebo_ros_factory.so', '-s', 'libgazebo_ros_init.so', world_path], output='screen',
+                env=envs
+            ),
+            Node(package='mara_utils_scripts', node_executable='spawn_mara_gripper_140.py', output='screen'),
+            Node(package='hros_cognition_mara_components', node_executable='hros_cognition_mara_components', output='screen',
+                arguments=["-motors", install_dir + "/share/hros_cognition_mara_components/link_order.yaml"]),
+            Node(package='mara_contact_publisher', node_executable='mara_contact_publisher', output='screen')
+        ]) 
     return ld

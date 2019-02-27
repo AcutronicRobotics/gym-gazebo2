@@ -223,7 +223,7 @@ class MARAOrientEnv(gym.Env):
         # file.write("episode,max_dist_rew,mean_dist_rew,min_dist_rew,max_ori_rew,mean_ori_rew,min_ori_rew,max_tot_rew,mean_tot_rew,min_tot_rew,num_coll,rew_coll\n")
         # file.close()
         self.episode = 0 #episode number
-        # self.collided = 0 #number of collisions by episode
+        self.collided = 0 #number of collisions by episode
         # self.rew_coll = 0 #number of times the gripper is under the target
 
     def observation_callback(self, message):
@@ -276,9 +276,9 @@ class MARAOrientEnv(gym.Env):
             current_ee_tgt = np.ndarray.flatten(get_ee_points(self.environment['end_effector_points'], translation, rot).T)
             ee_points = current_ee_tgt - self.realgoal
 
-            if current_ee_tgt[2] < self.realgoal[2]: # penalize if the gripper goes under the height of the target
-                ee_points[2] = ee_points[2] + 99 * ee_points[2] * max( (1 - self.episode/2000), 0 )
-                # self.rew_coll += 1 # number of penalizations inflicted
+            # if current_ee_tgt[2] < self.realgoal[2]: # penalize if the gripper goes under the height of the target
+            #     ee_points[2] = ee_points[2] + 99 * ee_points[2] * max( (1 - self.episode/2000), 0 )
+            #     # self.rew_coll += 1 # number of penalizations inflicted
 
             ee_velocities = ut_mara.get_ee_points_velocities(ee_link_jacobians, self.environment['end_effector_points'], rot, last_observations)
 
@@ -314,9 +314,9 @@ class MARAOrientEnv(gym.Env):
         distance_reward = ( math.exp(-alpha * reward_dist) - math.exp(-alpha) ) / ( 1 - math.exp(-alpha) )
         orientation_reward = ( 1 - math.exp(-beta * abs( (reward_orientation - math.pi) / math.pi ) ) + gamma ) / (1 + gamma)
         collision_reward = 0
-        #
-        # if self.collision():
-        #     self.collided += 1
+
+        if self.collision():
+            self.collided += 1
 
         if reward_dist < 0.005:
             close_reward = 10
@@ -383,7 +383,7 @@ class MARAOrientEnv(gym.Env):
         #     self.buffer_dist_rewards = []
         #     self.buffer_orient_rewards = []
         #     self.buffer_tot_rewards = []
-        #     self.collided = 0
+            self.collided = 0
             # self.rew_coll = 0
 
         # Calculate if the env has been solved
