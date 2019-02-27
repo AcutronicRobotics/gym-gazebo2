@@ -22,5 +22,12 @@
       <uri>model://ground_plane</uri>
     </include>
 
+    <gui fullscreen='0'>
+      <camera name='user_camera'>
+        <pose frame=''>0 -2.1 3 0 0.78 1.57</pose>
+        <view_controller>orbit</view_controller>
+        <projection_type>perspective</projection_type>
+      </camera>
+    </gui>
   </world>
 </sdf>
