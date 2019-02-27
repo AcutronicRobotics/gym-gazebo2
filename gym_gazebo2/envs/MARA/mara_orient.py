@@ -327,7 +327,7 @@ class MARAOrientEnv(gym.Env):
         else:
             collision_reward = 0
 
-        return 2 * distance_reward * orientation_reward - 2 - collision_reward + 10 * ( math.exp(-alpha*1/done * reward_dist) - math.exp(-alpha) ) / ( 1 - math.exp(-alpha) )
+        return distance_reward * orientation_reward - 1 - collision_reward + 10 * ( math.exp(-alpha*1/done * reward_dist) - math.exp(-alpha) ) / ( 1 - math.exp(-alpha) )
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
