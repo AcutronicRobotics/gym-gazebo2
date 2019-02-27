@@ -301,6 +301,7 @@ class MARACollisionEnv(gym.Env):
             reset_future = self.reset_sim.call_async(Empty.Request())
             rclpy.spin_until_future_complete(self.node, reset_future)
             self._collision_msg = None
+            self.collided += 1
             return True
         else:
             return False
@@ -352,10 +353,7 @@ class MARACollisionEnv(gym.Env):
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
         reward_dist = ut_math.rmse_func( self.ob[self.num_joints:(self.num_joints+3)] )
 
-        collision = False
-        if self.collision():
-            collision = True
-            self.collided += 1
+        collided = self.collision()
 
         reward = self.compute_reward(reward_dist, collision)
 
