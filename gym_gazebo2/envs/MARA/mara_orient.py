@@ -301,29 +301,33 @@ class MARAOrientEnv(gym.Env):
             rclpy.spin_until_future_complete(self.node, reset_future)
             #rclpy.spin_once(self.node)
             self._collision_msg = None
+            self.collided += 1
             return True
         else:
             return False
 
-    def compute_reward(self, reward_dist, reward_orientation):
+    def compute_reward(self, reward_dist, reward_orientation, collision):
         alpha = 5
         beta = 3
         gamma = 3
         delta = 3
+        done = 0.02
 
         distance_reward = ( math.exp(-alpha * reward_dist) - math.exp(-alpha) ) / ( 1 - math.exp(-alpha) )
-        orientation_reward = ( 1 - math.exp(-beta * abs( (reward_orientation - math.pi) / math.pi ) ) + gamma ) / (1 + gamma)
-        collision_reward = 0
-
-        if self.collision():
-            self.collided += 1
+        orientation_reward = ( 1 - (reward_orientation / math.pi  )**beta + gamma ) / (1 + gamma)
 
         if reward_dist < 0.005:
             close_reward = 10
         else:
             close_reward = 0
 
-        return 2 * distance_reward * orientation_reward - 2 - collision_reward + close_reward
+        if collision == True:
+            reward_dist = min(reward_dist,0.5)
+            collision_reward = delta * (2 * reward_dist)**0.3
+        else:
+            collision_reward = 0
+
+        return 2 * distance_reward * orientation_reward - 2 - collision_reward + 10 * ( math.exp(-alpha*1/done * reward_dist) - math.exp(-alpha) ) / ( 1 - math.exp(-alpha) )
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -354,7 +358,8 @@ class MARAOrientEnv(gym.Env):
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
         reward_dist = ut_math.rmse_func( self.ob[self.num_joints:(self.num_joints+3)] )
         reward_orientation = 2 * np.arccos( abs( self.ob[self.num_joints+3] ) )
-        reward = self.compute_reward(reward_dist, reward_orientation)
+        collided = self.collision()
+        reward = self.compute_reward(reward_dist, reward_orientation, False)
 
         # self.buffer_dist_rewards.append(reward_dist)
         # self.buffer_orient_rewards.append(reward_orientation)

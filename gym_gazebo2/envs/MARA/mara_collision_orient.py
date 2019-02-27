@@ -336,28 +336,23 @@ class MARACollisionOrientEnv(gym.Env):
 
         return reward
 
-    def compute_reward(self, reward_dist, reward_orientation):
-
+    def compute_reward(self, reward_dist, reward_orientation, collision):
         alpha = 5
         beta = 3
         gamma = 3
         delta = 3
+        done = 0.02
 
         distance_reward = ( math.exp(-alpha * reward_dist) - math.exp(-alpha) ) / ( 1 - math.exp(-alpha) )
         orientation_reward = ( 1 - (reward_orientation / math.pi  )**beta + gamma ) / (1 + gamma)
 
-        if self.collision():
-            self.collided += 1
-            collision_reward = delta * ( 1 - math.exp(-reward_dist) )
+        if collision == True:
+            reward_dist = min(reward_dist,0.5)
+            collision_reward = delta * (2 * reward_dist)**0.3
         else:
             collision_reward = 0
 
-        if reward_dist < 0.005:
-            close_reward = 10
-        else:
-            close_reward = 0
-
-        return distance_reward * orientation_reward - 1 - collision_reward + close_reward
+        return distance_reward * orientation_reward - 1 - collision_reward + 10 * ( math.exp(-alpha*1/done * reward_dist) - math.exp(-alpha) ) / ( 1 - math.exp(-alpha) )
 
     def step(self, action):
         """
@@ -382,7 +377,9 @@ class MARACollisionOrientEnv(gym.Env):
         reward_dist = ut_math.rmse_func( self.ob[self.num_joints:(self.num_joints+3)] )
         reward_orientation = 2 * np.arccos( abs( self.ob[self.num_joints+3] ) )
         #reward = self.original_compute_reward(reward_dist, reward_orientation)
-        reward = self.compute_reward(reward_dist, reward_orientation)
+
+        collided = self.collision()
+        reward = self.compute_reward(reward_dist, reward_orientation, collided)
 
         self.buffer_dist_rewards.append(reward_dist)
         self.buffer_orient_rewards.append(reward_orientation)
