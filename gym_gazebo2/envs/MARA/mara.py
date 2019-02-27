@@ -217,7 +217,7 @@ class MARAEnv(gym.Env):
         # self.buffer_orient_rewards = [] # angles accumulated over each episode
         # self.buffer_tot_rewards = [] # rewards accumulated over each episode
         #
-        # file = open("/tmp/ros_rl2/MARACollisionOrient-v0/ppo2_mlp/reward_log.txt","w")# write the stats of the training
+        # file = open("/tmp/ros_rl2/MARA-v0/ppo2_mlp/reward_log.txt","w")# write the stats of the training
         # file.write("episode,max_dist_rew,mean_dist_rew,min_dist_rew,max_ori_rew,mean_ori_rew,min_ori_rew,max_tot_rew,mean_tot_rew,min_tot_rew,num_coll,rew_coll\n")
         # file.close()
         self.episode = 0 #episode number
@@ -272,8 +272,8 @@ class MARAEnv(gym.Env):
             ee_points = current_ee_tgt - self.realgoal
 
             if current_ee_tgt[2] < self.realgoal[2]: # penalize if the gripper goes under the height of the target
-                ee_points[2] = ee_points[2] + 99 * ee_points[2] * max( (1 - self.episode/2000), 0 )
-                # self.rew_coll += 1 # number of penalizations inflicted
+                # ee_points[2] = ee_points[2] + 99 * ee_points[2] * max( (1 - self.episode/2000), 0 )
+                self.rew_coll += 1 # number of penalizations inflicted
 
             ee_velocities = ut_mara.get_ee_points_velocities(ee_link_jacobians, self.environment['end_effector_points'], rot, last_observations)
 
@@ -300,7 +300,7 @@ class MARAEnv(gym.Env):
         else:
             close_reward = 0
 
-        return 2 * distance_reward * orientation_reward - 2 - collision_reward + close_reward
+        return distance_reward * orientation_reward - 1 - collision_reward + close_reward
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -338,7 +338,7 @@ class MARAEnv(gym.Env):
         #
         if self.iterator % self.max_episode_steps == 0:
             self.episode += 1
-        #     file = open("/tmp/ros_rl2/MARACollisionOrient-v0/ppo2_mlp/reward_log.txt","a")
+        #     file = open("/tmp/ros_rl2/MARA-v0/ppo2_mlp/reward_log.txt","a")
         #     file.write(",".join([str(self.episode),str(max(self.buffer_dist_rewards)),str(np.mean(self.buffer_dist_rewards)),str(min(self.buffer_dist_rewards)),\
         #                                 str(max(self.buffer_orient_rewards)),str(np.mean(self.buffer_orient_rewards)),str(min(self.buffer_orient_rewards)),\
         #                                 str(max(self.buffer_tot_rewards)),str(np.mean(self.buffer_tot_rewards)),str(min(self.buffer_tot_rewards)),\
