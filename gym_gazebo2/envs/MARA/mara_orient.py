@@ -8,7 +8,9 @@ import os
 import sys
 import transforms3d as tf
 from gym import utils, spaces
-from gym_gazebo2.utils import ut_generic, ut_launch, ut_mara, ut_math, ut_gazebo
+# from gym_gazebo2.utils.tree_urdf import treeFromFile
+# from gym_gazebo2.utils.general_utils import forward_kinematics, get_ee_points
+from gym_gazebo2.utils import ut_generic, ut_launch, ut_mara, ut_math, ut_gazebo, tree_urdf, general_utils
 from gym.utils import seeding
 from gazebo_msgs.srv import SpawnEntity
 from multiprocessing import Process
@@ -17,7 +19,7 @@ import argparse
 # ROS 2
 import rclpy
 from rclpy.qos import QoSProfile, qos_profile_sensor_data
-from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint # Used for publishing mara joint angles.
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from control_msgs.msg import JointTrajectoryControllerState
 from gazebo_msgs.msg import ContactState
 from std_msgs.msg import String
@@ -27,11 +29,7 @@ from ros2pkg.api import get_prefix_path
 from builtin_interfaces.msg import Duration
 
 # Algorithm specific
-from baselines.agent.scara_arm.tree_urdf import treeFromFile # For KDL Jacobians
 from PyKDL import ChainJntToJacSolver # For KDL Jacobians
-
-# from custom baselines repository
-from baselines.agent.utility.general_utils import forward_kinematics, get_ee_points
 
 class MSG_INVALID_JOINT_NAMES_DIFFER(Exception):
     """Error object exclusively raised by _process_observations."""
@@ -83,17 +81,16 @@ class MARAOrientEnv(gym.Env):
         #   Environment hyperparams
         #############################
         # Target, where should the agent reach
-        # EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466]) # close to the table
-        # EE_ROT_TGT = np.asmatrix([ [0., 0., 1.], [0., 1., 0.], [-1., 0., 0.] ]) # arrow looking down
-        EE_POS_TGT = np.asmatrix([-0.386752, -0.000756, 1.40557]) # easy point
-        EE_ROT_TGT = np.asmatrix([ [-1., 0., 0.], [0., 1., 0.], [-0., 0., -1.] ]) # arrow looking opposite to MARA
+        EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466]) # close to the table
+        EE_ROT_TGT = np.asmatrix([ [0., 0., 1.], [0., 1., 0.], [-1., 0., 0.] ]) # arrow looking down
+        # EE_POS_TGT = np.asmatrix([-0.386752, -0.000756, 1.40557]) # easy point
+        # EE_ROT_TGT = np.asmatrix([ [-1., 0., 0.], [0., 1., 0.], [-0., 0., -1.] ]) # arrow looking opposite to MARA
 
         EE_POINTS = np.asmatrix([[0, 0, 0]])
         EE_VELOCITIES = np.asmatrix([[0, 0, 0]])
 
         # Initial joint position
         INITIAL_JOINTS = np.array([0., 0., 0., 0., 0., 0.])
-
 
         # # Topics for the robot publisher and subscriber.
         JOINT_PUBLISHER = '/mara_controller/command'
@@ -141,7 +138,7 @@ class MARAOrientEnv(gym.Env):
         ee_rot_tgt = EE_ROT_TGT
 
         # Initialize target end effector position
-        self.realgoal = np.ndarray.flatten(get_ee_points(EE_POINTS, ee_pos_tgt, ee_rot_tgt).T)
+        self.realgoal = np.ndarray.flatten(general_utils.get_ee_points(EE_POINTS, ee_pos_tgt, ee_rot_tgt).T)
         self.target_orientation = tf.quaternions.mat2quat(ee_rot_tgt) #[w, x, y, z]
 
         self.environment = {
@@ -159,9 +156,9 @@ class MARAOrientEnv(gym.Env):
         self.reset_sim = self.node.create_client(Empty, '/reset_simulation')
 
         # Initialize a tree structure from the robot urdf.
-        #   note that the xacro of the urdf is updated by hand.
+        # Note that the xacro of the urdf is updated by hand.
         # The urdf must be compiled.
-        _, self.ur_tree = treeFromFile(self.environment['tree_path'])
+        _, self.ur_tree = tree_urdf.treeFromFile(self.environment['tree_path'])
         # Retrieve a chain structure between the base and the start of the end effector.
         self.mara_chain = self.ur_tree.getChain(self.environment['link_names'][0], self.environment['link_names'][-1])
         self.num_joints = self.mara_chain.getNrOfJoints()
@@ -170,9 +167,9 @@ class MARAOrientEnv(gym.Env):
 
         self.obs_dim = self.num_joints + 10
 
-        # # Here idially we should find the control range of the robot. Unfortunatelly in ROS/KDL there is nothing like this.
-        # # I have tested this with the mujoco enviroment and the output is always same low[-1.,-1.], high[1.,1.]
-
+        # Here idially we should find the control range of the robot. Unfortunatelly in ROS/KDL there is nothing like this.
+        # I have tested this with the mujoco enviroment and the output is always same low[-1.,-1.], high[1.,1.]
+        # Does not change anything
         low = -np.pi/2.0 * np.ones(self.num_joints)
         high = np.pi/2.0 * np.ones(self.num_joints)
 
@@ -215,17 +212,6 @@ class MARAOrientEnv(gym.Env):
         # Seed the environment
         self.seed()
 
-        # self.buffer_dist_rewards = [] # distances accumulated over each episode
-        # self.buffer_orient_rewards = [] # angles accumulated over each episode
-        # self.buffer_tot_rewards = [] # rewards accumulated over each episode
-        #
-        # file = open("/tmp/ros_rl2/MARACollisionOrient-v0/ppo2_mlp/reward_log.txt","w")# write the stats of the training
-        # file.write("episode,max_dist_rew,mean_dist_rew,min_dist_rew,max_ori_rew,mean_ori_rew,min_ori_rew,max_tot_rew,mean_tot_rew,min_tot_rew,num_coll,rew_coll\n")
-        # file.close()
-        self.episode = 0 #episode number
-        self.collided = 0 #number of collisions by episode
-        # self.rew_coll = 0 #number of times the gripper is under the target
-
     def observation_callback(self, message):
         """
         Callback method for the subscriber of JointTrajectoryControllerState
@@ -264,7 +250,7 @@ class MARAOrientEnv(gym.Env):
             print("End link is empty!!")
             return None
         else:
-            translation, rot = forward_kinematics(self.mara_chain,
+            translation, rot = general_utils.forward_kinematics(self.mara_chain,
                                                 self.environment['link_names'],
                                                 last_observations[:self.num_joints],
                                                 base_link=self.environment['link_names'][0], # make the table as the base to get the world coordinate system
@@ -273,12 +259,8 @@ class MARAOrientEnv(gym.Env):
             current_quaternion = tf.quaternions.mat2quat(rot) #[w, x, y ,z]
             quat_error = ut_math.quaternion_product(current_quaternion, tf.quaternions.qconjugate(self.target_orientation))
 
-            current_ee_tgt = np.ndarray.flatten(get_ee_points(self.environment['end_effector_points'], translation, rot).T)
+            current_ee_tgt = np.ndarray.flatten(general_utils.get_ee_points(self.environment['end_effector_points'], translation, rot).T)
             ee_points = current_ee_tgt - self.realgoal
-
-            # if current_ee_tgt[2] < self.realgoal[2]: # penalize if the gripper goes under the height of the target
-            #     ee_points[2] = ee_points[2] + 99 * ee_points[2] * max( (1 - self.episode/2000), 0 )
-            #     # self.rew_coll += 1 # number of penalizations inflicted
 
             ee_velocities = ut_mara.get_ee_points_velocities(ee_link_jacobians, self.environment['end_effector_points'], rot, last_observations)
 
@@ -299,9 +281,8 @@ class MARAOrientEnv(gym.Env):
 
             reset_future = self.reset_sim.call_async(Empty.Request())
             rclpy.spin_until_future_complete(self.node, reset_future)
-            #rclpy.spin_once(self.node)
+
             self._collision_msg = None
-            self.collided += 1
             return True
         else:
             return False
@@ -327,7 +308,7 @@ class MARAOrientEnv(gym.Env):
         else:
             collision_reward = 0
 
-        return 2 * distance_reward * orientation_reward - 2 - collision_reward + 10 * ( math.exp(-alpha*1/done * reward_dist) - math.exp(-alpha) ) / ( 1 - math.exp(-alpha) )
+        return distance_reward * orientation_reward - 1 - collision_reward + 10 * ( math.exp(-alpha/done * reward_dist) - math.exp(-alpha) ) / ( 1 - math.exp(-alpha) )
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -358,40 +339,7 @@ class MARAOrientEnv(gym.Env):
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
         reward_dist = ut_math.rmse_func( self.ob[self.num_joints:(self.num_joints+3)] )
         reward_orientation = 2 * np.arccos( abs( self.ob[self.num_joints+3] ) )
-        collided = self.collision()
         reward = self.compute_reward(reward_dist, reward_orientation, False)
-
-        # self.buffer_dist_rewards.append(reward_dist)
-        # self.buffer_orient_rewards.append(reward_orientation)
-        # self.buffer_tot_rewards.append(reward)
-        #
-        if self.iterator % self.max_episode_steps == 0:
-            self.episode += 1
-        #     file = open("/tmp/ros_rl2/MARACollisionOrient-v0/ppo2_mlp/reward_log.txt","a")
-        #     file.write(",".join([str(self.episode),str(max(self.buffer_dist_rewards)),str(np.mean(self.buffer_dist_rewards)),str(min(self.buffer_dist_rewards)),\
-        #                                 str(max(self.buffer_orient_rewards)),str(np.mean(self.buffer_orient_rewards)),str(min(self.buffer_orient_rewards)),\
-        #                                 str(max(self.buffer_tot_rewards)),str(np.mean(self.buffer_tot_rewards)),str(min(self.buffer_tot_rewards)),\
-        #                                 str(self.collided),str(self.rew_coll)])+"\n")
-        #     file.close()
-        #     print("Accumulated rewards stats")
-        #     print("Max Distance reward: ", max(self.buffer_dist_rewards))
-        #     print("Mean Distance reward: ", np.mean(self.buffer_dist_rewards))
-        #     print("Min Distance reward: ", min(self.buffer_dist_rewards))
-        #     print("Max Orientation reward: ", max(self.buffer_orient_rewards))
-        #     print("Mean Orientation reward: ", np.mean(self.buffer_orient_rewards))
-        #     print("Min Orientation reward: ", min(self.buffer_orient_rewards))
-        #     print("Max Total reward: ", max(self.buffer_tot_rewards))
-        #     print("Mean Total reward: ", np.mean(self.buffer_tot_rewards))
-        #     print("Min Total reward: ", min(self.buffer_tot_rewards))
-        #     print("Num collisions: ",self.collided)
-        #     print("Num collisions reward applied: ",self.rew_coll)
-        #     self.buffer_dist_rewards = []
-        #     self.buffer_orient_rewards = []
-        #     self.buffer_tot_rewards = []
-            self.collided = 0
-            # self.rew_coll = 0
-
-        # Calculate if the env has been solved
 
         done = bool(self.iterator == self.max_episode_steps)
 
