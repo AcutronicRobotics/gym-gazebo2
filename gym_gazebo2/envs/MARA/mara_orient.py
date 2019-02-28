@@ -339,6 +339,7 @@ class MARAOrientEnv(gym.Env):
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
         reward_dist = ut_math.rmse_func( self.ob[self.num_joints:(self.num_joints+3)] )
         reward_orientation = 2 * np.arccos( abs( self.ob[self.num_joints+3] ) )
+        self.collision() #reset if it collides
         reward = self.compute_reward(reward_dist, reward_orientation, False)
 
         done = bool(self.iterator == self.max_episode_steps)
