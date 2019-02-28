@@ -6,7 +6,7 @@ import copy
 import math
 import os
 import sys
-import transforms3d as tf
+import transforms3d as tf3d
 from gym import utils, spaces
 from gym_gazebo2.utils import ut_generic, ut_launch, ut_mara, ut_math, ut_gazebo
 from gym.utils import seeding
@@ -83,10 +83,10 @@ class MARAOrientEnv(gym.Env):
         #   Environment hyperparams
         #############################
         # Target, where should the agent reach
-        # EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466]) # close to the table
-        # EE_ROT_TGT = np.asmatrix([ [0., 0., 1.], [0., 1., 0.], [-1., 0., 0.] ]) # arrow looking down
-        EE_POS_TGT = np.asmatrix([-0.386752, -0.000756, 1.40557]) # easy point
-        EE_ROT_TGT = np.asmatrix([ [-1., 0., 0.], [0., 1., 0.], [-0., 0., -1.] ]) # arrow looking opposite to MARA
+        EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466]) # close to the table
+        EE_ROT_TGT = np.asmatrix([ [0., 0., 1.], [0., 1., 0.], [-1., 0., 0.] ]) # arrow looking down
+        # EE_POS_TGT = np.asmatrix([-0.386752, -0.000756, 1.40557]) # easy point
+        # EE_ROT_TGT = np.asmatrix([ [-1., 0., 0.], [0., 1., 0.], [-0., 0., -1.] ]) # arrow looking opposite to MARA
 
         EE_POINTS = np.asmatrix([[0, 0, 0]])
         EE_VELOCITIES = np.asmatrix([[0, 0, 0]])
@@ -142,7 +142,7 @@ class MARAOrientEnv(gym.Env):
 
         # Initialize target end effector position
         self.realgoal = np.ndarray.flatten(get_ee_points(EE_POINTS, ee_pos_tgt, ee_rot_tgt).T)
-        self.target_orientation = tf.quaternions.mat2quat(ee_rot_tgt) #[w, x, y, z]
+        self.target_orientation = tf3d.quaternions.mat2quat(ee_rot_tgt) #[w, x, y, z]
 
         self.environment = {
             'joint_order': m_joint_order,
@@ -270,8 +270,8 @@ class MARAOrientEnv(gym.Env):
                                                 base_link=self.environment['link_names'][0], # make the table as the base to get the world coordinate system
                                                 end_link=self.environment['link_names'][-1])
 
-            current_quaternion = tf.quaternions.mat2quat(rot) #[w, x, y ,z]
-            quat_error = ut_math.quaternion_product(current_quaternion, tf.quaternions.qconjugate(self.target_orientation))
+            current_quaternion = tf3d.quaternions.mat2quat(rot) #[w, x, y ,z]
+            quat_error = tf3d.quaternions.qmult(current_quaternion, tf3d.quaternions.qconjugate(self.target_orientation))
 
             current_ee_tgt = np.ndarray.flatten(get_ee_points(self.environment['end_effector_points'], translation, rot).T)
             ee_points = current_ee_tgt - self.realgoal

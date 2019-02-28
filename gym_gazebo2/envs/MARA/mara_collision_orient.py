@@ -6,7 +6,7 @@ import copy
 import os
 import sys
 import math
-import transforms3d as tf
+import transforms3d as tf3d3d
 from gym import utils, spaces
 from gym_gazebo2.utils import ut_generic, ut_launch, ut_mara, ut_math, ut_gazebo
 from gym.utils import seeding
@@ -142,7 +142,8 @@ class MARACollisionOrientEnv(gym.Env):
 
         # Initialize target end effector position
         self.realgoal = np.ndarray.flatten(get_ee_points(EE_POINTS, ee_pos_tgt, ee_rot_tgt).T)
-        self.target_orientation = tf.quaternions.mat2quat(ee_rot_tgt) #[w, x, y, z]
+        self.target_orientation = tf3d.quaternions.mat2quat(ee_rot_tgt) #[w, x, y, z]
+        print(self.target_orientation)
 
         self.environment = {
             'joint_order': m_joint_order,
@@ -272,8 +273,8 @@ class MARACollisionOrientEnv(gym.Env):
                                                 base_link=self.environment['link_names'][0], # make the table as the base to get the world coordinate system
                                                 end_link=self.environment['link_names'][-1])
 
-            current_quaternion = tf.quaternions.mat2quat(rot) #[w, x, y ,z]
-            quat_error = ut_math.quaternion_product(current_quaternion, tf.quaternions.qconjugate(self.target_orientation))
+            current_quaternion = tf3d3d.quaternions.mat2quat(rot) #[w, x, y ,z]
+            quat_error = tf3d3d.quaternions.qmult(current_quaternion, tf3d3d.quaternions.qconjugate(self.target_orientation))
 
             current_ee_tgt = np.ndarray.flatten(get_ee_points(self.environment['end_effector_points'], translation, rot).T)
             ee_points = current_ee_tgt - self.realgoal
@@ -337,7 +338,7 @@ class MARACollisionOrientEnv(gym.Env):
         return reward
 
     def compute_reward(self, reward_dist, reward_orientation, collision):
-        alpha = 5
+        alpha = 6
         beta = 3
         gamma = 3
         delta = 3

@@ -12,7 +12,7 @@ from gym.utils import seeding
 from gazebo_msgs.srv import SpawnEntity
 from multiprocessing import Process
 import argparse
-import transforms3d as tf
+import transforms3d as tf3d
 
 # ROS 2
 import rclpy
@@ -140,7 +140,7 @@ class MARAEnv(gym.Env):
 
         # Initialize target end effector position
         self.realgoal = np.ndarray.flatten(get_ee_points(EE_POINTS, ee_pos_tgt, ee_rot_tgt).T)
-        self.target_orientation = tf.quaternions.mat2quat(ee_rot_tgt) #[w, x, y, z]
+        self.target_orientation = tf3d.quaternions.mat2quat(ee_rot_tgt) #[w, x, y, z]
 
         self.environment = {
             'joint_order': m_joint_order,
