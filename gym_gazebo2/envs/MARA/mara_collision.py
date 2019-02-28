@@ -215,7 +215,7 @@ class MARACollisionEnv(gym.Env):
         self.buffer_dist_rewards = [] # distances accumulated over each episode
         self.buffer_tot_rewards = [] # rewards accumulated over each episode
 
-        file = open("/tmp/ros_rl2/MARACollision-v0/ppo2_mlp/reward_log.txt","w")# write the stats of the training
+        file = open("/tmp/ros2learn/MARACollision-v0/ppo2_mlp/reward_log.txt","w")# write the stats of the training
         file.write("episode,max_dist_rew,mean_dist_rew,min_dist_rew,max_tot_rew,mean_tot_rew,min_tot_rew,num_coll,rew_coll\n")
         file.close()
         self.episode = 0 #episode number
@@ -364,7 +364,7 @@ class MARACollisionEnv(gym.Env):
         done = bool(self.iterator == self.max_episode_steps)
         if done == True:
             self.episode += 1
-            file = open("/tmp/ros_rl2/MARACollision-v0/ppo2_mlp/reward_log.txt","a")
+            file = open("/tmp/ros2learn/MARACollision-v0/ppo2_mlp/reward_log.txt","a")
             file.write(",".join([str(self.episode),str(max(self.buffer_dist_rewards)),str(np.mean(self.buffer_dist_rewards)),str(min(self.buffer_dist_rewards)),\
                                         str(max(self.buffer_tot_rewards)),str(np.mean(self.buffer_tot_rewards)),str(min(self.buffer_tot_rewards)),\
                                         str(self.collided),str(self.rew_coll)])+"\n")

@@ -218,7 +218,7 @@ class MARACollisionOrientEnv(gym.Env):
         self.buffer_orient_rewards = []
         self.buffer_tot_rewards = []
 
-        file = open("/tmp/ros_rl2/MARACollisionOrient-v0/ppo2_mlp/reward_log.txt","w")
+        file = open("/tmp/ros2learn/MARACollisionOrient-v0/ppo2_mlp/reward_log.txt","w")
         file.write("episode,max_dist_rew,mean_dist_rew,min_dist_rew,max_ori_rew,mean_ori_rew,min_ori_rew,max_tot_rew,mean_tot_rew,min_tot_rew,num_coll,rew_coll\n")
         file.close()
         self.episode = 0
@@ -394,7 +394,7 @@ class MARACollisionOrientEnv(gym.Env):
 
         if self.iterator % self.max_episode_steps == 0:
             self.episode += 1
-            file = open("/tmp/ros_rl2/MARACollisionOrient-v0/ppo2_mlp/reward_log.txt","a")
+            file = open("/tmp/ros2learn/MARACollisionOrient-v0/ppo2_mlp/reward_log.txt","a")
             file.write(",".join([str(self.episode),str(max(self.buffer_dist_rewards)),str(np.mean(self.buffer_dist_rewards)),str(min(self.buffer_dist_rewards)),\
                                         str(max(self.buffer_orient_rewards)),str(np.mean(self.buffer_orient_rewards)),str(min(self.buffer_orient_rewards)),\
                                         str(max(self.buffer_tot_rewards)),str(np.mean(self.buffer_tot_rewards)),str(min(self.buffer_tot_rewards)),\
