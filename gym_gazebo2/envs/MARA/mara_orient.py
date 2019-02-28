@@ -223,7 +223,7 @@ class MARAOrientEnv(gym.Env):
         Callback method for the subscriber of Collision data
         """
         if message.collision1_name != message.collision2_name:
-                self._collision_msg = message
+            self._collision_msg = message
 
     def set_episode_size(self, episode_size):
         self.max_episode_steps = episode_size
