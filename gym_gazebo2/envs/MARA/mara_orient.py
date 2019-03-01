@@ -227,9 +227,6 @@ class MARAOrientEnv(gym.Env):
     def set_episode_size(self, episode_size):
         self.max_episode_steps = episode_size
 
-    def set_reward_params(self, params):
-        self.params = params
-
     def take_observation(self):
         """
         Take observation from the environment and return it.
@@ -318,7 +315,7 @@ class MARAOrientEnv(gym.Env):
         reward_dist = ut_math.rmse_func( self.ob[self.num_joints:(self.num_joints+3)] )
         reward_orientation = 2 * np.arccos( abs( self.ob[self.num_joints+3] ) )
         collided = self.collision()
-        reward = ut_math.compute_reward(params = self.params, reward_dist = reward_dist, reward_orientation = reward_orientation, collision = False)
+        reward = ut_math.compute_reward(reward_dist, reward_orientation, collision = False)
 
         done = bool(self.iterator == self.max_episode_steps)
 

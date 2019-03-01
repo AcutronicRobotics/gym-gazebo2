@@ -228,9 +228,6 @@ class MARACollisionEnv(gym.Env):
     def set_episode_size(self, episode_size):
         self.max_episode_steps = episode_size
 
-    def set_reward_params(self, params):
-        self.params = params
-
     def take_observation(self):
         """
         Take observation from the environment and return it.
@@ -317,7 +314,7 @@ class MARACollisionEnv(gym.Env):
 
         collided = self.collision()
 
-        reward = ut_math.compute_reward(self.params, reward_dist, collision = collided)
+        reward = ut_math.compute_reward(reward_dist, collision = collided)
 
         # Calculate if the env has been solved
         done = bool(self.iterator == self.max_episode_steps)
