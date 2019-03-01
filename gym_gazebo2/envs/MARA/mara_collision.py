@@ -329,11 +329,18 @@ class MARACollisionEnv(gym.Env):
         self.iterator = 0
 
         if self.reset_jnts is True:
-            # Move to the initial position.
-            self._pub.publish(ut_mara.get_trajectory_message(
-                self.environment['reset_conditions']['initial_positions'],
-                self.environment['joint_order'],
-                self.velocity))
+            # reset simulation
+            while not self.reset_sim.wait_for_service(timeout_sec=1.0):
+                self.node.get_logger().info('service not available, waiting again...')
+
+            reset_future = self.reset_sim.call_async(Empty.Request())
+            rclpy.spin_until_future_complete(self.node, reset_future)
+
+            # # Move to the initial position.
+            # self._pub.publish(ut_mara.get_trajectory_message(
+            #     self.environment['reset_conditions']['initial_positions'],
+            #     self.environment['joint_order'],
+            #     self.velocity))
 
         # Take an observation
         self.ob = self.take_observation()
