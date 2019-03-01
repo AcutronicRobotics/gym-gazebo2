@@ -315,7 +315,7 @@ class MARAOrientEnv(gym.Env):
         reward_dist = ut_math.rmse_func( self.ob[self.num_joints:(self.num_joints+3)] )
         reward_orientation = 2 * np.arccos( abs( self.ob[self.num_joints+3] ) )
         collided = self.collision()
-        reward = ut_math.compute_reward(reward_dist, reward_orientation, collision = False)
+        reward = ut_math.compute_reward(reward_dist, reward_orientation)
 
         done = bool(self.iterator == self.max_episode_steps)
 
