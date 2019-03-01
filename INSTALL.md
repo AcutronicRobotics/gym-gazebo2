@@ -1,4 +1,5 @@
 # Installation
+For the complete MARA experiments installation, please refer first to the **ROS2learn** installation instructions:  [github/acutronicrobotics/ros2learn/Install](https://github.com/acutronicrobotics/ros2learn/blob/ros2/Install.md).
 
 ## Table of Contents
 - [ROS 2.0 and Gazebo 9.6](#ros2-and-gazebo)
@@ -177,7 +178,7 @@ source ~/.bashrc
 -  source /opt/ros/crystal/setup.bash
 +  source ~/ros_ws/install/setup.bash
    source ~/ros2_mara_ws/install/setup.bash
-   source /usr/share/gazebo/setup.sh
+   source /usr/share/gazebo-9/setup.sh
    export PYTHONPATH=$PYTHONPATH:~/ros2_mara_ws/install/lib/python3/dist-packages
    export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:~/ros2_mara_ws/src/MARA
    export GAZEBO_PLUGIN_PATH=$GAZEBO_PLUGIN_PATH:~/ros2_mara_ws/src/MARA/mara_gazebo_plugins/build/
