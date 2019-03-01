@@ -16,11 +16,11 @@ A whitepaper regarding previous work of gym-gazebo is available at https://arxiv
 
 **gym-gazebo2** is a complex piece of software for roboticists that puts together simulation tools, robot middlewares (ROS, ROS 2), machine learning and reinforcement learning techniques. All together to create an environment whereto benchmark and develop behaviors with robots. Setting up `gym-gazebo2` appropriately requires relevant familiarity with these tools.
 
-**Docs**. In-depth explanations and actively growing tutorials can be found at https://acutronicrobotics.com/docs. _WIP, the following images will show a couple interesting tutorials that will atract people to visit the webpage_
+**Docs**. In-depth explanations and actively growing tutorials can be found at https://acutronicrobotics.com/docs.
 
-<p align="center">
+<!--<p align="center">
   <a href="https://acutronicrobotics.com/docs/technology/api/ros_api/gym_gazebo"><img height="300" src="/imgs/gym-gazebo-docs.png"> <img height="300" src="/imgs/gym-gazebo-docs2.png"></a>
-</p>
+</p>-->
 
 ---
 
