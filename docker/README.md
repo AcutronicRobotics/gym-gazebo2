@@ -3,10 +3,10 @@
 ## Build the container
 
 ```shell
-git clone docker gym-gazebo-ros2
+git clone docker gym-gazebo2
 cd gym-gazebo-ros2/docker
 git clone https://github.com/erlerobot/baselines
-git clone https://github.com/erlerobot/gym-gazebo-ros2
+git clone https://github.com/erlerobot/gym-gazebo2
 docker build -t gg2 .
 ```
 
