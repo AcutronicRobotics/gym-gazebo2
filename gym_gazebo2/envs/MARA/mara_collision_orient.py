@@ -6,7 +6,7 @@ import copy
 import os
 import sys
 import math
-import transforms3d as tf3d3d
+import transforms3d as tf3d
 from gym import utils, spaces
 from gym_gazebo2.utils import ut_generic, ut_launch, ut_mara, ut_math, ut_gazebo
 from gym.utils import seeding
@@ -214,16 +214,16 @@ class MARACollisionOrientEnv(gym.Env):
         # Seed the environment
         self.seed()
 
-        self.buffer_dist_rewards = []
-        self.buffer_orient_rewards = []
-        self.buffer_tot_rewards = []
-
-        file = open("/tmp/ros_rl2/MARACollisionOrient-v0/ppo2_mlp/reward_log.txt","w")
-        file.write("episode,max_dist_rew,mean_dist_rew,min_dist_rew,max_ori_rew,mean_ori_rew,min_ori_rew,max_tot_rew,mean_tot_rew,min_tot_rew,num_coll,rew_coll\n")
-        file.close()
-        self.episode = 0
-        self.collided = 0
-        self.rew_coll = 0
+        # self.buffer_dist_rewards = []
+        # self.buffer_orient_rewards = []
+        # self.buffer_tot_rewards = []
+        #
+        # file = open("/tmp/ros_rl2/MARACollisionOrient-v0/ppo2_mlp/reward_log.txt","w")
+        # file.write("episode,max_dist_rew,mean_dist_rew,min_dist_rew,max_ori_rew,mean_ori_rew,min_ori_rew,max_tot_rew,mean_tot_rew,min_tot_rew,num_coll,rew_coll\n")
+        # file.close()
+        # self.episode = 0
+        # self.collided = 0
+        # self.rew_coll = 0
 
     def observation_callback(self, message):
         """
@@ -236,10 +236,13 @@ class MARACollisionOrientEnv(gym.Env):
         Callback method for the subscriber of Collision data
         """
         if message.collision1_name != message.collision2_name:
-                self._collision_msg = message
+            self._collision_msg = message
 
     def set_episode_size(self, episode_size):
         self.max_episode_steps = episode_size
+
+    def set_reward_params(self, params):
+        self.params = params
 
     def take_observation(self):
         """
@@ -273,15 +276,11 @@ class MARACollisionOrientEnv(gym.Env):
                                                 base_link=self.environment['link_names'][0], # make the table as the base to get the world coordinate system
                                                 end_link=self.environment['link_names'][-1])
 
-            current_quaternion = tf3d3d.quaternions.mat2quat(rot) #[w, x, y ,z]
-            quat_error = tf3d3d.quaternions.qmult(current_quaternion, tf3d3d.quaternions.qconjugate(self.target_orientation))
+            current_quaternion = tf3d.quaternions.mat2quat(rot) #[w, x, y ,z]
+            quat_error = tf3d.quaternions.qmult(current_quaternion, tf3d.quaternions.qconjugate(self.target_orientation))
 
             current_ee_tgt = np.ndarray.flatten(get_ee_points(self.environment['end_effector_points'], translation, rot).T)
             ee_points = current_ee_tgt - self.realgoal
-
-            # if current_ee_tgt[2] < self.realgoal[2]: # penalize if the gripper goes under the height of the target
-            #     ee_points[2] = ee_points[2] + 99 * ee_points[2] * max( (1 - self.episode/500), 0 )
-            #     self.rew_coll += 1 # number of penalizations inflicted
 
             ee_velocities = ut_mara.get_ee_points_velocities(ee_link_jacobians, self.environment['end_effector_points'], rot, last_observations)
 
@@ -306,54 +305,10 @@ class MARACollisionOrientEnv(gym.Env):
 
             reset_future = self.reset_sim.call_async(Empty.Request())
             rclpy.spin_until_future_complete(self.node, reset_future)
-            #rclpy.spin_once(self.node)
             self._collision_msg = None
             return True
         else:
             return False
-
-    def original_compute_reward(self, reward_dist, reward_orientation):
-
-        if self.collision():
-            reward = -reward_dist * 10
-            print("Reward (collided) is: ", reward)
-        else:
-            if reward_dist < 0.005:
-                reward = 1 - reward_dist # Make the reward increase as the distance decreases
-                # Include orient reward if and only if it is close enough to the target
-                #scale here the orientation because it should not be the main bias of the reward, position should be
-                orientation_scale = 0.1
-                # Fetch the orientation of the end-effector which are from nr_dof:nr_dof+3 to nr_dof:nr_dof+6
-                reward_orient = -orientation_scale * reward_orientation
-
-                if reward_orient < 0.005:
-                    reward = reward + reward_orient * 10
-                    print("Reward is: ", reward)
-                else:
-                    reward = reward - reward_orient
-                    print("Reward (bad orient) is: ", reward)
-            else:
-                reward = -reward_dist
-
-        return reward
-
-    def compute_reward(self, reward_dist, reward_orientation, collision):
-        alpha = 6
-        beta = 3
-        gamma = 3
-        delta = 3
-        done = 0.02
-
-        distance_reward = ( math.exp(-alpha * reward_dist) - math.exp(-alpha) ) / ( 1 - math.exp(-alpha) )
-        orientation_reward = ( 1 - (reward_orientation / math.pi  )**beta + gamma ) / (1 + gamma)
-
-        if collision == True:
-            reward_dist = min(reward_dist,0.5)
-            collision_reward = delta * (2 * reward_dist)**0.3
-        else:
-            collision_reward = 0
-
-        return distance_reward * orientation_reward - 1 - collision_reward + 10 * ( math.exp(-alpha*1/done * reward_dist) - math.exp(-alpha) ) / ( 1 - math.exp(-alpha) )
 
     def step(self, action):
         """
@@ -380,47 +335,41 @@ class MARACollisionOrientEnv(gym.Env):
         #reward = self.original_compute_reward(reward_dist, reward_orientation)
 
         collided = self.collision()
-        reward = self.compute_reward(reward_dist, reward_orientation, collided)
+        reward = ut_math.compute_reward(self.params, reward_dist, reward_orientation,collision = collided)
+        done = bool(self.iterator == self.max_episode_steps)
 
-        self.buffer_dist_rewards.append(reward_dist)
-        self.buffer_orient_rewards.append(reward_orientation)
-        self.buffer_tot_rewards.append(reward)
+        # self.buffer_dist_rewards.append(reward_dist)
+        # self.buffer_orient_rewards.append(reward_orientation)
+        # self.buffer_tot_rewards.append(reward)
 
-        # if self.iterator % 100 == 0:
-        #     print("")
-        #     print("Distance reward: ", reward_dist)
-        #     print("Orientation reward: ", reward_orientation)
-        #     print("Total reward: ",reward)
 
-        if self.iterator % self.max_episode_steps == 0:
-            self.episode += 1
-            file = open("/tmp/ros_rl2/MARACollisionOrient-v0/ppo2_mlp/reward_log.txt","a")
-            file.write(",".join([str(self.episode),str(max(self.buffer_dist_rewards)),str(np.mean(self.buffer_dist_rewards)),str(min(self.buffer_dist_rewards)),\
-                                        str(max(self.buffer_orient_rewards)),str(np.mean(self.buffer_orient_rewards)),str(min(self.buffer_orient_rewards)),\
-                                        str(max(self.buffer_tot_rewards)),str(np.mean(self.buffer_tot_rewards)),str(min(self.buffer_tot_rewards)),\
-                                        str(self.collided),str(self.rew_coll)])+"\n")
-            file.close()
-            print("Accumulated rewards stats")
-            print("Max Distance reward: ", max(self.buffer_dist_rewards))
-            print("Mean Distance reward: ", np.mean(self.buffer_dist_rewards))
-            print("Min Distance reward: ", min(self.buffer_dist_rewards))
-            print("Max Orientation reward: ", max(self.buffer_orient_rewards))
-            print("Mean Orientation reward: ", np.mean(self.buffer_orient_rewards))
-            print("Min Orientation reward: ", min(self.buffer_orient_rewards))
-            print("Max Total reward: ", max(self.buffer_tot_rewards))
-            print("Mean Total reward: ", np.mean(self.buffer_tot_rewards))
-            print("Min Total reward: ", min(self.buffer_tot_rewards))
-            print("Num collisions: ",self.collided)
-            print("Num collisions reward applied: ",self.rew_coll)
-            self.buffer_dist_rewards = []
-            self.buffer_orient_rewards = []
-            self.buffer_tot_rewards = []
-            self.collided = 0
-            self.rew_coll = 0
+        # if self.iterator % self.max_episode_steps == 0:
+        #     self.episode += 1
+        #     file = open("/tmp/ros_rl2/MARACollisionOrient-v0/ppo2_mlp/reward_log.txt","a")
+        #     file.write(",".join([str(self.episode),str(max(self.buffer_dist_rewards)),str(np.mean(self.buffer_dist_rewards)),str(min(self.buffer_dist_rewards)),\
+        #                                 str(max(self.buffer_orient_rewards)),str(np.mean(self.buffer_orient_rewards)),str(min(self.buffer_orient_rewards)),\
+        #                                 str(max(self.buffer_tot_rewards)),str(np.mean(self.buffer_tot_rewards)),str(min(self.buffer_tot_rewards)),\
+        #                                 str(self.collided),str(self.rew_coll)])+"\n")
+        #     file.close()
+        #     print("Accumulated rewards stats")
+        #     print("Max Distance reward: ", max(self.buffer_dist_rewards))
+        #     print("Mean Distance reward: ", np.mean(self.buffer_dist_rewards))
+        #     print("Min Distance reward: ", min(self.buffer_dist_rewards))
+        #     print("Max Orientation reward: ", max(self.buffer_orient_rewards))
+        #     print("Mean Orientation reward: ", np.mean(self.buffer_orient_rewards))
+        #     print("Min Orientation reward: ", min(self.buffer_orient_rewards))
+        #     print("Max Total reward: ", max(self.buffer_tot_rewards))
+        #     print("Mean Total reward: ", np.mean(self.buffer_tot_rewards))
+        #     print("Min Total reward: ", min(self.buffer_tot_rewards))
+        #     print("Num collisions: ",self.collided)
+        #     print("Num collisions reward applied: ",self.rew_coll)
+        #     self.buffer_dist_rewards = []
+        #     self.buffer_orient_rewards = []
+        #     self.buffer_tot_rewards = []
+        #     self.collided = 0
+        #     self.rew_coll = 0
 
         # Calculate if the env has been solved
-
-        done = bool(self.iterator == self.max_episode_steps)
         #done = False
         # Return the corresponding observations, rewards, etc.
         return self.ob, reward, done, {}

@@ -82,7 +82,7 @@ class MARAOrientEnv(gym.Env):
         #############################
         # Target, where should the agent reach
         EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466]) # close to the table
-        EE_ROT_TGT = np.asmatrix([ [0., 0., 1.], [0., 1., 0.], [-1., 0., 0.] ]) # arrow looking down
+        EE_ROT_TGT = np.asmatrix([ [0., 1., 0.], [1., 0., 0.], [0., 0., -1.] ]) # arrow looking down
         # EE_POS_TGT = np.asmatrix([-0.386752, -0.000756, 1.40557]) # easy point
         # EE_ROT_TGT = np.asmatrix([ [-1., 0., 0.], [0., 1., 0.], [-0., 0., -1.] ]) # arrow looking opposite to MARA
 
@@ -140,7 +140,6 @@ class MARAOrientEnv(gym.Env):
         # Initialize target end effector position
         self.realgoal = np.ndarray.flatten(general_utils.get_ee_points(EE_POINTS, ee_pos_tgt, ee_rot_tgt).T)
         self.target_orientation = tf3d.quaternions.mat2quat(ee_rot_tgt) #[w, x, y, z]
-
         self.environment = {
             'joint_order': m_joint_order,
             'link_names': m_link_names,
@@ -223,10 +222,13 @@ class MARAOrientEnv(gym.Env):
         Callback method for the subscriber of Collision data
         """
         if message.collision1_name != message.collision2_name:
-                self._collision_msg = message
+            self._collision_msg = message
 
     def set_episode_size(self, episode_size):
         self.max_episode_steps = episode_size
+
+    def set_reward_params(self, params):
+        self.params = params
 
     def take_observation(self):
         """
@@ -281,34 +283,10 @@ class MARAOrientEnv(gym.Env):
 
             reset_future = self.reset_sim.call_async(Empty.Request())
             rclpy.spin_until_future_complete(self.node, reset_future)
-
             self._collision_msg = None
             return True
         else:
             return False
-
-    def compute_reward(self, reward_dist, reward_orientation, collision):
-        alpha = 5
-        beta = 3
-        gamma = 3
-        delta = 3
-        done = 0.02
-
-        distance_reward = ( math.exp(-alpha * reward_dist) - math.exp(-alpha) ) / ( 1 - math.exp(-alpha) )
-        orientation_reward = ( 1 - (reward_orientation / math.pi  )**beta + gamma ) / (1 + gamma)
-
-        if reward_dist < 0.005:
-            close_reward = 10
-        else:
-            close_reward = 0
-
-        if collision == True:
-            reward_dist = min(reward_dist,0.5)
-            collision_reward = delta * (2 * reward_dist)**0.3
-        else:
-            collision_reward = 0
-
-        return distance_reward * orientation_reward - 1 - collision_reward + 10 * ( math.exp(-alpha/done * reward_dist) - math.exp(-alpha) ) / ( 1 - math.exp(-alpha) )
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -339,7 +317,8 @@ class MARAOrientEnv(gym.Env):
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
         reward_dist = ut_math.rmse_func( self.ob[self.num_joints:(self.num_joints+3)] )
         reward_orientation = 2 * np.arccos( abs( self.ob[self.num_joints+3] ) )
-        reward = self.compute_reward(reward_dist, reward_orientation, False)
+        collided = self.collision()
+        reward = ut_math.compute_reward(params = self.params, reward_dist = reward_dist, reward_orientation = reward_orientation, collision = False)
 
         done = bool(self.iterator == self.max_episode_steps)
 
