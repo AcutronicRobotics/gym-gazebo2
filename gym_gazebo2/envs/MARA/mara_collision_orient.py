@@ -213,7 +213,6 @@ class MARACollisionOrientEnv(gym.Env):
 
         # Seed the environment
         self.seed()
-
         # self.buffer_dist_rewards = []
         # self.buffer_orient_rewards = []
         # self.buffer_tot_rewards = []
@@ -335,6 +334,7 @@ class MARACollisionOrientEnv(gym.Env):
         #reward = self.original_compute_reward(reward_dist, reward_orientation)
 
         collided = self.collision()
+
         reward = ut_math.compute_reward(self.params, reward_dist, reward_orientation,collision = collided)
         done = bool(self.iterator == self.max_episode_steps)
 

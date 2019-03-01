@@ -218,7 +218,7 @@ class MARACollisionOrientRandomTargetEnv(gym.Env):
         self.buffer_orient_rewards = [] # angles accumulated over each episode
         self.buffer_tot_rewards = [] # rewards accumulated over each episode
 
-        file = open("/tmp/ros_rl2/MARACollisionOrient-v0/ppo2_mlp/reward_log.txt","w")# write the stats of the training
+        file = open("/tmp/ros2learn/MARACollisionOrient-v0/ppo2_mlp/reward_log.txt","w")# write the stats of the training
         file.write("episode,max_dist_rew,mean_dist_rew,min_dist_rew,max_ori_rew,mean_ori_rew,min_ori_rew,max_tot_rew,mean_tot_rew,min_tot_rew,num_coll,rew_coll\n")
         file.close()
         self.episode = 0 #episode number
@@ -236,7 +236,7 @@ class MARACollisionOrientRandomTargetEnv(gym.Env):
         Callback method for the subscriber of Collision data
         """
         if message.collision1_name != message.collision2_name:
-                self._collision_msg = message
+            self._collision_msg = message
 
     def set_episode_size(self, episode_size):
         self.max_episode_steps = episode_size
@@ -419,7 +419,7 @@ class MARACollisionOrientRandomTargetEnv(gym.Env):
 
         if self.iterator % self.max_episode_steps == 0:
             self.episode += 1
-            file = open("/tmp/ros_rl2/MARACollisionOrient-v0/ppo2_mlp/reward_log.txt","a")
+            file = open("/tmp/ros2learn/MARACollisionOrient-v0/ppo2_mlp/reward_log.txt","a")
             file.write(",".join([str(self.episode),str(max(self.buffer_dist_rewards)),str(np.mean(self.buffer_dist_rewards)),str(min(self.buffer_dist_rewards)),\
                                         str(max(self.buffer_orient_rewards)),str(np.mean(self.buffer_orient_rewards)),str(min(self.buffer_orient_rewards)),\
                                         str(max(self.buffer_tot_rewards)),str(np.mean(self.buffer_tot_rewards)),str(min(self.buffer_tot_rewards)),\
@@ -456,7 +456,7 @@ class MARACollisionOrientRandomTargetEnv(gym.Env):
             self.randomizeTargetPose("target")
             self.num_hits = 0
 
-            with open("/tmp/ros_rl2/MARACollisionOrientRandomTarget-v0/ppo2_lstm/targets.txt", 'a') as out:
+            with open("/tmp/ros2learn/MARACollisionOrientRandomTarget-v0/ppo2_lstm/targets.txt", 'a') as out:
                 out.write( str(self.realgoal) + '\n' )
 
         if self.reset_jnts is True:

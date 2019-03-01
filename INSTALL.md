@@ -1,4 +1,5 @@
 # Installation
+For the complete MARA experiments installation, please refer first to the **ROS2learn** installation instructions:  [github/acutronicrobotics/ros2learn/Install](https://github.com/acutronicrobotics/ros2learn/blob/ros2/Install.md).
 
 ## Table of Contents
 - [ROS 2.0 and Gazebo 9.6](#ros2-and-gazebo)
@@ -11,9 +12,9 @@
   - [Baselines](#baselines)
   - [URDF Parser](#urdf-parser)
   - [OpenAI Gym](#openai-gym)
-  - [gym-gazebo-ros2](#gym-gazebo-ros2)
+  - [gym-gazebo2](#gym-gazebo2)
   - [Provisioning](#provisioning)
-  
+
 ## ROS2 and Gazebo
 
 - **Gazebo 9.6**. Install Gazebo 9.6 following the official one-liner installation instructions. [Instructions](http://gazebosim.org/tutorials?tut=install_ubuntu#Defaultinstallation:one-liner).
@@ -56,7 +57,7 @@ Create the workspace and download source files:
 ```sh
 mkdir -p ~/ros2_mara_ws/src
 cd ~/ros2_mara_ws
-wget https://raw.githubusercontent.com/erlerobot/gym-gazebo-ros2/master/provision/mara.repos
+wget https://raw.githubusercontent.com/erlerobot/gym-gazebo2/master/provision/mara.repos
 vcs import src < mara.repos
 # Avoid compiling erroneus package
 touch ~/ros2_mara_ws/src/orocos_kinematics_dynamics/orocos_kinematics_dynamics/COLCON_IGNORE
@@ -64,9 +65,10 @@ touch ~/ros2_mara_ws/src/orocos_kinematics_dynamics/orocos_kinematics_dynamics/C
 Generate [HRIM](https://github.com/erlerobot/HRIM) dependencies:
 
 ```sh
-cd ~/ros2_mara_ws/src/HRIM
-python3 hrim.py generate models/actuator/servo/servo.xml
-python3 hrim.py generate models/actuator/gripper/gripper.xml
+cd ~/ros2_mara_ws/src/HRIM/installator
+python3 setup.py install && cd ..
+hrim generate models/actuator/servo/servo.xml
+hrim generate models/actuator/gripper/gripper.xml
 ```
 ### Compile the workspace
 
@@ -152,14 +154,14 @@ git clone https://github.com/openai/gym
 cd gym
 pip3 install -e .
 ```
-### gym-gazebo-ros2
+### gym-gazebo2
 
-Install the gym-gazebo-ros2 toolkit.
+Install the gym-gazebo2 toolkit.
 
 ```sh
 cd ~
-git clone https://github.com/erlerobot/gym-gazebo-ros2
-cd gym-gazebo-ros2
+git clone https://github.com/erlerobot/gym-gazebo2
+cd gym-gazebo2
 pip3 install -e .
 ```
 ### Provisioning
@@ -167,7 +169,7 @@ pip3 install -e .
 First we need setup ROS2, MARA ROS2 workspace and Gazebo. It is convenient that the required environment variables are automatically added to your bash session every time a new shell is launched:
 
 ```sh
-echo "source ~/gym-gazebo-ros2/provision/mara_setup.sh" >> ~/.bashrc
+echo "source ~/gym-gazebo2/provision/mara_setup.sh" >> ~/.bashrc
 source ~/.bashrc
 ```
 
@@ -177,7 +179,7 @@ source ~/.bashrc
 -  source /opt/ros/crystal/setup.bash
 +  source ~/ros_ws/install/setup.bash
    source ~/ros2_mara_ws/install/setup.bash
-   source /usr/share/gazebo/setup.sh
+   source /usr/share/gazebo-9/setup.sh
    export PYTHONPATH=$PYTHONPATH:~/ros2_mara_ws/install/lib/python3/dist-packages
    export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:~/ros2_mara_ws/src/MARA
    export GAZEBO_PLUGIN_PATH=$GAZEBO_PLUGIN_PATH:~/ros2_mara_ws/src/MARA/mara_gazebo_plugins/build/

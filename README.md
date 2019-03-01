@@ -16,11 +16,19 @@ A whitepaper regarding previous work of gym-gazebo is available at https://arxiv
 
 **gym-gazebo2** is a complex piece of software for roboticists that puts together simulation tools, robot middlewares (ROS, ROS 2), machine learning and reinforcement learning techniques. All together to create an environment whereto benchmark and develop behaviors with robots. Setting up `gym-gazebo2` appropriately requires relevant familiarity with these tools.
 
-**Docs**. In-depth explanations and actively growing tutorials can be found at https://acutronicrobotics.com/docs. _WIP, the following images will show a couple interesting tutorials that will atract people to visit the webpage_
+**Docs**. In-depth explanations and actively growing tutorials can be found at https://acutronicrobotics.com/docs.
+
+**Sneak peak**. This is an example of what you can achieve using gym-gazebo2 + ROS2learn. The goal is to reach the green target.
+ - 1. Left image shows the start of a training
+ - 2. To the right we execute an already trained policy. 
 
 <p align="center">
-  <a href="https://acutronicrobotics.com/docs/technology/api/ros_api/gym_gazebo"><img height="300" src="/imgs/gym-gazebo-docs.png"> <img height="300" src="/imgs/gym-gazebo-docs2.png"></a>
+  <img height="300" src="https://github.com/erlerobot/gym-gazebo2/blob/master/imgs/example_train.gif"> <img height="300" src="https://github.com/erlerobot/gym-gazebo2/blob/master/imgs/example_run.gif">
 </p>
+
+<!--<p align="center">
+  <a href="https://acutronicrobotics.com/docs/technology/api/ros_api/gym_gazebo"><img height="300" src="/imgs/gym-gazebo-docs.png"> <img height="300" src="/imgs/gym-gazebo-docs2.png"></a>
+</p>-->
 
 ---
 
@@ -86,7 +94,7 @@ optional arguments:
   -h, --help            show this help message and exit.
   -g, --gzclient        Run user interface.
   -r, --real_speed      Execute the simulation in real speed. RTF=1.
-  -v, --velocity        Set servo motor velocity. Keep < 1.41 for real speed.
+  -v, --velocity        Set servo motor velocity. Keep < 1.46 for real speed.
   -m, --multi_instance  Provide network segmentation to allow multiple
                         instances.
   -p PORT, --port PORT  Provide exact port to the network segmentation to
