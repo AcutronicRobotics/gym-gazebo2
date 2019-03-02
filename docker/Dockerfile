@@ -43,14 +43,14 @@ RUN \
   #Compile the work-space
   && bash -c "cd /root/ros2_mara_ws && vcs import src < missing-repos.repos \
   && source /opt/ros/crystal/setup.bash && colcon build --merge-install --parallel-workers $(nproc) --packages-ignore orocos_kinematics_dynamics \
-  && touch /root/ros2_mara_ws/install/share/orocos_kdl/local_setup.sh /root/ros2_mara_ws/install/share/orocos_kdl/local_setup.bash" \
+  && touch /root/ros2_mara_ws/install/share/orocos_kdl/local_setup.sh /root/ros2_mara_ws/install/share/orocos_kdl/local_setup.bash \
   && cd /root/ && git clone https://github.com/ros/urdf_parser_py.git -b melodic-devel && cd /root/urdf_parser_py && pip3 install -e . \
   && cd /root/baselines && pip3 install -e . \
   && cd /root && git clone https://github.com/openai/gym && cd /root/gym && pip3 install -e . \
   #gym-gazebo2
   && cd /root/gym-gazebo2 && pip3 install -e . \
-  #Load provisionin script
-  && bash -c "echo 'source ~/gym-gazebo2/provision/mara_setup.sh' >> ~/.bashrc \
+  #Load provisioning script
+  && echo 'source ~/gym-gazebo2/provision/mara_setup.sh' >> ~/.bashrc \
   && source ~/.bashrc"
 WORKDIR /root/gym-gazebo2/
 EXPOSE 11596
