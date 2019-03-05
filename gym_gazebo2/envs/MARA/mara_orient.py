@@ -8,8 +8,6 @@ import os
 import sys
 import transforms3d as tf3d
 from gym import utils, spaces
-# from gym_gazebo2.utils.tree_urdf import treeFromFile
-# from gym_gazebo2.utils.general_utils import forward_kinematics, get_ee_points
 from gym_gazebo2.utils import ut_generic, ut_launch, ut_mara, ut_math, ut_gazebo, tree_urdf, general_utils
 from gym.utils import seeding
 from gazebo_msgs.srv import SpawnEntity
@@ -71,7 +69,8 @@ class MARAOrientEnv(gym.Env):
         self._observation_msg = None
         self.obs = None
         self.action_space = None
-        self.realgoal = None
+        self.target_position = None
+        self.target_orientation = None
         self.max_episode_steps = 1024
         self.iterator = 0
         self.reset_jnts = True
@@ -81,12 +80,12 @@ class MARAOrientEnv(gym.Env):
         #   Environment hyperparams
         #############################
         # Target, where should the agent reach
-        EE_POS_TGT = np.asmatrix([-0.40028, 0.095615, 0.72466]) # close to the table
-        EE_ROT_TGT = np.asmatrix([ [0., 1., 0.], [1., 0., 0.], [0., 0., -1.] ]) # arrow looking down
-        # EE_POS_TGT = np.asmatrix([-0.386752, -0.000756, 1.40557]) # easy point
-        # EE_ROT_TGT = np.asmatrix([ [-1., 0., 0.], [0., 1., 0.], [-0., 0., -1.] ]) # arrow looking opposite to MARA
+        self.target_position = np.asarray([-0.40028, 0.095615, 0.72466]) # close to the table
+        self.target_orientation = np.asarray([0., 0.7071068, 0.7071068, 0.]) # arrow looking down [w, x, y, z]
+        # self.target_position = np.asarray([-0.386752, -0.000756, 1.40557]) # easy point
+        # self.target_orientation = np.asarray([-0.4958324, 0.5041332, 0.5041331, -0.4958324]) # arrow looking opposite to MARA [w, x, y, z]
 
-        EE_POINTS = np.asmatrix([[0, 0, 0]])
+        EE_POINTS = np.asmatrix([[0, 0, 0]]) # offset
         EE_VELOCITIES = np.asmatrix([[0, 0, 0]])
 
         # Initial joint position
@@ -134,12 +133,8 @@ class MARAOrientEnv(gym.Env):
 
         m_joint_order = copy.deepcopy(JOINT_ORDER)
         m_link_names = copy.deepcopy(LINK_NAMES)
-        ee_pos_tgt = EE_POS_TGT
-        ee_rot_tgt = EE_ROT_TGT
 
         # Initialize target end effector position
-        self.realgoal = np.ndarray.flatten(general_utils.get_ee_points(EE_POINTS, ee_pos_tgt, ee_rot_tgt).T)
-        self.target_orientation = tf3d.quaternions.mat2quat(ee_rot_tgt) #[w, x, y, z]
         self.environment = {
             'joint_order': m_joint_order,
             'link_names': m_link_names,
@@ -188,9 +183,9 @@ class MARAOrientEnv(gym.Env):
         model_xml = ut_gazebo.get_target_sdf()
 
         pose = Pose()
-        pose.position.x = self.realgoal[0]
-        pose.position.y = self.realgoal[1]
-        pose.position.z = self.realgoal[2]
+        pose.position.x = self.target_position[0]
+        pose.position.y = self.target_position[1]
+        pose.position.z = self.target_position[2]
         pose.orientation.x = self.target_orientation[1]
         pose.orientation.y= self.target_orientation[2]
         pose.orientation.z = self.target_orientation[3]
@@ -258,15 +253,15 @@ class MARAOrientEnv(gym.Env):
             current_quaternion = tf3d.quaternions.mat2quat(rot) #[w, x, y ,z]
             quat_error = tf3d.quaternions.qmult(current_quaternion, tf3d.quaternions.qconjugate(self.target_orientation))
 
-            current_ee_tgt = np.ndarray.flatten(general_utils.get_ee_points(self.environment['end_effector_points'], translation, rot).T)
-            ee_points = current_ee_tgt - self.realgoal
+            current_ee_pos_tgt = np.ndarray.flatten(general_utils.get_ee_points(self.environment['end_effector_points'], translation, rot).T)
+            ee_pos_points = current_ee_pos_tgt - self.target_position
 
             ee_velocities = ut_mara.get_ee_points_velocities(ee_link_jacobians, self.environment['end_effector_points'], rot, last_observations)
 
             # Concatenate the information that defines the robot state
             # vector, typically denoted asrobot_id 'x'.
             state = np.r_[np.reshape(last_observations, -1),
-                          np.reshape(ee_points, -1),
+                          np.reshape(ee_pos_points, -1),
                           np.reshape(quat_error, -1),
                           np.reshape(ee_velocities, -1),]
 
@@ -344,7 +339,7 @@ class MARAOrientEnv(gym.Env):
 
         # Take an observation
         self.ob = self.take_observation()
-        while(self.ob is None):
+        while self.ob is None:
             self.ob = self.take_observation()
 
         # Return the corresponding observation
