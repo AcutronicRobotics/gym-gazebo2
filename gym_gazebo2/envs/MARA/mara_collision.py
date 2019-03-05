@@ -155,7 +155,7 @@ class MARACollisionEnv(gym.Env):
         # The urdf must be compiled.
         _, self.ur_tree = tree_urdf.treeFromFile(self.environment['tree_path'])
         # Retrieve a chain structure between the base and the start of the end effector.
-        self.mara_chain = self.mara_tree.getChain(self.environment['link_names'][0], self.environment['link_names'][-1])
+        self.mara_chain = self.ur_tree.getChain(self.environment['link_names'][0], self.environment['link_names'][-1])
         self.num_joints = self.mara_chain.getNrOfJoints()
         # Initialize a KDL Jacobian solver from the chain.
         self.jac_solver = ChainJntToJacSolver(self.mara_chain)
