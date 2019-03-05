@@ -8,7 +8,7 @@ import os
 import sys
 import transforms3d as tf
 from gym import utils, spaces
-from gym_gazebo2.utils import ut_generic, ut_launch, ut_mara, ut_math, ut_gazebo
+from gym_gazebo2.utils import ut_generic, ut_launch, ut_mara, ut_math, ut_gazebo, tree_urdf, general_utils
 from gym.utils import seeding
 from gazebo_msgs.srv import SpawnEntity
 from multiprocessing import Process
@@ -28,11 +28,7 @@ from ros2pkg.api import get_prefix_path
 from builtin_interfaces.msg import Duration
 
 # Algorithm specific
-from baselines.agent.scara_arm.tree_urdf import treeFromFile # For KDL Jacobians
 from PyKDL import ChainJntToJacSolver # For KDL Jacobians
-
-# from custom baselines repository
-from baselines.agent.utility.general_utils import forward_kinematics, get_ee_points
 
 class MSG_INVALID_JOINT_NAMES_DIFFER(Exception):
     """Error object exclusively raised by _process_observations."""
@@ -157,7 +153,7 @@ class MARACollisionOrientRandomTargetEnv(gym.Env):
         # Initialize a tree structure from the robot urdf.
         #   note that the xacro of the urdf is updated by hand.
         # The urdf must be compiled.
-        _, self.ur_tree = treeFromFile(self.environment['tree_path'])
+        _, self.ur_tree = tree_urdf.treeFromFile(self.environment['tree_path'])
         # Retrieve a chain structure between the base and the start of the end effector.
         self.mara_chain = self.ur_tree.getChain(self.environment['link_names'][0], self.environment['link_names'][-1])
         self.num_joints = self.mara_chain.getNrOfJoints()
@@ -259,7 +255,7 @@ class MARACollisionOrientRandomTargetEnv(gym.Env):
             print("End link is empty!!")
             return None
         else:
-            translation, rot = forward_kinematics(self.mara_chain,
+            translation, rot = general_utils.forward_kinematics(self.mara_chain,
                                                 self.environment['link_names'],
                                                 last_observations[:self.num_joints],
                                                 base_link=self.environment['link_names'][0], # make the table as the base to get the world coordinate system
@@ -268,7 +264,7 @@ class MARACollisionOrientRandomTargetEnv(gym.Env):
             current_quaternion = tf.quaternions.mat2quat(rot) #[w, x, y ,z]
             quat_error = ut_math.quaternion_product(current_quaternion, tf.quaternions.qconjugate(self.target_orientation))
 
-            current_ee_pos_tgt = np.ndarray.flatten(get_ee_points(self.environment['end_effector_points'], translation, rot).T)
+            current_ee_pos_tgt = np.ndarray.flatten(general_utils.get_ee_points(self.environment['end_effector_points'], translation, rot).T)
             ee_pos_points = current_ee_pos_tgt - self.target_position
 
             # if current_ee_pos_tgt[2] < self.target_position[2]: # penalize if the gripper goes under the height of the target
@@ -302,7 +298,7 @@ class MARACollisionOrientRandomTargetEnv(gym.Env):
         # transforms3d.taitbryan.euler2quat(z, y, x) --> [w, x, y, z]
         q = tf.taitbryan.euler2quat(yaw, pitch, roll)
         EE_ROT_TGT = tf.quaternions.quat2mat(q)
-        ee_tgt = np.ndarray.flatten(get_ee_points(self.environment['end_effector_points'], EE_POS_TGT, EE_ROT_TGT).T)
+        ee_tgt = np.ndarray.flatten(general_utils.get_ee_points(self.environment['end_effector_points'], EE_POS_TGT, EE_ROT_TGT).T)
 
         ms.pose.position.x = EE_POS_TGT[0,0]
         ms.pose.position.y = EE_POS_TGT[0,1]
