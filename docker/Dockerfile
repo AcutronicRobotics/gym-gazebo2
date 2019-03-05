@@ -8,14 +8,13 @@ RUN mkdir -p /root/ros2_mara_ws/src
 WORKDIR /root/ros2_mara_ws
 COPY missing-repos.repos .
 #Baselines
-#RUN cd /home/root && git clone https://github.com/erlerobot/baselines && cd /home/root/baselines && pip3 install -e . #Private repo fix me!
+#RUN cd /home/root && git clone https://github.com/AcutronicRobotics/baselines && cd /home/root/baselines && pip3 install -e .
 COPY baselines /root/baselines
-#RUN cd /home/root && git clone https://github.com/erlerobot/gym-gazebo-ros2 && pip3 install -e . #Private repo fix me!
-COPY gym-gazebo-ros2 /root/gym-gazebo-ros2
+#RUN cd /home/root && git clone https://github.com/AcutronicRobotics/gym-gazebo2 && pip3 install -e .
+COPY gym-gazebo2 /root/gym-gazebo2
 
 RUN \
   pip3 install \
-        lxml \
         argcomplete \
         tensorflow \
         transforms3d \
@@ -37,20 +36,22 @@ RUN \
   && curl -sSL http://get.gazebosim.org | sh \
   && wget https://raw.githubusercontent.com/AcutronicRobotics/MARA/master/mara-ros2.repos && vcs import src < mara-ros2.repos \
   #Generete HRIM packages
-  && cd src/hrim && python3 hrim.py generate models/actuator/servo/servo.xml \
-  && python3 hrim.py generate models/actuator/gripper/gripper.xml \
+  && cd ~/ros2_mara_ws/src/HRIM/installator \
+  && python3 setup.py install && cd .. \
+  && hrim generate models/actuator/servo/servo.xml \
+  && hrim generate models/actuator/gripper/gripper.xml \
   #Compile the work-space
   && bash -c "cd /root/ros2_mara_ws && vcs import src < missing-repos.repos \
   && source /opt/ros/crystal/setup.bash && colcon build --merge-install --parallel-workers $(nproc) --packages-ignore orocos_kinematics_dynamics \
-  && touch /root/ros2_mara_ws/install/share/orocos_kdl/local_setup.sh /root/ros2_mara_ws/install/share/orocos_kdl/local_setup.bash" \
+  && touch /root/ros2_mara_ws/install/share/orocos_kdl/local_setup.sh /root/ros2_mara_ws/install/share/orocos_kdl/local_setup.bash \
   && cd /root/ && git clone https://github.com/ros/urdf_parser_py.git -b melodic-devel && cd /root/urdf_parser_py && pip3 install -e . \
   && cd /root/baselines && pip3 install -e . \
   && cd /root && git clone https://github.com/openai/gym && cd /root/gym && pip3 install -e . \
-  #gym-gazebo-ros2
-  && cd /root/gym-gazebo-ros2 && pip3 install -e . \
-  #Load provisionin script
-  && bash -c "echo 'source ~/gym-gazebo-ros2/provision/mara_setup.sh' >> ~/.bashrc \
+  #gym-gazebo2
+  && cd /root/gym-gazebo2 && pip3 install -e . \
+  #Load provisioning script
+  && echo 'source ~/gym-gazebo2/provision/mara_setup.sh' >> ~/.bashrc \
   && source ~/.bashrc"
-WORKDIR /root/gym-gazebo-ros2/
+WORKDIR /root/gym-gazebo2/
 EXPOSE 11596
 ENTRYPOINT ["bash"]
