@@ -3,10 +3,6 @@ repositories:
     type: git
     url: https://github.com/erlerobot/control_msgs
     version: crystal
-  gazebo_domain_random:
-    type: git
-    url: https://github.com/erlerobot/gazebo_domain_random
-    version: ros2
   gazebo_ros_pkgs:
     type: git
     url: https://github.com/acutronicrobotics/gazebo_ros_pkgs
