@@ -22,7 +22,7 @@ repositories:
   MARA:
     type: git
     url: https://github.com/AcutronicRobotics/MARA
-    version: master
+    version: ai
   robotiq_modular_gripper:
     type: git
     url: https://github.com/AcutronicRobotics/robotiq_modular_gripper.git
