@@ -8,7 +8,7 @@ For the complete MARA experiments installation, please refer first to the **ROS2
   - [Create a ROS workspace](#create-a-ros-workspace)
   - [Compile the workspace](#compile-the-workspace)
     - [Ubuntu 18](#ubuntu-18)
-    - [Ubuntu 16](#ubuntu-16)
+    <!--- [Ubuntu 16](#ubuntu-16)-->
   - [Baselines](#baselines)
   - [URDF Parser](#urdf-parser)
   - [OpenAI Gym](#openai-gym)
