@@ -67,7 +67,7 @@ Generate [HRIM](https://github.com/erlerobot/HRIM) dependencies:
 
 ```sh
 cd ~/ros2_mara_ws/src/HRIM/installator
-sudo python3 setup.py install && cd ..
+pip3 install -e installator && cd ..
 hrim generate models/actuator/servo/servo.xml
 hrim generate models/actuator/gripper/gripper.xml
 ```
