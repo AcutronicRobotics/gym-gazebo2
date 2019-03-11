@@ -37,7 +37,8 @@ sudo apt update && sudo apt install -y \
   python3-numpy \
   wget
 
-pip3 install lxml tensorflow transforms3d billiard
+pip3 install tensorflow==1.12
+pip3 install lxml transforms3d billiard
 
 # Fast-RTPS dependencies
 sudo apt install --no-install-recommends -y \
