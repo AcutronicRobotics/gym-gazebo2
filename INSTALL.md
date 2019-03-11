@@ -8,7 +8,6 @@ For the complete MARA experiments installation, please refer first to the **ROS2
   - [Create a ROS workspace](#create-a-ros-workspace)
   - [Compile the workspace](#compile-the-workspace)
     - [Ubuntu 18](#ubuntu-18)
-    - [Ubuntu 16](#ubuntu-16)
   - [Baselines](#baselines)
   - [URDF Parser](#urdf-parser)
   - [OpenAI Gym](#openai-gym)
@@ -20,15 +19,6 @@ For the complete MARA experiments installation, please refer first to the **ROS2
 - **Gazebo 9.6**. Install Gazebo 9.6 following the official one-liner installation instructions. [Instructions](http://gazebosim.org/tutorials?tut=install_ubuntu#Defaultinstallation:one-liner).
 - **ROS 2 Crystal**.
    - Ubuntu 18: Install ROS 2.0 following the official instructions, binaries recommended. [Instructions](https://index.ros.org/doc/ros2/Installation/Linux-Install-Debians/).
-   - Ubuntu 16: Not recommended. Installation can take +2h.
-    ```
-    # Setup keys and install vcs before following the official instructions
-    sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
-    sudo apt-key adv --keyserver hkp://pool.sks-keyservers.net --recv-key 0xB01FA116
-    sudo apt-get update
-    sudo apt-get install python3-vcstool
-    ```
-    Install ROS 2.0 following the official instructions, sources required. [Instructions](https://index.ros.org/doc/ros2/Installation/Linux-Development-Setup/).
 
 ## Dependent tools
 
@@ -100,40 +90,7 @@ A few packages are expected to throw warning messages. The expected output is th
 35 packages finished [12min 26s]
 4 packages had stderr output: cv_bridge orocos_kdl python_orocos_kdl robotiq_gripper_gazebo_plugins
 ```
-#### Ubuntu 16
 
-Compilation dependencies:
-
-```sh
-# OpenCV 3, cv_bridge requirement
-cd ~
-OPENCV_VERSION='3.4.2'
-sudo apt-get install -y unzip wget
-wget https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip
-unzip ${OPENCV_VERSION}.zip
-rm ${OPENCV_VERSION}.zip
-mv opencv-${OPENCV_VERSION} OpenCV
-cd OpenCV
-mkdir build
-cd build
-cmake -DWITH_QT=ON -DWITH_OPENGL=ON -DFORCE_VTK=ON -DWITH_TBB=ON -DWITH_GDAL=ON -DWITH_XINE=ON -DBUILD_EXAMPLES=ON -DENABLE_PRECOMPILED_HEADERS=OFF ..
-make -j4
-sudo make install
-sudo ldconfig
-
-# image_transport requirement
-sudo apt install libpcre3-dev
-```
-
-Build the workspace using the `--merge-install` flag.
-
-```sh
-source ~/ros2_ws/install/setup.bash
-cd ~/ros2_mara_ws
-colcon build --merge-install
-# Remove warnings
-touch ~/ros2_mara_ws/install/share/orocos_kdl/local_setup.sh ~/ros2_mara_ws/install/share/orocos_kdl/local_setup.bash
-```
 ### Baselines
 
 Baselines is a fork of OpenAI's baselines repository with a set of high-quality implementations of reinforcement learning algorithms. The algorithms are modified to be used in robotics.
@@ -187,7 +144,7 @@ echo "source `pwd`/provision/mara_setup.sh" >> ~/.bashrc
 source ~/.bashrc
 ```
 
-**Note**: This setup file contains paths to ROS and Gazebo used by default by this toolkit. If you installed ROS from sources (e.g: Ubuntu16 installation), you must modify the first line of the provisioning script:
+**Note**: This setup file contains paths to ROS and Gazebo used by default by this toolkit. If you installed ROS from sources, you must modify the first line of the provisioning script:
 
 ```diff
 -  source /opt/ros/crystal/setup.bash
