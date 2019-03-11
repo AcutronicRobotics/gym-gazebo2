@@ -8,7 +8,7 @@ For the complete MARA experiments installation, please refer first to the **ROS2
   - [Create a ROS workspace](#create-a-ros-workspace)
   - [Compile the workspace](#compile-the-workspace)
     - [Ubuntu 18](#ubuntu-18)
-    <!--- [Ubuntu 16](#ubuntu-16)-->
+    - [Ubuntu 16](#ubuntu-16)
   - [Baselines](#baselines)
   - [URDF Parser](#urdf-parser)
   - [OpenAI Gym](#openai-gym)
@@ -20,7 +20,15 @@ For the complete MARA experiments installation, please refer first to the **ROS2
 - **Gazebo 9.6**. Install Gazebo 9.6 following the official one-liner installation instructions. [Instructions](http://gazebosim.org/tutorials?tut=install_ubuntu#Defaultinstallation:one-liner).
 - **ROS 2 Crystal**.
    - Ubuntu 18: Install ROS 2.0 following the official instructions, binaries recommended. [Instructions](https://index.ros.org/doc/ros2/Installation/Linux-Install-Debians/).
-   - Ubuntu 16: Install ROS 2.0 following the official instructions, sources required. [Instructions](https://index.ros.org/doc/ros2/Installation/Linux-Development-Setup/).
+   - Ubuntu 16: Not recommended. Installation can take +2h.
+    ```
+    # Setup keys and install vcs before following the official instructions
+    sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+    sudo apt-key adv --keyserver hkp://pool.sks-keyservers.net --recv-key 0xB01FA116
+    sudo apt-get update
+    sudo apt-get install python3-vcstool
+    ```
+    Install ROS 2.0 following the official instructions, sources required. [Instructions](https://index.ros.org/doc/ros2/Installation/Linux-Development-Setup/).
 
 ## Dependent tools
 
@@ -92,12 +100,13 @@ A few packages are expected to throw warning messages. The expected output is th
 35 packages finished [12min 26s]
 4 packages had stderr output: cv_bridge orocos_kdl python_orocos_kdl robotiq_gripper_gazebo_plugins
 ```
-<!--#### Ubuntu 16
+#### Ubuntu 16
 
 Compilation dependencies:
 
 ```sh
 # OpenCV 3, cv_bridge requirement
+cd ~
 OPENCV_VERSION='3.4.2'
 sudo apt-get install -y unzip wget
 wget https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip
@@ -114,7 +123,7 @@ sudo ldconfig
 
 # image_transport requirement
 sudo apt install libpcre3-dev
-```-->
+```
 
 Build the workspace using the `--merge-install` flag.
 
@@ -182,7 +191,7 @@ source ~/.bashrc
 
 ```diff
 -  source /opt/ros/crystal/setup.bash
-+  source ~/ros_ws/install/setup.bash
++  source ~/ros2_ws/install/setup.bash
    source ~/ros2_mara_ws/install/setup.bash
    source /usr/share/gazebo-9/setup.sh
    export PYTHONPATH=$PYTHONPATH:~/ros2_mara_ws/install/lib/python3/dist-packages
