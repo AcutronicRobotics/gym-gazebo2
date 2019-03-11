@@ -76,7 +76,7 @@ Please make sure you are not sourcing ROS1 workspaces via `bashrc` or any other 
 
 #### Ubuntu 18
 
-Build the workspace using the `--merge-install` flag.
+Build the workspace using the `--merge-install` flag. Make sure you have enough Swap space.
 
 ```sh
 source /opt/ros/crystal/setup.bash
