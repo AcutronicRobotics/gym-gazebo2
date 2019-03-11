@@ -77,22 +77,25 @@ If you added the privisioning script to your `~/.bashrc`, you can directly execu
 
 ```sh
 cd ~/gym-gazebo2/examples/MARA
-python3 gazebo_mara_4actions.py
+python3 gg_random.py -g
 ```
 ### Script parameters
 
 Every MARA environment provides three command-line customization arguments. You can read the details by using the ``-h`` option in any MARA-script (e.g: `python3 gazebo_mara_4actions.py -h`). The help message is the following:
 
 ```sh
-usage: gazebo_mara_4actions.py [-h] [-g] [-r] [-v VELOCITY] [-m | -p PORT]
+usage: gg_random.py [-h] [-g] [-r] [-v VELOCITY] [-m | -p PORT]
 
 MARA environment argument provider.
 
 optional arguments:
-  -h, --help            show this help message and exit.
+  -h, --help            show this help message and exit
   -g, --gzclient        Run user interface.
-  -r, --real_speed      Execute the simulation in real speed. RTF=1.
-  -v, --velocity        Set servo motor velocity. Keep < 1.46 for real speed.
+  -r, --real_speed      Execute the simulation in real speed and using the
+                        running specific driver.
+  -v VELOCITY, --velocity VELOCITY
+                        Set servo motor velocity. Keep < 1.41 for real speed.
+                        Applies only with -r --real_speed option.
   -m, --multi_instance  Provide network segmentation to allow multiple
                         instances.
   -p PORT, --port PORT  Provide exact port to the network segmentation to
