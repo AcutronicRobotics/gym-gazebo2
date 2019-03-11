@@ -13,7 +13,7 @@ For the complete MARA experiments installation, please refer first to the **ROS2
   - [URDF Parser](#urdf-parser)
   - [OpenAI Gym](#openai-gym)
   - [gym-gazebo2](#gym-gazebo2)
-  - [Provisioning](#provisioning)
+    - [Provisioning](#provisioning)
 
 ## ROS2 and Gazebo
 
@@ -92,7 +92,7 @@ A few packages are expected to throw warning messages. The expected output is th
 35 packages finished [12min 26s]
 4 packages had stderr output: cv_bridge orocos_kdl python_orocos_kdl robotiq_gripper_gazebo_plugins
 ```
-#### Ubuntu 16
+<!--#### Ubuntu 16
 
 Compilation dependencies:
 
@@ -114,7 +114,7 @@ sudo ldconfig
 
 # image_transport requirement
 sudo apt install libpcre3-dev
-```
+```-->
 
 Build the workspace using the `--merge-install` flag.
 
@@ -127,11 +127,12 @@ touch ~/ros2_mara_ws/install/share/orocos_kdl/local_setup.sh ~/ros2_mara_ws/inst
 ```
 ### Baselines
 
-**TODO. This is a private repo.** A simplified version of the repo should be published.
+Baselines is a fork of OpenAI's baselines repository with a set of high-quality implementations of reinforcement learning algorithms. The algorithms are modified to be used in robotics.
 
 ```sh
-cd ~
-git clone https://github.com/erlerobot/baselines
+#Skip if using gym-gazebo2 as ROS2Learn submodule (ros2learn/algorithms/baselines).
+cd ~ && git clone https://github.com/erlerobot/baselines
+#Navigate to module's root directory
 cd baselines
 pip3 install -e .
 ```
@@ -147,7 +148,7 @@ pip3 install -e .
 ```
 ### OpenAI Gym
 
-Gym should be installed with the latest version, which means using the source code. If you already installed the gym via pip3, uninstall it via `pip3 uninstall gym` to avoid overlapping:
+It is recommended to install Gym's latest version, which means using the source code. If you already installed Gym via pip3, you can uninstall it via `pip3 uninstall gym` to avoid overlapping:
 
 ```sh
 cd ~
@@ -160,17 +161,20 @@ pip3 install -e .
 Install the gym-gazebo2 toolkit.
 
 ```sh
-cd ~
-git clone https://github.com/erlerobot/gym-gazebo2
+#Skip if using gym-gazebo2 as ROS2Learn submodule (ros2learn/environments/gym-gazebo2).
+cd ~ && git clone https://github.com/erlerobot/gym-gazebo2
+#Navigate to module's root directory
 cd gym-gazebo2
 pip3 install -e .
 ```
-### Provisioning
+#### Provisioning
 
 First we need setup ROS2, MARA ROS2 workspace and Gazebo. It is convenient that the required environment variables are automatically added to your bash session every time a new shell is launched:
 
 ```sh
-echo "source ~/gym-gazebo2/provision/mara_setup.sh" >> ~/.bashrc
+#Navigate to module's root directory
+cd gym-gazebo2
+echo "source `pwd`/provision/mara_setup.sh" >> ~/.bashrc
 source ~/.bashrc
 ```
 
