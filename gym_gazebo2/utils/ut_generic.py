@@ -11,7 +11,7 @@ def getArgsParserMARA():
     parser = argparse.ArgumentParser(description='MARA environment argument provider.')
     parser.add_argument('-g', '--gzclient', action='store_true', help='Run user interface.')
     parser.add_argument('-r', '--real_speed', action='store_true', help='Execute the simulation in real speed and using the running specific driver.')
-    parser.add_argument('-v', '--velocity', type=float, default=0.5, help='Set servo motor velocity. Keep < 1.41 for real speed. Applies only with -r --real_speed option.')
+    parser.add_argument('-v', '--velocity', type=float, default=0.5, help='Set servo motor velocity. Keep < 1.57 for real speed. Applies only with -r --real_speed option.')
 
     group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument('-m', '--multi_instance', action='store_true', help='Provide network segmentation to allow multiple instances.')
