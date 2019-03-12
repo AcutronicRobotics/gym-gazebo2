@@ -94,7 +94,7 @@ optional arguments:
   -r, --real_speed      Execute the simulation in real speed and using the
                         running specific driver.
   -v VELOCITY, --velocity VELOCITY
-                        Set servo motor velocity. Keep < 1.41 for real speed.
+                        Set servo motor velocity. Keep < 1.57 for real speed.
                         Applies only with -r --real_speed option.
   -m, --multi_instance  Provide network segmentation to allow multiple
                         instances.
