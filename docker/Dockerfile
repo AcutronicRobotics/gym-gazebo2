@@ -1,6 +1,6 @@
 FROM ros:crystal-ros-base-bionic
 
-LABEL maintainer="Lander Usategui <lander at erlerobotics dot com"
+LABEL maintainer="Lander Usategui <lander at erlerobotics dot com>"
 
 ENV ROS_DISTRO crystal
 #Prepare work-space
