@@ -50,7 +50,7 @@ RUN \
   #gym-gazebo2
   && cd /root/gym-gazebo2 && pip3 install -e . \
   #Load provisioning script
-  && echo 'source ~/gym-gazebo2/provision/mara_setup.sh' >> ~/.bashrc \
+  && echo "source `pwd`/provision/mara_setup.sh" >> ~/.bashrc \
   && source ~/.bashrc"
 WORKDIR /root/gym-gazebo2/
 EXPOSE 11596
