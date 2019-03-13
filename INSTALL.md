@@ -8,7 +8,6 @@ For the complete MARA experiments installation, please refer first to the **ROS2
   - [Create a ROS workspace](#create-a-ros-workspace)
   - [Compile the workspace](#compile-the-workspace)
     - [Ubuntu 18](#ubuntu-18)
-  - [Baselines](#baselines)
   - [URDF Parser](#urdf-parser)
   - [OpenAI Gym](#openai-gym)
   - [gym-gazebo2](#gym-gazebo2)
@@ -91,17 +90,6 @@ A few packages are expected to throw warning messages. The expected output is th
 4 packages had stderr output: cv_bridge orocos_kdl python_orocos_kdl robotiq_gripper_gazebo_plugins
 ```
 
-### Baselines
-
-Baselines is a fork of OpenAI's baselines repository with a set of high-quality implementations of reinforcement learning algorithms. The algorithms are modified to be used in robotics.
-
-```sh
-#Skip if using gym-gazebo2 as ROS2Learn submodule (ros2learn/algorithms/baselines).
-cd ~ && git clone https://github.com/erlerobot/baselines
-#Navigate to module's root directory
-cd baselines
-pip3 install -e .
-```
 ### URDF Parser
 
 Standalone URDF parser for Python3.
