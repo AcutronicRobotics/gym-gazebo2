@@ -10,7 +10,7 @@ def rmse_func(ee_points):
 
 def compute_reward(reward_dist, reward_orientation = 0, collision = False):
     alpha = 5
-    beta = 0.9
+    beta = 1.5
     gamma = 1
     delta = 3
     eta = 0.03
