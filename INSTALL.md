@@ -114,10 +114,15 @@ pip3 install -e .
 
 Install the gym-gazebo2 toolkit.
 
+If you are using [**ros2learn**](https://github.com/erlerobot/ros2learn):
 ```sh
-#Skip if using gym-gazebo2 as ROS2Learn submodule (ros2learn/environments/gym-gazebo2).
+cd ~/ros2learn/environments/gym-gazebo2
+pip3 install -e .
+```
+
+If not:
+```sh
 cd ~ && git clone https://github.com/erlerobot/gym-gazebo2
-#Navigate to module's root directory
 cd gym-gazebo2
 pip3 install -e .
 ```
