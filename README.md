@@ -2,7 +2,7 @@
 
 <a href="http://www.acutronicrobotics.com"><img src="/imgs/alr_logo.png" align="left" width="190"></a>
 
-**gym-gazebo2 is a toolkit for developing and comparing reinforcement learning algorithms using ROS 2.0 and Gazebo**. Built as an extension of [gym-gazebo](https://github.com/erlerobot/gym-gazebo/tree/master), gym-gazebo2 has been redesigned with community feedback and adopts now a standalone architecture while mantaining the core concepts of previous work inspired originally by the OpenAI gym.
+**gym-gazebo2 is a toolkit for developing and comparing reinforcement learning algorithms using ROS 2 and Gazebo**. Built as an extension of [gym-gazebo](https://github.com/erlerobot/gym-gazebo/tree/master), gym-gazebo2 has been redesigned with community feedback and adopts now a standalone architecture while mantaining the core concepts of previous work inspired originally by the OpenAI gym.
 
 
 A whitepaper regarding previous work of gym-gazebo is available at https://arxiv.org/abs/1608.05742. Please use the following BibTex entry to cite our work::
@@ -52,7 +52,7 @@ The code for each environment group is housed in its own subdirectory
 <p>
 <img src="/imgs/mara1_2.jpeg" align="left" height="150">
 
-MARA stands for Modular Articulated Robotic Arm and is a collaborative robotic arm with ROS 2.0 in each actuator, sensor or any other representative module. Each module has native ROS 2.0 support, can be physically extended in a seamless manner and delivers industrial-grade features including synchronization, deterministic communication latencies, a ROS 2.0 software and hardware component lifecycle, and more. Altogether, MARA empowers new possibilities and applications in the professional landscape of robotics. Learn more or even order one at [acutronicrobotics.com](https://acutronicrobotics.com)!
+MARA stands for Modular Articulated Robotic Arm and is a collaborative robotic arm with ROS 2 in each actuator, sensor or any other representative module. Each module has native ROS 2 support, can be physically extended in a seamless manner and delivers industrial-grade features including synchronization, deterministic communication latencies, a ROS 2 software and hardware component lifecycle, and more. Altogether, MARA empowers new possibilities and applications in the professional landscape of robotics. Learn more or even order one at [acutronicrobotics.com](https://acutronicrobotics.com)!
 </p>
 
 #### Simulated Robot
