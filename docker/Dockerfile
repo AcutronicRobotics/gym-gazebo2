@@ -15,7 +15,6 @@ COPY gym-gazebo2 /root/gym-gazebo2
 
 RUN \
   pip3 install \
-        argcomplete \
         tensorflow==1.12 \
         transforms3d \
         billiard \
