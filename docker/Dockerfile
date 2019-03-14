@@ -63,6 +63,7 @@ RUN \
   	&& cd /root && git clone https://github.com/openai/gym && cd /root/gym && pip3 install -e . \
   	#gym-gazebo2
   	&& cd /root/gym-gazebo2 && pip3 install -e . \
+        && echo 'source /root/ros2_mara_ws/install/setup.bash' >> ~/.bashrc \
   	#Load provisioning script
   	&& echo 'source /root/gym-gazebo2/provision/mara_setup.sh' >> ~/.bashrc \
   	&& source ~/.bashrc"
