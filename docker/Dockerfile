@@ -7,9 +7,6 @@ ENV ROS2_DISTRO crystal
 RUN mkdir -p /root/ros2_mara_ws/src
 WORKDIR /root/ros2_mara_ws
 COPY missing-repos.repos .
-#Baselines
-#RUN cd /home/root && git clone https://github.com/AcutronicRobotics/baselines && cd /home/root/baselines && pip3 install -e .
-COPY baselines /root/baselines
 #RUN cd /home/root && git clone https://github.com/AcutronicRobotics/gym-gazebo2 && pip3 install -e .
 COPY gym-gazebo2 /root/gym-gazebo2
 
@@ -63,7 +60,6 @@ RUN \
   	&& source /opt/ros/crystal/setup.bash && colcon build --merge-install --parallel-workers $(nproc) --packages-ignore orocos_kinematics_dynamics \
   	&& touch /root/ros2_mara_ws/install/share/orocos_kdl/local_setup.sh /root/ros2_mara_ws/install/share/orocos_kdl/local_setup.bash \
   	&& cd /root/ && git clone https://github.com/ros/urdf_parser_py.git -b melodic-devel && cd /root/urdf_parser_py && pip3 install -e . \
-  	&& cd /root/baselines && pip3 install -e . \
   	&& cd /root && git clone https://github.com/openai/gym && cd /root/gym && pip3 install -e . \
   	#gym-gazebo2
   	&& cd /root/gym-gazebo2 && pip3 install -e . \
