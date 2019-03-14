@@ -38,7 +38,7 @@ RUN \
     		libeigen3-dev \
     		wget \
     		libboost-all-dev \
-                ros-$ROS2_DISTRO-ros-base \ 
+                ros-$ROS2_DISTRO-ros-base \
                 ros-$ROS2_DISTRO-action-msgs \
                 ros-$ROS2_DISTRO-message-filters \
                 ros-$ROS2_DISTRO-yaml-cpp-vendor \
@@ -49,7 +49,7 @@ RUN \
     		&& rm -rf /var/lib/apt/lists/* \
   	#Gazebo
  	 && curl -sSL http://get.gazebosim.org | sh \
-  	 && wget https://raw.githubusercontent.com/AcutronicRobotics/MARA/master/mara-ros2.repos && vcs import src < mara-ros2.repos \
+  	 && wget https://raw.githubusercontent.com/AcutronicRobotics/MARA/ai/mara-ros2.repos && vcs import src < mara-ros2.repos \
   	#Generete HRIM packages
   	&& cd ~/ros2_mara_ws/src/HRIM/installator \
   	&& python3 setup.py install && cd .. \
@@ -64,7 +64,7 @@ RUN \
   	#gym-gazebo2
   	&& cd /root/gym-gazebo2 && pip3 install -e . \
   	#Load provisioning script
-  	&& echo "source `pwd`/provision/mara_setup.sh" >> ~/.bashrc \
+  	&& echo 'source /root/gym-gazebo2/provision/mara_setup.sh' >> ~/.bashrc \
   	&& source ~/.bashrc"
 WORKDIR /root/gym-gazebo2/
 EXPOSE 11596
