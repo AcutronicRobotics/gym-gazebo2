@@ -18,11 +18,6 @@ def process_observations(message, agent):
             if len(message.joint_names) != len(agent['joint_order']):
                 raise MSG_INVALID_JOINT_NAMES_DIFFER
 
-            # # Check that all the expected joint values are present in a message.
-            # if not all(map(lambda x,y: x in y, message.joint_names,
-            #     [self._valid_joint_set[robot_id] for _ in range(len(message.joint_names))])):
-            #     raise MSG_INVALID_JOINT_NAMES_DIFFER
-            #     print("Joints differ")
         return np.array(message.actual.positions) # + message.actual.velocities
 
 def get_jacobians(state, number_of_joints, jac_solver):

@@ -311,7 +311,7 @@ class MARACollisionEnv(gym.Env):
 
         # Calculate if the env has been solved
         done = bool(self.iterator == self.max_episode_steps)
-
+        
         # Return the corresponding observations, rewards, etc.
         return self.ob, reward, done, {}
 
@@ -328,12 +328,6 @@ class MARACollisionEnv(gym.Env):
 
             reset_future = self.reset_sim.call_async(Empty.Request())
             rclpy.spin_until_future_complete(self.node, reset_future)
-
-            # # Move to the initial position.
-            # self._pub.publish(ut_mara.get_trajectory_message(
-            #     self.environment['reset_conditions']['initial_positions'],
-            #     self.environment['joint_order'],
-            #     self.velocity))
 
         # Take an observation
         self.ob = self.take_observation()

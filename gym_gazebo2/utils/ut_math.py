@@ -25,12 +25,4 @@ def compute_reward(reward_dist, reward_orientation = 0, collision = False):
     else:
         collision_reward = 0
 
-    # print("")
-    # print(reward_dist)
-    # print(( math.exp(-alpha * reward_dist) - math.exp(-alpha) ) / ( 1 - math.exp(-alpha) ))
-    # print(10 * ( math.exp(-alpha*1/done * reward_dist) - math.exp(-alpha/done) ) / ( 1 - math.exp(-alpha/done) ))
-    # print(distance_reward)
-    # print(orientation_reward)
-    # print(collision_reward)
-
     return distance_reward * orientation_reward - 1 - collision_reward

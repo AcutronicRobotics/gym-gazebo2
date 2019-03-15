@@ -202,16 +202,6 @@ class MARACollisionOrientEnv(gym.Env):
 
         # Seed the environment
         self.seed()
-        # self.buffer_dist_rewards = []
-        # self.buffer_orient_rewards = []
-        # self.buffer_tot_rewards = []
-        #
-        # file = open("/tmp/ros_rl2/MARACollisionOrient-v0/ppo2_mlp/reward_log.txt","w")
-        # file.write("episode,max_dist_rew,mean_dist_rew,min_dist_rew,max_ori_rew,mean_ori_rew,min_ori_rew,max_tot_rew,mean_tot_rew,min_tot_rew,num_coll,rew_coll\n")
-        # file.close()
-        # self.episode = 0
-        # self.collided = 0
-        # self.rew_coll = 0
 
     def observation_callback(self, message):
         """
@@ -317,46 +307,14 @@ class MARACollisionOrientEnv(gym.Env):
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
         reward_dist = ut_math.rmse_func( self.ob[self.num_joints:(self.num_joints+3)] )
         reward_orientation = 2 * np.arccos( abs( self.ob[self.num_joints+3] ) )
-        #reward = self.original_compute_reward(reward_dist, reward_orientation)
 
         collided = self.collision()
 
         reward = ut_math.compute_reward(reward_dist, reward_orientation, collision = collided)
-        done = bool(self.iterator == self.max_episode_steps)
-
-        # self.buffer_dist_rewards.append(reward_dist)
-        # self.buffer_orient_rewards.append(reward_orientation)
-        # self.buffer_tot_rewards.append(reward)
-
-
-        # if self.iterator % self.max_episode_steps == 0:
-        #     self.episode += 1
-        #     file = open("/tmp/ros_rl2/MARACollisionOrient-v0/ppo2_mlp/reward_log.txt","a")
-        #     file.write(",".join([str(self.episode),str(max(self.buffer_dist_rewards)),str(np.mean(self.buffer_dist_rewards)),str(min(self.buffer_dist_rewards)),\
-        #                                 str(max(self.buffer_orient_rewards)),str(np.mean(self.buffer_orient_rewards)),str(min(self.buffer_orient_rewards)),\
-        #                                 str(max(self.buffer_tot_rewards)),str(np.mean(self.buffer_tot_rewards)),str(min(self.buffer_tot_rewards)),\
-        #                                 str(self.collided),str(self.rew_coll)])+"\n")
-        #     file.close()
-        #     print("Accumulated rewards stats")
-        #     print("Max Distance reward: ", max(self.buffer_dist_rewards))
-        #     print("Mean Distance reward: ", np.mean(self.buffer_dist_rewards))
-        #     print("Min Distance reward: ", min(self.buffer_dist_rewards))
-        #     print("Max Orientation reward: ", max(self.buffer_orient_rewards))
-        #     print("Mean Orientation reward: ", np.mean(self.buffer_orient_rewards))
-        #     print("Min Orientation reward: ", min(self.buffer_orient_rewards))
-        #     print("Max Total reward: ", max(self.buffer_tot_rewards))
-        #     print("Mean Total reward: ", np.mean(self.buffer_tot_rewards))
-        #     print("Min Total reward: ", min(self.buffer_tot_rewards))
-        #     print("Num collisions: ",self.collided)
-        #     print("Num collisions reward applied: ",self.rew_coll)
-        #     self.buffer_dist_rewards = []
-        #     self.buffer_orient_rewards = []
-        #     self.buffer_tot_rewards = []
-        #     self.collided = 0
-        #     self.rew_coll = 0
 
         # Calculate if the env has been solved
-        #done = False
+        done = bool(self.iterator == self.max_episode_steps)
+
         # Return the corresponding observations, rewards, etc.
         return self.ob, reward, done, {}
 
@@ -373,12 +331,6 @@ class MARACollisionOrientEnv(gym.Env):
 
             reset_future = self.reset_sim.call_async(Empty.Request())
             rclpy.spin_until_future_complete(self.node, reset_future)
-
-            # # Move to the initial position.
-            # self._pub.publish(ut_mara.get_trajectory_message(
-            #     self.environment['reset_conditions']['initial_positions'],
-            #     self.environment['joint_order'],
-            #     self.velocity))
 
         # Take an observation
         self.ob = self.take_observation()

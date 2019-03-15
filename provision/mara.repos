@@ -22,7 +22,7 @@ repositories:
   robotiq_modular_gripper:
     type: git
     url: https://github.com/AcutronicRobotics/robotiq_modular_gripper.git
-    version: master
+    version: 555f770
   orocos_kinematics_dynamics:
     type: git
     url: https://github.com/erlerobot/orocos_kinematics_dynamics

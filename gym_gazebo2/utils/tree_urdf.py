@@ -2,10 +2,6 @@ from __future__ import print_function
 
 import urdf_parser_py.urdf as urdf
 
-# import sys
-# sys.path.append('/home/rkojcev/catkin_ws/devel/lib/python3/dist-packages')
-# sys.path.append('/home/rkojcev/catkin_ws/devel/lib')
-
 import PyKDL as kdl
 
 def treeFromFile(filename):
