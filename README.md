@@ -4,15 +4,9 @@
 
 **gym-gazebo2 is a toolkit for developing and comparing reinforcement learning algorithms using ROS 2 and Gazebo**. Built as an extension of [gym-gazebo](https://github.com/erlerobot/gym-gazebo/tree/master), gym-gazebo2 has been redesigned with community feedback and adopts now a standalone architecture while mantaining the core concepts of previous work inspired originally by the OpenAI gym.
 
+**gym-gazebo2 publication coming next week (18 March).**
 
-A whitepaper regarding previous work of gym-gazebo is available at https://arxiv.org/abs/1608.05742. Please use the following BibTex entry to cite our work::
-
-    @article{zamora2016extending,
-      title={Extending the OpenAI Gym for robotics: a toolkit for reinforcement learning using ROS and Gazebo},
-      author={Zamora, Iker and Lopez, Nestor Gonzalez and Vilches, Victor Mayoral and Cordero, Alejandro Hernandez},
-      journal={arXiv preprint arXiv:1608.05742},
-      year={2016}
-    }
+A whitepaper regarding previous work of gym-gazebo is available at https://arxiv.org/abs/1608.05742.
 
 **gym-gazebo2** is a complex piece of software for roboticists that puts together simulation tools, robot middlewares (ROS, ROS 2), machine learning and reinforcement learning techniques. All together to create an environment whereto benchmark and develop behaviors with robots. Setting up `gym-gazebo2` appropriately requires relevant familiarity with these tools.
 
