@@ -55,7 +55,7 @@ Create the workspace and download source files:
 ```sh
 mkdir -p ~/ros2_mara_ws/src
 cd ~/ros2_mara_ws
-wget https://raw.githubusercontent.com/erlerobot/gym-gazebo2/master/provision/mara.repos
+wget https://raw.githubusercontent.com/AcutronicRobotics/gym-gazebo2/master/provision/mara.repos
 vcs import src < mara.repos
 # Avoid compiling erroneus package
 touch ~/ros2_mara_ws/src/orocos_kinematics_dynamics/orocos_kinematics_dynamics/COLCON_IGNORE
@@ -114,7 +114,7 @@ pip3 install -e .
 
 Install the gym-gazebo2 toolkit.
 
-If you are using [**ros2learn**](https://github.com/erlerobot/ros2learn):
+If you are using [**ros2learn**](https://github.com/AcutronicRobotics/ros2learn):
 ```sh
 cd ~/ros2learn/environments/gym-gazebo2
 pip3 install -e .
@@ -122,7 +122,7 @@ pip3 install -e .
 
 If not:
 ```sh
-cd ~ && git clone https://github.com/erlerobot/gym-gazebo2
+cd ~ && git clone https://github.com/AcutronicRobotics/gym-gazebo2
 cd gym-gazebo2
 pip3 install -e .
 ```

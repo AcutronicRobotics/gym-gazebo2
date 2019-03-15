@@ -15,7 +15,7 @@ A whitepaper regarding previous work of gym-gazebo is available at https://arxiv
  - 2. To the right we execute an already trained policy.
 
 <p align="center">
-  <img height="300" src="https://github.com/erlerobot/gym-gazebo2/blob/master/imgs/example_train.gif"> <img height="300" src="https://github.com/erlerobot/gym-gazebo2/blob/master/imgs/example_run.gif">
+  <img height="300" src="https://github.com/AcutronicRobotics/gym-gazebo2/blob/master/imgs/example_train.gif"> <img height="300" src="https://github.com/AcutronicRobotics/gym-gazebo2/blob/master/imgs/example_run.gif">
 </p>
 
 <!--<p align="center">
@@ -38,7 +38,7 @@ A whitepaper regarding previous work of gym-gazebo is available at https://arxiv
 
 ## Environments
 The code for each environment group is housed in its own subdirectory
-[gym_gazebo2/envs](https://github.com/erlerobot/gym-gazebo2/blob/master/gym_gazebo2/envs). Robot specific simulation files should be housed in robot specific ROS2 packages.
+[gym_gazebo2/envs](https://github.com/AcutronicRobotics/gym-gazebo2/blob/master/gym_gazebo2/envs). Robot specific simulation files should be housed in robot specific ROS2 packages.
 
 ### MARA
 #### Real Robot

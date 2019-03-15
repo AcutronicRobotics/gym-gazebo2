@@ -9,6 +9,6 @@ setup(name='gym-gazebo2',
       packages=[package for package in find_packages()
                 if package.startswith('gym_gazebo2')],
       description='Gym-gazebo-2: A toolkit for developing and comparing your reinforcement learning agents using Gazebo and ROS 2.',
-      url='https://github.com/erlerobot/gym-gazebo2',
+      url='https://github.com/AcutronicRobotics/gym-gazebo2',
       author='Acutronic Robotics',
 )
