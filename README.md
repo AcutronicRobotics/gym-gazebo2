@@ -120,4 +120,4 @@ Final note: you can launch as many `gzserver` and `gzclient` instances as you wa
 
 ## What's new
 
-- 2019-02-25: Release of gym-gazebo2 with ROS2 compatibility and MARA environments.
+- 2019-03-15: Release of gym-gazebo2 with ROS2 compatibility and MARA environments.
