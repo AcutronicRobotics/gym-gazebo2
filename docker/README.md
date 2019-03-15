@@ -16,8 +16,10 @@ docker rm gg2 || true && docker run -it --name=gg2 -h gym-gazebo2 gg2
 ```
 
 ## Launch gzclient (GUI)
+Make sure you have gazebo already installed in your main Ubuntu system. You will also need to get gym-gazebo2.
 If you are already running the simulation in the default port, you can access the visual interface the following way:
 ```shell
+git clone https://github.com/erlerobot/gym-gazebo2
 cd gym-gazebo-ros2/docker
 sh gzclient.sh
 ```
