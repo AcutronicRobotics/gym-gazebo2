@@ -6,9 +6,6 @@ ENV ROS2_DISTRO crystal
 #Prepare work-space
 RUN mkdir -p /root/ros2_mara_ws/src
 WORKDIR /root/ros2_mara_ws
-COPY missing-repos.repos .
-#RUN cd /home/root && git clone https://github.com/AcutronicRobotics/gym-gazebo2 && pip3 install -e .
-COPY gym-gazebo2 /root/gym-gazebo2
 
 RUN \
      echo 'Etc/UTC' > /etc/timezone \
@@ -50,6 +47,7 @@ RUN \
   	#Gazebo
  	 && curl -sSL http://get.gazebosim.org | sh \
   	 && wget https://raw.githubusercontent.com/AcutronicRobotics/MARA/ai/mara-ros2.repos && vcs import src < mara-ros2.repos \
+         && wget https://raw.githubusercontent.com/AcutronicRobotics/gym-gazebo2/master/docker/missing-repos.repos && vcs import src < missing-repos.repos \
   	#Generete HRIM packages
   	&& cd ~/ros2_mara_ws/src/HRIM/installator \
   	&& python3 setup.py install && cd .. \
@@ -62,7 +60,7 @@ RUN \
   	&& cd /root/ && git clone https://github.com/ros/urdf_parser_py.git -b melodic-devel && cd /root/urdf_parser_py && pip3 install -e . \
   	&& cd /root && git clone https://github.com/openai/gym && cd /root/gym && pip3 install -e . \
   	#gym-gazebo2
-  	&& cd /root/gym-gazebo2 && pip3 install -e . \
+        && cd /root && git clone https://github.com/AcutronicRobotics/gym-gazebo2 && cd /root/gym-gazebo2 && pip3 install -e . \
   	#Load provisioning script
   	&& echo 'source /root/gym-gazebo2/provision/mara_setup.sh' >> ~/.bashrc \
   	&& source ~/.bashrc"

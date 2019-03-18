@@ -5,7 +5,6 @@
 ```shell
 git clone https://github.com/AcutronicRobotics/gym-gazebo2
 cd gym-gazebo2/docker
-git clone https://github.com/AcutronicRobotics/gym-gazebo2
 docker build -t gg2 .
 ```
 
