@@ -1,5 +1,5 @@
 # Installation
-For the complete MARA experiments installation, please refer first to the **ROS2learn** installation instructions:  [github/acutronicrobotics/ros2learn/Install](https://github.com/acutronicrobotics/ros2learn/blob/ros2/Install.md).
+For the complete MARA experiments installation, please refer first to the **ROS2learn** installation instructions:  [github/acutronicrobotics/ros2learn/Install](https://github.com/acutronicrobotics/ros2learn/blob/master/Install.md).
 
 ## Table of Contents
 - [ROS 2 and Gazebo 9.6](#ros2-and-gazebo)
