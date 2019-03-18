@@ -20,7 +20,7 @@ cd examples/MARA
 python3 gg_random.py
 ```
 
-### Launch gzclient (GUI)
+### Launch gzclient (GUI) [Work in progress]
 
 Make sure you have gazebo already installed in your main Ubuntu system. If you are already running the simulation in the default port, you can access the visual interface the following way opening a new terminal:
 ```shell
