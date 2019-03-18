@@ -19,6 +19,6 @@ Make sure you have gazebo already installed in your main Ubuntu system. You will
 If you are already running the simulation in the default port, you can access the visual interface the following way:
 ```shell
 git clone https://github.com/AcutronicRobotics/gym-gazebo2
-cd gym-gazebo-ros2/docker
+cd gym-gazebo2/docker
 sh gzclient.sh
 ```
