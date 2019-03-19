@@ -11,7 +11,10 @@ docker build -t gg2 .
 ## Run the container
 
 ```shell
-docker rm gg2 || true && docker run -it --name=gg2 -h gym-gazebo2 gg2
+cd gym-gazebo2/docker
+docker rm gg2 || true && docker run -it --name=gg2 -h gym-gazebo2 -v `pwd`:/tmp gg2
+cp -r /root/ros2_mara_ws /tmp #Inside the docker container, used to load visual models
+cd examples/MARA && python3 gg_random.py #Run the example
 ```
 
 ## Run the example
