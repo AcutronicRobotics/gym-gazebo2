@@ -68,7 +68,7 @@ MARA also provides an accurate simulated version in Gazebo, which allows to tran
 
 ## Installation
 
-Please refer to [INSTALL.md](/INSTALL.md) for the step by step procedure.
+Please refer to [INSTALL.md](/INSTALL.md) to install it from source.
 
 Refer to [docker/README.md](/docker/README.md) for gym-gazebo2 Docker container installation and usage instructions.
 
