@@ -331,8 +331,6 @@ class MARACollisionEnv(gym.Env):
 
         # Take an observation
         self.ob = self.take_observation()
-        while self.ob is None:
-            self.ob = self.take_observation()
 
         # Return the corresponding observation
         return self.ob
