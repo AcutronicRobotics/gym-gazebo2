@@ -227,15 +227,20 @@ class MARAOrientEnv(gym.Env):
         Take observation from the environment and return it.
         :return: state.
         """
-        # Take an observation
+        # # Take an observation
         rclpy.spin_once(self.node)
         obs_message = self._observation_msg
-        if obs_message is None:
-            print("Last observation is empty")
-            return None
+
+        while obs_message is None:
+            rclpy.spin_once(self.node)
+            obs_message = self._observation_msg
+
         # Collect the end effector points and velocities in cartesian coordinates for the process_observations state.
         # Collect the present joint angles and velocities from ROS for the state.
         last_observations = ut_mara.process_observations(obs_message, self.environment)
+        #Set observation to None after it has been read.
+        self._observation_msg = None
+
         # Get Jacobians from present joint angles and KDL trees
         # The Jacobians consist of a 6x6 matrix getting its from from
         # (joint angles) x (len[x, y, z] + len[roll, pitch, yaw])
@@ -302,9 +307,6 @@ class MARAOrientEnv(gym.Env):
 
         # Take an observation
         self.ob = self.take_observation()
-        while(self.ob is None):
-            print("step: observation is Empty")
-            self.ob = self.take_observation()
 
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
         reward_dist = ut_math.rmse_func( self.ob[self.num_joints:(self.num_joints+3)] )
@@ -336,8 +338,6 @@ class MARAOrientEnv(gym.Env):
 
         # Take an observation
         self.ob = self.take_observation()
-        while self.ob is None:
-            self.ob = self.take_observation()
 
         # Return the corresponding observation
         return self.ob

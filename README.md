@@ -4,18 +4,27 @@
 
 **gym-gazebo2 is a toolkit for developing and comparing reinforcement learning algorithms using ROS 2 and Gazebo**. Built as an extension of [gym-gazebo](https://github.com/erlerobot/gym-gazebo/tree/master), gym-gazebo2 has been redesigned with community feedback and adopts now a standalone architecture while mantaining the core concepts of previous work inspired originally by the OpenAI gym.
 
-**gym-gazebo2 publication coming next week (18 March).**
+This work presents an upgraded, real world application oriented version of gym-gazebo, the Robot Operating System (ROS) and Gazebo based Reinforcement Learning (RL) toolkit, which complies with OpenAI Gym. A whitepaper about this work is available at https://arxiv.org/abs/1903.06278. Please use the following BibTex entry to cite our work:
+
+```
+@misc{1903.06278,
+Author = {Nestor Gonzalez Lopez and Yue Leire Erro Nuin and Elias Barba Moral and Lander Usategui San Juan and Alejandro Solano Rueda and Víctor Mayoral Vilches and Risto Kojcev},
+Title = {gym-gazebo2, a toolkit for reinforcement learning using ROS 2 and Gazebo},
+Year = {2019},
+Eprint = {arXiv:1903.06278},
+}
+```
 
 A whitepaper regarding previous work of gym-gazebo is available at https://arxiv.org/abs/1608.05742.
 
-**gym-gazebo2** is a complex piece of software for roboticists that puts together simulation tools, robot middlewares (ROS, ROS 2), machine learning and reinforcement learning techniques. All together to create an environment whereto benchmark and develop behaviors with robots. Setting up `gym-gazebo2` appropriately requires relevant familiarity with these tools.
+**gym-gazebo2** is a complex piece of software for roboticists that puts together simulation tools, robot middlewares (ROS, ROS 2), machine learning and reinforcement learning techniques. All together to create an environment where to benchmark and develop behaviors with robots. Setting up `gym-gazebo2` appropriately requires relevant familiarity with these tools.
 
 **Docs**. In-depth explanations and actively growing tutorials can be found at https://acutronicrobotics.com/docs. The following is an example of what you can achieve using gym-gazebo2 as a submodule of [ros2learn](https://github.com/AcutronicRobotics/ros2learn) repository. The goal is to reach the green target.
  - 1. Left image shows the start of a training
  - 2. To the right we execute an already trained policy.
 
 <p align="center">
-  <img height="300" src="https://github.com/erlerobot/gym-gazebo2/blob/master/imgs/example_train.gif"> <img height="300" src="https://github.com/erlerobot/gym-gazebo2/blob/master/imgs/example_run.gif">
+  <img height="300" src="https://github.com/AcutronicRobotics/gym-gazebo2/blob/master/imgs/example_train.gif"> <img height="300" src="https://github.com/AcutronicRobotics/gym-gazebo2/blob/master/imgs/example_run.gif">
 </p>
 
 <!--<p align="center">
@@ -38,7 +47,7 @@ A whitepaper regarding previous work of gym-gazebo is available at https://arxiv
 
 ## Environments
 The code for each environment group is housed in its own subdirectory
-[gym_gazebo2/envs](https://github.com/erlerobot/gym-gazebo2/blob/master/gym_gazebo2/envs). Robot specific simulation files should be housed in robot specific ROS2 packages.
+[gym_gazebo2/envs](https://github.com/AcutronicRobotics/gym-gazebo2/blob/master/gym_gazebo2/envs). Robot specific simulation files should be housed in robot specific ROS2 packages.
 
 ### MARA
 #### Real Robot
@@ -59,7 +68,7 @@ MARA also provides an accurate simulated version in Gazebo, which allows to tran
 
 ## Installation
 
-Please refer to [INSTALL.md](/INSTALL.md) for the step by step procedure.
+Please refer to [INSTALL.md](/INSTALL.md) to install it from source.
 
 Refer to [docker/README.md](/docker/README.md) for gym-gazebo2 Docker container installation and usage instructions.
 
