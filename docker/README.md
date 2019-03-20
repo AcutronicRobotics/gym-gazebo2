@@ -11,6 +11,7 @@ docker build -t gg2 .
 ## Run the container
 
 ```shell
+cd ~/gym-gazebo2/docker
 docker rm gg2 || true && docker run -it --name=gg2 -h gym-gazebo2 -v `pwd`:/tmp gg2
 cp -r /root/ros2_mara_ws /tmp #Inside the docker container, used to load visual models
 ```
