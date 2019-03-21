@@ -1,6 +1,6 @@
 ---
 name: Advice request / general discussion
-about: Suggest an idea for this project
+about: Discuss your ideas with us
 title: ''
 labels: help wanted, question
 assignees: ''
