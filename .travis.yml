@@ -1,0 +1,19 @@
+notifications:
+  email:
+    recipients:
+      - lander@erlerobotics.com
+
+matrix:
+  include:
+    - os: linux
+      dist: bionic
+      services:
+        - docker
+      sudo:
+        - required
+
+before_script:
+ - echo "Hello gym-gazebo2"
+
+script:
+ - echo "Hello gym-gazebo2 2"
