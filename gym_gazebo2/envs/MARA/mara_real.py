@@ -8,7 +8,7 @@ import sys
 import math
 import transforms3d as tf3d
 from gym import utils, spaces
-from gym_gazebo2.utils import ut_generic, ut_mara, ut_math, tree_urdf, general_utils
+from gym_gazebo2.utils import ut_launch, ut_generic, ut_mara, ut_math, tree_urdf, general_utils
 from gym.utils import seeding
 
 # ROS 2
@@ -41,6 +41,9 @@ class MARARealEnv(gym.Env):
         self.velocity = args.velocity
         # Set the path of the corresponding URDF file
         URDF_PATH = get_prefix_path("mara_description") + "/share/mara_description/urdf/mara_robot_gripper_140.urdf"
+
+        # Launch mara in a new Process
+        ut_launch.start_launch_servide_process( ut_launch.launchReal() )
 
         # Create the node after the new ROS_DOMAIN_ID is set in generate_launch_description()
         rclpy.init(args=None)
@@ -106,7 +109,7 @@ class MARARealEnv(gym.Env):
 
         reset_condition = {
             'initial_positions': INITIAL_JOINTS,
-             'initial_velocities': []
+            'initial_velocities': []
         }
         #############################
 
@@ -125,7 +128,6 @@ class MARARealEnv(gym.Env):
         # Subscribe to the appropriate topics, taking into account the particular robot
         self._pub = self.node.create_publisher(JointTrajectory, JOINT_PUBLISHER, qos_profile=qos_profile_sensor_data)
         self._sub = self.node.create_subscription(JointTrajectoryControllerState, JOINT_SUBSCRIBER, self.observation_callback, qos_profile=qos_profile_sensor_data)
-        self.reset_sim = self.node.create_client(Empty, '/reset_simulation')
 
         # Initialize a tree structure from the robot urdf.
         #   note that the xacro of the urdf is updated by hand.
@@ -171,6 +173,7 @@ class MARARealEnv(gym.Env):
         obs_message = self._observation_msg
 
         while obs_message is None:
+            print("obs is empty")
             rclpy.spin_once(self.node)
             obs_message = self._observation_msg
 
@@ -253,12 +256,11 @@ class MARARealEnv(gym.Env):
         self.iterator = 0
 
         if self.reset_jnts is True:
-            # reset simulation
-            while not self.reset_sim.wait_for_service(timeout_sec=1.0):
-                self.node.get_logger().info('service not available, waiting again...')
-
-            reset_future = self.reset_sim.call_async(Empty.Request())
-            rclpy.spin_until_future_complete(self.node, reset_future)
+            # Move to the initial position.
+            self._pub.publish(ut_mara.get_trajectory_message(
+                self.environment['reset_conditions']['initial_positions'],
+                self.environment['joint_order'],
+                self.velocity))
 
         # Take an observation
         self.ob = self.take_observation()
