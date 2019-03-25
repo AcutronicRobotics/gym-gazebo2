@@ -94,12 +94,12 @@ MARA environment argument provider.
 optional arguments:
   -h, --help            show this help message and exit
   -g, --gzclient        Run user interface.
-  -r, --real_speed      Execute the simulation in real speed and using the
+  -r, --realSpeed      Execute the simulation in real speed and using the
                         running specific driver.
   -v VELOCITY, --velocity VELOCITY
                         Set servo motor velocity. Keep < 1.57 for real speed.
-                        Applies only with -r --real_speed option.
-  -m, --multi_instance  Provide network segmentation to allow multiple
+                        Applies only with -r --realSpeed option.
+  -m, --multiInstance  Provide network segmentation to allow multiple
                         instances.
   -p PORT, --port PORT  Provide exact port to the network segmentation to
                         allow multiple instances.
@@ -115,7 +115,7 @@ If you want to get faster simulation speeds, you should launch the simulation wi
 gzclient
 ```
 
-- If you used the `-m --multi_instance` option to provide network segmentation, do the following:
+- If you used the `-m --multiInstance` option to provide network segmentation, do the following:
 
 In a new terminal, set the corresponding `GAZEBO_MASTER_URI`: For convinience, this environment variable is printed at the beginning of every Env execution. Just copy and export it. You can also find information related to any running execution inside `/tmp/gym-gazebo2/running/` folder. Example:
 ```sh
