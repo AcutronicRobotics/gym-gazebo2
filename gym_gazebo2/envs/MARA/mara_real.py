@@ -156,7 +156,7 @@ class MARARealEnv(gym.Env):
         """
         Callback method for the subscriber of JointTrajectoryControllerState
         """
-        self._observation_msg =  message
+        self._observation_msg = message
 
     def set_episode_size(self, episode_size):
         self.max_episode_steps = episode_size

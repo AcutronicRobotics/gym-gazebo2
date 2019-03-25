@@ -207,7 +207,7 @@ class MARACollisionOrientEnv(gym.Env):
         """
         Callback method for the subscriber of JointTrajectoryControllerState
         """
-        self._observation_msg =  message
+        self._observation_msg = message
 
     def collision_callback(self, message):
         """

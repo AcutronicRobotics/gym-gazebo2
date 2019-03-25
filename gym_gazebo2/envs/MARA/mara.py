@@ -210,7 +210,7 @@ class MARAEnv(gym.Env):
         """
         Callback method for the subscriber of JointTrajectoryControllerState
         """
-        self._observation_msg =  message
+        self._observation_msg = message
 
     def collision_callback(self, message):
         """
@@ -313,7 +313,7 @@ class MARAEnv(gym.Env):
 
         # Calculate if the env has been solved
         done = bool(self.iterator == self.max_episode_steps)
-        
+
         # Return the corresponding observations, rewards, etc.
         return self.ob, reward, done, {}
 
