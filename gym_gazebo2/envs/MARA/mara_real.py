@@ -262,4 +262,4 @@ class MARARealEnv(gym.Env):
         obs = self.take_observation()
 
         # Return the corresponding observation
-        return selfobs
+        return obs
