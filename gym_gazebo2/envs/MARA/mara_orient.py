@@ -67,11 +67,7 @@ class MARAOrientEnv(gym.Env):
 
         # class variables
         self._observation_msg = None
-        self.obs = None
-        self.action_space = None
-        self.target_position = None
-        self.target_orientation = None
-        self.max_episode_steps = 1024
+        self.max_episode_steps = 1024 #default value, can be updated from baselines
         self.iterator = 0
         self.reset_jnts = True
         self._collision_msg = None
@@ -306,11 +302,11 @@ class MARAOrientEnv(gym.Env):
             self.velocity))
 
         # Take an observation
-        self.ob = self.take_observation()
+        obs = self.take_observation()
 
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
-        reward_dist = ut_math.rmse_func( self.ob[self.num_joints:(self.num_joints+3)] )
-        reward_orientation = 2 * np.arccos( abs( self.ob[self.num_joints+3] ) )
+        reward_dist = ut_math.rmse_func( obs[self.num_joints:(self.num_joints+3)] )
+        reward_orientation = 2 * np.arccos( abs( obs[self.num_joints+3] ) )
 
         collided = self.collision()
 
@@ -320,7 +316,7 @@ class MARAOrientEnv(gym.Env):
         done = bool(self.iterator == self.max_episode_steps)
 
         # Return the corresponding observations, rewards, etc.
-        return self.ob, reward, done, {}
+        return obs, reward, done, {}
 
     def reset(self):
         """
@@ -337,7 +333,7 @@ class MARAOrientEnv(gym.Env):
             rclpy.spin_until_future_complete(self.node, reset_future)
 
         # Take an observation
-        self.ob = self.take_observation()
+        obs = self.take_observation()
 
         # Return the corresponding observation
-        return self.ob
+        return obs
