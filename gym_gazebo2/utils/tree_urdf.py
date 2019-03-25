@@ -119,7 +119,7 @@ def treeFromUrdfModel(robotModel, quiet=False):
 
     if root.inertial and not quiet:
         print("The root link %s has an inertia specified in the URDF, but KDL does not support a\
-         root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.\
+         root link with an inertia. As a workaround, you can add an extra dummy link to your URDF.\
          " % root.name)
 
     okay = True

@@ -13,7 +13,6 @@ from launch_ros.actions import Node
 import gym_gazebo2
 from gym_gazebo2.utils import ut_generic
 
-
 def startLaunchServideProcess(launchDesc):
     """Starts a Launch Service process. To be called from subclasses.
 
@@ -90,7 +89,7 @@ def generateLaunchDescriptionMara(gzclient, realSpeed, multiInstance, port):
     else:
         os.environ['GAZEBO_PLUGIN_PATH'] = installDir + '/lib'
 
-    if port != 11345:  # Default gazebo port
+    if port != 11345: # Default gazebo port
         os.environ["ROS_DOMAIN_ID"] = str(port)
         os.environ["GAZEBO_MASTER_URI"] = "http://localhost:" + str(port)
         print("******* Manual network segmentation *******")

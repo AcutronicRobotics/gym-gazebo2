@@ -30,10 +30,6 @@ from builtin_interfaces.msg import Duration
 # Algorithm specific
 from PyKDL import ChainJntToJacSolver # For KDL Jacobians
 
-class MSG_INVALID_JOINT_NAMES_DIFFER(Exception):
-    """Error object exclusively raised by _processObservations."""
-    pass
-
 class MARACollisionEnv(gym.Env):
     """
     TODO. Define the environment.
