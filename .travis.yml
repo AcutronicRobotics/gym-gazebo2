@@ -14,7 +14,9 @@ matrix:
         - required
 
 before_script:
- - 
+  - mkdir /tmp/gym-gazebo2
+  - mv * /tmp/gym-gazebo2
+  - cd ./ci
 
 script:
- - echo "Hello gym-gazebo2 2"
+ - docker built -t linter .
