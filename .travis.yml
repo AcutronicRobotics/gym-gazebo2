@@ -16,7 +16,7 @@ matrix:
 before_script:
   - mkdir /tmp/gym-gazebo2
   - mv * /tmp/gym-gazebo2
-  - cd ./ci
+  - cd .ci
 
 script:
  - docker build -t linter .
