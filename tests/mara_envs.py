@@ -17,7 +17,11 @@ for env in envs.registry.all():
 
 for e in environments:
     env = gym.make(e)
-    _ = env.reset()
-    _, _, _, _ = env.step(action)
+    obs = env.reset()
+    assert obs is not None
+
+    obs, rew, done, _ = env.step(action)
+    assert (obs, rew, done) is not None
+
     rclpy.shutdown()
     os.system("killall -9 gzserver rosmaster rosout roscore mara_contact_publisher hros_cognition_mara_components hros_cognition_mara_components_real robot_state_publisher mara_contact_plugin")
