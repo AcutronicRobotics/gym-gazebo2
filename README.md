@@ -130,3 +130,4 @@ Final note: you can launch as many `gzserver` and `gzclient` instances as you wa
 ## What's new
 
 - 2019-03-15: Release of gym-gazebo2 with ROS2 compatibility and MARA environments.
+- 2019-03-27: Improve observation for MARA environments. Check out the [published article](https://acutronicrobotics.com/news/ros2learn-gymgazebo2-state-observations-hyperparameters/).
