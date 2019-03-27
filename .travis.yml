@@ -19,4 +19,4 @@ before_script:
   - cd ./ci
 
 script:
- - docker built -t linter .
+ - docker build -t linter .
