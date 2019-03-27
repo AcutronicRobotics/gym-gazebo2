@@ -351,5 +351,6 @@ class MARAOrientEnv(gym.Env):
         except:
             print("Ignore errors raised by SIGINT/SIGTERM\n")
         
+        rclpy.shutdown()
         time.sleep(6) # mara_contact_publisher needs 5 seconds after receiving 'SIGINT' to escalating to 'SIGTERM'
         print("\n*** " + str(self.__class__.__name__) + " CLOSED ***")
