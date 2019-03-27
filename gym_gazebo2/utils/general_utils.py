@@ -145,7 +145,6 @@ def getRotationMatrix(angle, direction, point=None):
     """
     sina = math.sin(angle)
     cosa = math.cos(angle)
-    direction = unitVector(direction[:3])
     # rotation matrix around unit vector
     rot = np.diag([cosa, cosa, cosa])
     rot += np.outer(direction, direction) * (1.0 - cosa)
