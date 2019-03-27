@@ -224,7 +224,8 @@ class MARACollisionOrientEnv(gym.Env):
         rclpy.spin_once(self.node)
         obs_message = self._observation_msg
 
-        while obs_message is None:
+        # Check that the observation is not prior to the action
+        while obs_message is None or int(str(obs_message.header.stamp.sec)+(str(obs_message.header.stamp.nanosec))) < self.ros_clock:
             rclpy.spin_once(self.node)
             obs_message = self._observation_msg
 
@@ -298,6 +299,8 @@ class MARACollisionOrientEnv(gym.Env):
             self.environment['joint_order'],
             self.velocity))
 
+        self.ros_clock = rclpy.clock.Clock().now().nanoseconds
+
         # Take an observation
         obs = self.take_observation()
 
@@ -328,6 +331,8 @@ class MARACollisionOrientEnv(gym.Env):
 
             reset_future = self.reset_sim.call_async(Empty.Request())
             rclpy.spin_until_future_complete(self.node, reset_future)
+
+        self.ros_clock = rclpy.clock.Clock().now().nanoseconds
 
         # Take an observation
         obs = self.take_observation()
