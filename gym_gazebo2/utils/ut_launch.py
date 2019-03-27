@@ -5,6 +5,7 @@ import gym_gazebo2
 import pathlib
 from datetime import datetime
 from billiard import Process
+import threading
 from gym_gazebo2.utils import ut_generic
 
 from launch import LaunchService, LaunchDescription
@@ -25,6 +26,8 @@ def start_launch_servide_process(ld):
     p = Process(target=ls.run)
     p.daemon = True #The daemon process is terminated automatically before the main program exits, to avoid leaving orphaned processes running
     p.start()
+
+    return p
 
 def is_port_in_use(port):
     """Checks if the given port is being used.

@@ -5,6 +5,7 @@ import numpy as np
 import copy
 import math
 import os
+import signal
 import sys
 import transforms3d as tf3d
 from gym import utils, spaces
@@ -53,7 +54,7 @@ class MARAOrientEnv(gym.Env):
         URDF_PATH = get_prefix_path("mara_description") + "/share/mara_description/urdf/mara_robot_gripper_140.urdf"
 
         # Launch mara in a new Process
-        ut_launch.start_launch_servide_process(
+        self.launch_subp = ut_launch.start_launch_servide_process(
             ut_launch.generate_launch_description_mara(
                 self.gzclient, self.real_speed, self.multi_instance, self.port, URDF_PATH))
 
@@ -342,3 +343,13 @@ class MARAOrientEnv(gym.Env):
 
         # Return the corresponding observation
         return obs
+
+    def close(self):
+        try:
+            print("\n*** CLOSING " + str(self.__class__.__name__) + " ***")
+            os.killpg(os.getpgid(self.launch_subp.pid), signal.SIGINT) #SIGINT is used due to gazebo limitations
+        except:
+            print("Ignore errors raised by SIGINT/SIGTERM\n")
+        
+        time.sleep(6) # mara_contact_publisher needs 5 seconds after receiving 'SIGINT' to escalating to 'SIGTERM'
+        print("\n*** " + str(self.__class__.__name__) + " CLOSED ***")
