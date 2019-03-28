@@ -346,11 +346,10 @@ class MARAOrientEnv(gym.Env):
 
     def close(self):
         try:
-            print("\n*** CLOSING " + str(self.__class__.__name__) + " ***")
+            os.sys("curl -s") # Ignore errors raised by SIGINT/SIGTERM
             os.killpg(os.getpgid(self.launch_subp.pid), signal.SIGINT) #SIGINT is used due to gazebo limitations
         except:
-            print("Ignore errors raised by SIGINT/SIGTERM\n")
+            pass
         
         rclpy.shutdown()
         time.sleep(6) # mara_contact_publisher needs 5 seconds after receiving 'SIGINT' to escalating to 'SIGTERM'
-        print("\n*** " + str(self.__class__.__name__) + " CLOSED ***")

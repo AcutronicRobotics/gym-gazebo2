@@ -1,6 +1,7 @@
 """ Script for testing all the MARA simulation environments"""
 
 import os
+import sys
 import numpy as np
 import gym
 from gym import envs
@@ -24,4 +25,4 @@ for e in environments:
 
     env.close()
 
-os.kill(os.getpid(), 9)
+sys.exit(0)
