@@ -21,7 +21,6 @@ RUN \
          git \
          python3-colcon-common-extensions \
          python3-pip \
-         python3-vcstool \
          wget \
  	&&  pip3 install \
         	tensorflow==1.12 \
