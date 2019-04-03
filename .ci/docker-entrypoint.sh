@@ -1,5 +1,5 @@
-#!/bin/bash
-
+#!/bin/sh
+set -e
 cd /gym-gazebo2
 pylint --rcfile linter/.pylintrc gym-gazebo2
 
