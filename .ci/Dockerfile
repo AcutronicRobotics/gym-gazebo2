@@ -4,6 +4,7 @@ LABEL maintainer="Lander Usategui <lander at erlerobotics dot com>"
 
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
+COPY ./docker-entrypoint.sh /
 
 RUN \
       apt-get update -qq && apt-get install -qq -y \
