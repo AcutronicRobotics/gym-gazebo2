@@ -1,7 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 set -e
-cd /gym-gazebo2
-pylint --rcfile linter/.pylintrc gym-gazebo2
+
+pylint --rcfile linter/.pylintrc gym_gazebo2
 
 res=$?
 
