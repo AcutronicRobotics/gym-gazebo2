@@ -18,4 +18,4 @@ RUN \
         	transforms3d \
         	billiard \
                 pylint
-ENTRYPOINT ["docker-entrypoint"]
+ENTRYPOINT ["docker-entrypoint.sh"]
