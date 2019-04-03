@@ -6,7 +6,7 @@ ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 
 RUN \
-      apt-get update && apt-get install -qq -y \
+      apt-get update -qq && apt-get install -qq -y \
          python3-pip \
          python3-numpy \
          python3-sip-dev \
