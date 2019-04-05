@@ -202,6 +202,9 @@ class MARAOrientEnv(gym.Env):
 
         # Seed the environment
         self.seed()
+        self.buffer_dist_rewards = []
+        self.buffer_tot_rewards = []
+        self.collided = 0
 
     def observation_callback(self, message):
         """
@@ -279,6 +282,7 @@ class MARAOrientEnv(gym.Env):
             reset_future = self.reset_sim.call_async(Empty.Request())
             rclpy.spin_until_future_complete(self.node, reset_future)
             self._collision_msg = None
+            self.collided += 1
             return True
         else:
             return False
@@ -318,9 +322,26 @@ class MARAOrientEnv(gym.Env):
 
         # Calculate if the env has been solved
         done = bool(self.iterator == self.max_episode_steps)
+        self.buffer_dist_rewards.append(reward_dist)
+        self.buffer_tot_rewards.append(reward)
+        info = {}
+        if self.iterator % self.max_episode_steps == 0:
+            max_dist_tgt = max(self.buffer_dist_rewards)
+            mean_dist_tgt = np.mean(self.buffer_dist_rewards)
+            min_dist_tgt = min(self.buffer_dist_rewards)
+            max_tot_rew = max(self.buffer_tot_rewards)
+            mean_tot_rew = np.mean(self.buffer_tot_rewards)
+            min_tot_rew = min(self.buffer_tot_rewards)
+            num_coll = self.collided
+
+            info = {"infos":{"ep_dist_max": max_dist_tgt,"ep_dist_mean": mean_dist_tgt,"ep_dist_min": min_dist_tgt,\
+                "ep_rew_max": max_tot_rew,"ep_rew_mean": mean_tot_rew,"ep_rew_min": min_tot_rew,"num_coll": num_coll}}
+            self.buffer_dist_rewards = []
+            self.buffer_tot_rewards = []
+            self.collided = 0
 
         # Return the corresponding observations, rewards, etc.
-        return obs, reward, done, {}
+        return obs, reward, done, info
 
     def reset(self):
         """
@@ -350,6 +371,6 @@ class MARAOrientEnv(gym.Env):
             os.killpg(os.getpgid(self.launch_subp.pid), signal.SIGINT) #SIGINT is used due to gazebo limitations
         except:
             pass
-        
+
         rclpy.shutdown()
         time.sleep(6) # mara_contact_publisher needs 5 seconds after receiving 'SIGINT' to escalating to 'SIGTERM'
