@@ -265,17 +265,17 @@ def quaternionFromMatrix(matrix, isprecise=False):
         m00 = matrix[0, 0]
         m01 = matrix[0, 1]
         m02 = matrix[0, 2]
-        m010 = matrix[1, 0]
-        m011 = matrix[1, 1]
-        m012 = matrix[1, 2]
+        m10 = matrix[1, 0]
+        m11 = matrix[1, 1]
+        m12 = matrix[1, 2]
         m20 = matrix[2, 0]
         m21 = matrix[2, 1]
         m22 = matrix[2, 2]
         # symmetric matrix k00
-        k00 = np.array([[m00-m011-m22, 0.0, 0.0, 0.0],
-                        [m01+m010, m011-m00-m22, 0.0, 0.0],
-                        [m02+m20, m012+m21, m22-m00-m011, 0.0],
-                        [m21-m012, m02-m20, m010-m01, m00+m011+m22]])
+        k00 = np.array([[m00-m11-m22, 0.0, 0.0, 0.0],
+                        [m01+m10, m11-m00-m22, 0.0, 0.0],
+                        [m02+m20, m12+m21, m22-m00-m11, 0.0],
+                        [m21-m12, m02-m20, m10-m01, m00+m11+m22]])
         k00 /= 3.0
         # quaternion is eigenvector of k00 that corresponds to largest eigenvalue
         w00, v00 = np.linalg.eigh(k00)
@@ -293,7 +293,7 @@ def jointListToKdl(q00):
     """ Return KDL JntArray converted from list q00 """
     if q00 is None:
         return None
-    if isinstance(q00) == np.matrix and q00.shape[1] == 0:
+    if isinstance(q00,np.matrix) and q00.shape[1] == 0:
         q00 = q00.T.tolist()[0]
     qKdl = kdl.JntArray(len(q00))
     for i, qi0 in enumerate(q00):
@@ -338,8 +338,8 @@ def doKdlFk(robotChain, q00, linkNumber):
                                        endeffecFrame,
                                        linkNumber)
     if kinematicsStatus >= 0:
-        p00 = endeffecFrame.p00
-        matrix = endeffecFrame.matrix
+        p00 = endeffecFrame.p
+        matrix = endeffecFrame.M
         return np.array([[matrix[0, 0], matrix[0, 1], matrix[0, 2], p00.x()],
                          [matrix[1, 0], matrix[1, 1], matrix[1, 2], p00.y()],
                          [matrix[2, 0], matrix[2, 1], matrix[2, 2], p00.z()],
