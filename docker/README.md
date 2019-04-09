@@ -16,7 +16,7 @@ python3 gg_random.py
 
 ### Launch gzclient (GUI)
 
- Make sure you have gazebo already installed in your main Ubuntu system. If you are already running the simulation in the default port, you can access the visual interface the following way opening a new terminal:
+ Make sure you have gazebo already installed in your main Ubuntu system and you are in the same path from which you executed the `docker run` command. If you are already running the simulation in the default port, you can access the visual interface the following way opening a new terminal:
 ```shell
 # Do not use -g --gzclient flag
 cd ~ && git clone https://github.com/AcutronicRobotics/gym-gazebo2
