@@ -293,7 +293,7 @@ def jointListToKdl(q00):
     """ Return KDL JntArray converted from list q00 """
     if q00 is None:
         return None
-    if isinstance(q00,np.matrix) and q00.shape[1] == 0:
+    if isinstance(q00, np.matrix) and q00.shape[1] == 0:
         q00 = q00.T.tolist()[0]
     qKdl = kdl.JntArray(len(q00))
     for i, qi0 in enumerate(q00):
