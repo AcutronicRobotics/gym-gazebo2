@@ -56,7 +56,7 @@ class MARAEnv(gym.Env):
         # Launch mara in a new Process
         self.launch_subp = ut_launch.start_launch_servide_process(
             ut_launch.generate_launch_description_mara(
-                self.gzclient, self.real_speed, self.multi_instance, self.port, URDF_PATH))
+                self.gzclient, self.real_speed, self.multi_instance, self.port))
 
         # Wait a bit for the spawn process.
         # TODO, replace sleep function.

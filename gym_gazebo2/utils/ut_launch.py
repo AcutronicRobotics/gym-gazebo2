@@ -69,7 +69,7 @@ def get_exclusive_network_parameters():
     return {'ros_domain_id':str(random_port),
      'gazebo_master_uri':"http://localhost:" + str(random_port)}
 
-def generate_launch_description_mara(gzclient, real_speed, multi_instance, port, urdf):
+def generate_launch_description_mara(gzclient, real_speed, multi_instance, port):
     """
         Returns ROS2 LaunchDescription object.
         Args:
@@ -130,7 +130,7 @@ def generate_launch_description_mara(gzclient, real_speed, multi_instance, port,
                 cmd=[gazebo_cmd,'--verbose', '-s', 'libgazebo_ros_factory.so', '-s', 'libgazebo_ros_init.so', world_path], output='screen',
                 env=envs
             ),
-            Node(package='mara_utils_scripts', node_executable='spawn_mara_gripper_140_run.py', output='screen'),
+            Node(package='mara_utils_scripts', node_executable='spawn_mara_arg.py', arguments=["reinforcement_learning/mara_robot_gripper_140_run.urdf"], output='screen'),
             Node(package='hros_cognition_mara_components', node_executable='hros_cognition_mara_components', output='screen',
                 arguments=["-motors", install_dir + "/share/hros_cognition_mara_components/link_order.yaml"]),
             Node(package='mara_contact_publisher', node_executable='mara_contact_publisher', output='screen')
@@ -142,7 +142,7 @@ def generate_launch_description_mara(gzclient, real_speed, multi_instance, port,
                 cmd=[gazebo_cmd,'--verbose', '-s', 'libgazebo_ros_factory.so', '-s', 'libgazebo_ros_init.so', world_path], output='screen',
                 env=envs
             ),
-            Node(package='mara_utils_scripts', node_executable='spawn_mara_gripper_140.py', output='screen'),
+            Node(package='mara_utils_scripts', node_executable='spawn_mara_arg.py', arguments=["reinforcement_learning/mara_robot_gripper_140_train.urdf"], output='screen'),
             Node(package='hros_cognition_mara_components', node_executable='hros_cognition_mara_components', output='screen',
                 arguments=["-motors", install_dir + "/share/hros_cognition_mara_components/link_order.yaml"]),
             Node(package='mara_contact_publisher', node_executable='mara_contact_publisher', output='screen')
@@ -154,7 +154,7 @@ def launchReal():
     os.environ["RMW_IMPLEMENTATION"] = "rmw_opensplice_cpp"
     install_dir = get_package_prefix('mara_gazebo_plugins')
     ld = LaunchDescription([
-        Node(package='hros_cognition_mara_components_real', node_executable='hros_cognition_mara_components_real', output='screen',
-            arguments=["-motors", install_dir + "/share/hros_cognition_mara_components_real/link_order_real.yaml"]),
+        Node(package='hros_cognition_mara_components', node_executable='hros_cognition_mara_components', output='screen',
+            arguments=["-motors", install_dir + "/share/hros_cognition_mara_components/link_order_real.yaml"]),
     ])
     return ld
