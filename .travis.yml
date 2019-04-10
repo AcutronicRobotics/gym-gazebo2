@@ -3,6 +3,7 @@ notifications:
     recipients:
       - lander@erlerobotics.com
     on_failure: always
+    only: master
 
 matrix:
   include:
