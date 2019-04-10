@@ -46,8 +46,12 @@ class MARACollisionOrientEnv(gym.Env):
         self.velocity = args.velocity
         self.multiInstance = args.multiInstance
         self.port = args.port
+
         # Set the path of the corresponding URDF file
-        URDF_PATH = get_prefix_path("mara_description") + "/share/mara_description/urdf/mara_robot_gripper_140.urdf"
+        if self.realSpeed:
+            urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf/reinforcement_learning/mara_robot_gripper_140_run.urdf"
+        else:
+            urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf/reinforcement_learning/mara_robot_gripper_140_train.urdf"
 
         # Launch mara in a new Process
         self.launch_subp = ut_launch.startLaunchServiceProcess(
@@ -131,7 +135,7 @@ class MARACollisionOrientEnv(gym.Env):
             'jointOrder': m_jointOrder,
             'linkNames': m_linkNames,
             'reset_conditions': reset_condition,
-            'tree_path': URDF_PATH,
+            'tree_path': urdfPath,
             'end_effector_points': EE_POINTS,
         }
 

@@ -36,8 +36,9 @@ class MARARealEnv(gym.Env):
         args = ut_generic.getArgsParserMARA().parse_args()
         self.realSpeed = args.realSpeed
         self.velocity = args.velocity
+
         # Set the path of the corresponding URDF file
-        URDF_PATH = get_prefix_path("mara_description") + "/share/mara_description/urdf/mara_robot_gripper_140.urdf"
+        urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf/mara_robot_gripper_140.urdf"
 
         # Launch mara in a new Process
         self.launch_subp = ut_launch.startLaunchServiceProcess( ut_launch.launchReal() )
@@ -114,7 +115,7 @@ class MARARealEnv(gym.Env):
             'jointOrder': m_jointOrder,
             'linkNames': m_linkNames,
             'reset_conditions': reset_condition,
-            'tree_path': URDF_PATH,
+            'tree_path': urdfPath,
             'end_effector_points': EE_POINTS,
         }
 
