@@ -31,10 +31,6 @@ from builtin_interfaces.msg import Duration
 # Algorithm specific
 from PyKDL import ChainJntToJacSolver # For KDL Jacobians
 
-class MSG_INVALID_JOINT_NAMES_DIFFER(Exception):
-    """Error object exclusively raised by _process_observations."""
-    pass
-
 class MARACollisionEnv(gym.Env):
     """
     TODO. Define the environment.
@@ -47,9 +43,9 @@ class MARACollisionEnv(gym.Env):
         # Manage command line args
         args = ut_generic.getArgsParserMARA().parse_args()
         self.gzclient = args.gzclient
-        self.real_speed = args.real_speed
+        self.realSpeed = args.realSpeed
         self.velocity = args.velocity
-        self.multi_instance = args.multi_instance
+        self.multiInstance = args.multiInstance
         self.port = args.port
         # Set the path of the corresponding URDF file
         URDF_PATH = get_prefix_path("mara_description") + "/share/mara_description/urdf/mara_robot_gripper_140.urdf"
@@ -78,9 +74,9 @@ class MARACollisionEnv(gym.Env):
         #   Environment hyperparams
         #############################
         # Target, where should the agent reach
-        self.target_position = np.asarray([-0.40028, 0.095615, 0.72466]) # close to the table
+        self.targetPosition = np.asarray([-0.40028, 0.095615, 0.72466]) # close to the table
         self.target_orientation = np.asarray([0., 0.7071068, 0.7071068, 0.]) # arrow looking down [w, x, y, z]
-        # self.target_position = np.asarray([-0.386752, -0.000756, 1.40557]) # easy point
+        # self.targetPosition = np.asarray([-0.386752, -0.000756, 1.40557]) # easy point
         # self.target_orientation = np.asarray([-0.4958324, 0.5041332, 0.5041331, -0.4958324]) # arrow looking opposite to MARA [w, x, y, z]
 
         EE_POINTS = np.asmatrix([[0, 0, 0]])
@@ -106,7 +102,7 @@ class MARACollisionEnv(gym.Env):
         # Set constants for links
         WORLD = 'world'
         TABLE = 'table'
-        BASE = 'base_link'
+        BASE = 'baseLink'
         BASE_ROBOT = 'base_robot'
         MARA_MOTOR1_LINK = 'motor1_link'
         MARA_MOTOR2_LINK = 'motor2_link'
@@ -129,13 +125,13 @@ class MARACollisionEnv(gym.Env):
         }
         #############################
 
-        m_joint_order = copy.deepcopy(JOINT_ORDER)
-        m_link_names = copy.deepcopy(LINK_NAMES)
+        m_jointOrder = copy.deepcopy(JOINT_ORDER)
+        m_linkNames = copy.deepcopy(LINK_NAMES)
 
         # Initialize target end effector position
         self.environment = {
-            'joint_order': m_joint_order,
-            'link_names': m_link_names,
+            'jointOrder': m_jointOrder,
+            'linkNames': m_linkNames,
             'reset_conditions': reset_condition,
             'tree_path': URDF_PATH,
             'end_effector_points': EE_POINTS,
@@ -152,17 +148,17 @@ class MARACollisionEnv(gym.Env):
         # The urdf must be compiled.
         _, self.ur_tree = tree_urdf.treeFromFile(self.environment['tree_path'])
         # Retrieve a chain structure between the base and the start of the end effector.
-        self.mara_chain = self.ur_tree.getChain(self.environment['link_names'][0], self.environment['link_names'][-1])
-        self.num_joints = self.mara_chain.getNrOfJoints()
+        self.mara_chain = self.ur_tree.getChain(self.environment['linkNames'][0], self.environment['linkNames'][-1])
+        self.numJoints = self.mara_chain.getNrOfJoints()
         # Initialize a KDL Jacobian solver from the chain.
-        self.jac_solver = ChainJntToJacSolver(self.mara_chain)
+        self.jacSolver = ChainJntToJacSolver(self.mara_chain)
 
-        self.obs_dim = self.num_joints + 6
+        self.obs_dim = self.numJoints + 6
 
         # # Here idially we should find the control range of the robot. Unfortunatelly in ROS/KDL there is nothing like this.
         # # I have tested this with the mujoco enviroment and the output is always same low[-1.,-1.], high[1.,1.]
-        low = -np.pi * np.ones(self.num_joints)
-        high = np.pi * np.ones(self.num_joints)
+        low = -np.pi * np.ones(self.numJoints)
+        high = np.pi * np.ones(self.numJoints)
         self.action_space = spaces.Box(low, high)
 
         high = np.inf*np.ones(self.obs_dim)
@@ -176,12 +172,12 @@ class MARACollisionEnv(gym.Env):
         while not spawn_cli.wait_for_service(timeout_sec=1.0):
             self.node.get_logger().info('service not available, waiting again...')
 
-        model_xml = ut_gazebo.get_target_sdf()
+        modelXml = ut_gazebo.getTargetSdf()
 
         pose = Pose()
-        pose.position.x = self.target_position[0]
-        pose.position.y = self.target_position[1]
-        pose.position.z = self.target_position[2]
+        pose.position.x = self.targetPosition[0]
+        pose.position.y = self.targetPosition[1]
+        pose.position.z = self.targetPosition[2]
         pose.orientation.x = self.target_orientation[1]
         pose.orientation.y= self.target_orientation[2]
         pose.orientation.z = self.target_orientation[3]
@@ -190,7 +186,7 @@ class MARACollisionEnv(gym.Env):
         #override previous spawn_request element.
         self.spawn_request = SpawnEntity.Request()
         self.spawn_request.name = "target"
-        self.spawn_request.xml = model_xml
+        self.spawn_request.xml = modelXml
         self.spawn_request.robot_namespace = ""
         self.spawn_request.initial_pose = pose
         self.spawn_request.reference_frame = "world"
@@ -209,7 +205,7 @@ class MARACollisionEnv(gym.Env):
         """
         Callback method for the subscriber of JointTrajectoryControllerState
         """
-        self._observation_msg =  message
+        self._observation_msg = message
 
     def collision_callback(self, message):
         """
@@ -235,35 +231,35 @@ class MARACollisionEnv(gym.Env):
             rclpy.spin_once(self.node)
             obs_message = self._observation_msg
 
-        # Collect the end effector points and velocities in cartesian coordinates for the process_observations state.
+        # Collect the end effector points and velocities in cartesian coordinates for the processObservations state.
         # Collect the present joint angles and velocities from ROS for the state.
-        last_observations = ut_mara.process_observations(obs_message, self.environment)
+        lastObservations = ut_mara.processObservations(obs_message, self.environment)
         #Set observation to None after it has been read.
         self._observation_msg = None
 
         # Get Jacobians from present joint angles and KDL trees
         # The Jacobians consist of a 6x6 matrix getting its from from
         # (joint angles) x (len[x, y, z] + len[roll, pitch, yaw])
-        ee_link_jacobians = ut_mara.get_jacobians(last_observations, self.num_joints, self.jac_solver)
-        if self.environment['link_names'][-1] is None:
+        ee_link_jacobians = ut_mara.getJacobians(lastObservations, self.numJoints, self.jacSolver)
+        if self.environment['linkNames'][-1] is None:
             print("End link is empty!!")
             return None
         else:
-            translation, rot = general_utils.forward_kinematics(self.mara_chain,
-                                                self.environment['link_names'],
-                                                last_observations[:self.num_joints],
-                                                base_link=self.environment['link_names'][0], # make the table as the base to get the world coordinate system
-                                                end_link=self.environment['link_names'][-1])
+            translation, rot = general_utils.forwardKinematics(self.mara_chain,
+                                                self.environment['linkNames'],
+                                                lastObservations[:self.numJoints],
+                                                baseLink=self.environment['linkNames'][0], # make the table as the base to get the world coordinate system
+                                                endLink=self.environment['linkNames'][-1])
 
-            current_ee_pos_tgt = np.ndarray.flatten(general_utils.get_ee_points(self.environment['end_effector_points'], translation, rot).T)
-            ee_pos_points = current_ee_pos_tgt - self.target_position
-            ee_velocities = ut_mara.get_ee_points_velocities(ee_link_jacobians, self.environment['end_effector_points'], rot, last_observations)
+            current_eePos_tgt = np.ndarray.flatten(general_utils.getEePoints(self.environment['end_effector_points'], translation, rot).T)
+            eePos_points = current_eePos_tgt - self.targetPosition
+            eeVelocities = ut_mara.getEePointsVelocities(ee_link_jacobians, self.environment['end_effector_points'], rot, lastObservations)
 
             # Concatenate the information that defines the robot state
             # vector, typically denoted asrobot_id 'x'.
-            state = np.r_[np.reshape(last_observations, -1),
-                          np.reshape(ee_pos_points, -1),
-                          np.reshape(ee_velocities, -1),]
+            state = np.r_[np.reshape(lastObservations, -1),
+                          np.reshape(eePos_points, -1),
+                          np.reshape(eeVelocities, -1),]
 
             return state
 
@@ -296,9 +292,9 @@ class MARACollisionEnv(gym.Env):
         self.iterator += 1
 
         # Execute "action"
-        self._pub.publish( ut_mara.get_trajectory_message(
-            action[:self.num_joints],
-            self.environment['joint_order'],
+        self._pub.publish( ut_mara.getTrajectoryMessage(
+            action[:self.numJoints],
+            self.environment['jointOrder'],
             self.velocity) )
 
         self.ros_clock = rclpy.clock.Clock().now().nanoseconds
@@ -311,10 +307,11 @@ class MARACollisionEnv(gym.Env):
 
         collided = self.collision()
 
-        reward = ut_math.compute_reward(reward_dist, collision = collided)
+        reward = ut_math.computeReward(rewardDist, collision = collided)
 
         # Calculate if the env has been solved
         done = bool(self.iterator == self.max_episode_steps)
+
         self.buffer_dist_rewards.append(reward_dist)
         self.buffer_tot_rewards.append(reward)
         info = {}
@@ -332,6 +329,7 @@ class MARACollisionEnv(gym.Env):
             self.buffer_dist_rewards = []
             self.buffer_tot_rewards = []
             self.collided = 0
+
         # Return the corresponding observations, rewards, etc.
         return obs, reward, done, info
 

@@ -4,6 +4,8 @@
 
 **gym-gazebo2 is a toolkit for developing and comparing reinforcement learning algorithms using ROS 2 and Gazebo**. Built as an extension of [gym-gazebo](https://github.com/erlerobot/gym-gazebo/tree/master), gym-gazebo2 has been redesigned with community feedback and adopts now a standalone architecture while mantaining the core concepts of previous work inspired originally by the OpenAI gym.
 
+[![Travis](https://travis-ci.org/AcutronicRobotics/gym-gazebo2.svg?branch=master)](https://travis-ci.org/AcutronicRobotics/gym-gazebo2) [![Article](https://img.shields.io/badge/article-arxiv%3A1903.06278-ecb80c.svg)](https://arxiv.org/pdf/1903.06278.pdf)
+
 This work presents an upgraded, real world application oriented version of gym-gazebo, the Robot Operating System (ROS) and Gazebo based Reinforcement Learning (RL) toolkit, which complies with OpenAI Gym. A whitepaper about this work is available at https://arxiv.org/abs/1903.06278. Please use the following BibTex entry to cite our work:
 
 ```
@@ -94,12 +96,12 @@ MARA environment argument provider.
 optional arguments:
   -h, --help            show this help message and exit
   -g, --gzclient        Run user interface.
-  -r, --real_speed      Execute the simulation in real speed and using the
+  -r, --realSpeed      Execute the simulation in real speed and using the
                         running specific driver.
   -v VELOCITY, --velocity VELOCITY
                         Set servo motor velocity. Keep < 1.57 for real speed.
-                        Applies only with -r --real_speed option.
-  -m, --multi_instance  Provide network segmentation to allow multiple
+                        Applies only with -r --realSpeed option.
+  -m, --multiInstance  Provide network segmentation to allow multiple
                         instances.
   -p PORT, --port PORT  Provide exact port to the network segmentation to
                         allow multiple instances.
@@ -115,7 +117,7 @@ If you want to get faster simulation speeds, you should launch the simulation wi
 gzclient
 ```
 
-- If you used the `-m --multi_instance` option to provide network segmentation, do the following:
+- If you used the `-m --multiInstance` option to provide network segmentation, do the following:
 
 In a new terminal, set the corresponding `GAZEBO_MASTER_URI`: For convinience, this environment variable is printed at the beginning of every Env execution. Just copy and export it. You can also find information related to any running execution inside `/tmp/gym-gazebo2/running/` folder. Example:
 ```sh
@@ -130,3 +132,4 @@ Final note: you can launch as many `gzserver` and `gzclient` instances as you wa
 ## What's new
 
 - 2019-03-15: Release of gym-gazebo2 with ROS2 compatibility and MARA environments.
+- 2019-03-27: Improve observation for MARA environments. Check out the [published article](https://acutronicrobotics.com/news/ros2learn-gymgazebo2-state-observations-hyperparameters/).

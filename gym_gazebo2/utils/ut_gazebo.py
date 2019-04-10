@@ -1,31 +1,29 @@
-from gym_gazebo2.utils import ut_generic
 from gazebo_msgs.srv import SpawnEntity
 import rclpy
 
-def spawnModel(node, obj_name, obj_path, pose):
-    model_file = ut_generic.getModelFileType(obj_path)
-    obj_file = open(obj_path, mode='r')
-    xml = obj_file.read()
-    obj_file.close()
+def spawnModel(node, objName, objPath, pose):
+    objFile = open(objPath, mode='r')
+    xml = objFile.read()
+    objFile.close()
 
     # create a new SpawnEntity client
-    add_entity = node.create_client(SpawnEntity, '/spawn_entity')
+    addEntity = node.create_client(SpawnEntity, '/spawn_entity')
 
-    while not add_entity.wait_for_service(timeout_sec=1.0):
+    while not addEntity.wait_for_service(timeout_sec=1.0):
         node.get_logger().info('service not available, waiting again...')
 
     req = SpawnEntity.Request()
-    req.name = obj_name
+    req.name = objName
     req.xml = xml
     req.robot_namespace = ""
     req.initial_pose = pose
     req.reference_frame = "world"
 
-    future = add_entity.call_async(req)
+    future = addEntity.call_async(req)
     rclpy.spin_until_future_complete(node, future)
 
-def get_target_sdf():
-    model_xml = """<?xml version='1.0'?>
+def getTargetSdf():
+    modelXml = """<?xml version='1.0'?>
                     <sdf version='1.6'>
                       <model name='target'>
                         <link name='cylinder0'>
@@ -69,4 +67,4 @@ def get_target_sdf():
                         <allow_auto_disable>1</allow_auto_disable>
                       </model>
                     </sdf>"""
-    return model_xml;
+    return modelXml

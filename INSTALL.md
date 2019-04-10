@@ -81,7 +81,7 @@ Build the workspace using the `--merge-install` flag. Make sure you have enough 
 ```sh
 source /opt/ros/crystal/setup.bash
 cd ~/ros2_mara_ws
-colcon build --merge-install
+colcon build --merge-install --packages-skip individual_trajectories_bridge
 # Remove warnings
 touch ~/ros2_mara_ws/install/share/orocos_kdl/local_setup.sh ~/ros2_mara_ws/install/share/orocos_kdl/local_setup.bash
 ```
