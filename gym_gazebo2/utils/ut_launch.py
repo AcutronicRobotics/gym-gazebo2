@@ -16,7 +16,7 @@ from launch_ros.actions import Node
 import gym_gazebo2
 from gym_gazebo2.utils import ut_generic
 
-def startLaunchServideProcess(launchDesc):
+def startLaunchServiceProcess(launchDesc):
     """Starts a Launch Service process. To be called from subclasses.
 
     Args:

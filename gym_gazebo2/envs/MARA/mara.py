@@ -50,9 +50,9 @@ class MARAEnv(gym.Env):
         URDF_PATH = get_prefix_path("mara_description") + "/share/mara_description/urdf/mara_robot_gripper_140.urdf"
 
         # Launch mara in a new Process
-        self.launch_subp = ut_launch.start_launch_servide_process(
-            ut_launch.generate_launch_description_mara(
-                self.gzclient, self.real_speed, self.multi_instance, self.port))
+        self.launch_subp = ut_launch.startLaunchServiceProcess(
+            ut_launch.generateLaunchDescriptionMara(
+                self.gzclient, self.realSpeed, self.multiInstance, self.port))
 
         # Wait a bit for the spawn process.
         # TODO, replace sleep function.

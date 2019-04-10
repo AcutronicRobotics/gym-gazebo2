@@ -40,7 +40,7 @@ class MARARealEnv(gym.Env):
         URDF_PATH = get_prefix_path("mara_description") + "/share/mara_description/urdf/mara_robot_gripper_140.urdf"
 
         # Launch mara in a new Process
-        self.launch_subp = ut_launch.start_launch_servide_process( ut_launch.launchReal() )
+        self.launch_subp = ut_launch.startLaunchServiceProcess( ut_launch.launchReal() )
 
         # Create the node after the new ROS_DOMAIN_ID is set in generate_launch_description()
         rclpy.init(args=None)
