@@ -5,12 +5,13 @@ import numpy as np
 import copy
 import math
 import os
+import signal
 import sys
 from gym import utils, spaces
 from gym_gazebo2.utils import ut_generic, ut_launch, ut_mara, ut_math, ut_gazebo, tree_urdf, general_utils
 from gym.utils import seeding
 from gazebo_msgs.srv import SpawnEntity
-from multiprocessing import Process
+import subprocess
 import argparse
 import transforms3d as tf3d
 
@@ -45,11 +46,15 @@ class MARAEnv(gym.Env):
         self.velocity = args.velocity
         self.multiInstance = args.multiInstance
         self.port = args.port
+
         # Set the path of the corresponding URDF file
-        URDF_PATH = get_prefix_path("mara_description") + "/share/mara_description/urdf/mara_robot_gripper_140.urdf"
+        if self.realSpeed:
+            urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf/reinforcement_learning/mara_robot_gripper_140_run.urdf"
+        else:
+            urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf/reinforcement_learning/mara_robot_gripper_140_train.urdf"
 
         # Launch mara in a new Process
-        ut_launch.startLaunchServideProcess(
+        self.launch_subp = ut_launch.startLaunchServiceProcess(
             ut_launch.generateLaunchDescriptionMara(
                 self.gzclient, self.realSpeed, self.multiInstance, self.port))
 
@@ -63,11 +68,7 @@ class MARAEnv(gym.Env):
 
         # class variables
         self._observation_msg = None
-        self.obs = None
-        self.action_space = None
-        self.targetPosition = None
-        self.target_orientation = None
-        self.max_episode_steps = 1024
+        self.max_episode_steps = 1024 #default value, can be updated from baselines
         self.iterator = 0
         self.reset_jnts = True
         self._collision_msg = None
@@ -135,7 +136,7 @@ class MARAEnv(gym.Env):
             'jointOrder': m_jointOrder,
             'linkNames': m_linkNames,
             'reset_conditions': reset_condition,
-            'tree_path': URDF_PATH,
+            'tree_path': urdfPath,
             'end_effector_points': EE_POINTS,
         }
 
@@ -201,6 +202,9 @@ class MARAEnv(gym.Env):
 
         # Seed the environment
         self.seed()
+        self.buffer_dist_rewards = []
+        self.buffer_tot_rewards = []
+        self.collided = 0
 
     def observation_callback(self, message):
         """
@@ -274,6 +278,7 @@ class MARAEnv(gym.Env):
             reset_future = self.reset_sim.call_async(Empty.Request())
             rclpy.spin_until_future_complete(self.node, reset_future)
             self._collision_msg = None
+            self.collided += 1
             return True
         else:
             return False
@@ -301,10 +306,10 @@ class MARAEnv(gym.Env):
         self.ros_clock = rclpy.clock.Clock().now().nanoseconds
 
         # Take an observation
-        self.ob = self.take_observation()
+        obs = self.take_observation()
 
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
-        rewardDist = ut_math.rmseFunc( self.ob[self.numJoints:(self.numJoints+3)] )
+        rewardDist = ut_math.rmseFunc( obs[self.numJoints:(self.numJoints+3)] )
 
         collided = self.collision()
 
@@ -313,8 +318,26 @@ class MARAEnv(gym.Env):
         # Calculate if the env has been solved
         done = bool(self.iterator == self.max_episode_steps)
 
+        self.buffer_dist_rewards.append(rewardDist)
+        self.buffer_tot_rewards.append(reward)
+        info = {}
+        if self.iterator % self.max_episode_steps == 0:
+            max_dist_tgt = max(self.buffer_dist_rewards)
+            mean_dist_tgt = np.mean(self.buffer_dist_rewards)
+            min_dist_tgt = min(self.buffer_dist_rewards)
+            max_tot_rew = max(self.buffer_tot_rewards)
+            mean_tot_rew = np.mean(self.buffer_tot_rewards)
+            min_tot_rew = min(self.buffer_tot_rewards)
+            num_coll = self.collided
+
+            info = {"infos":{"ep_dist_max": max_dist_tgt,"ep_dist_mean": mean_dist_tgt,"ep_dist_min": min_dist_tgt,\
+                "ep_rew_max": max_tot_rew,"ep_rew_mean": mean_tot_rew,"ep_rew_min": min_tot_rew,"num_coll": num_coll}}
+            self.buffer_dist_rewards = []
+            self.buffer_tot_rewards = []
+            self.collided = 0
+
         # Return the corresponding observations, rewards, etc.
-        return self.ob, reward, done, {}
+        return obs, reward, done, info
 
     def reset(self):
         """
@@ -333,7 +356,17 @@ class MARAEnv(gym.Env):
         self.ros_clock = rclpy.clock.Clock().now().nanoseconds
 
         # Take an observation
-        self.ob = self.take_observation()
+        obs = self.take_observation()
 
         # Return the corresponding observation
-        return self.ob
+        return obs
+
+    def close(self):
+        try:
+            os.sys("curl -s") # Ignore errors raised by SIGINT/SIGTERM
+            os.killpg(os.getpgid(self.launch_subp.pid), signal.SIGINT) #SIGINT is used due to gazebo limitations
+        except:
+            pass
+
+        rclpy.shutdown()
+        time.sleep(6) # mara_contact_publisher needs 5 seconds after receiving 'SIGINT' to escalating to 'SIGTERM'

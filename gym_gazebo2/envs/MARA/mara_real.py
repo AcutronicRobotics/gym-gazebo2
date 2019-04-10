@@ -4,11 +4,12 @@ import time
 import numpy as np
 import copy
 import os
+import signal
 import sys
 import math
 import transforms3d as tf3d
 from gym import utils, spaces
-from gym_gazebo2.utils import ut_generic, ut_mara, ut_math, tree_urdf, general_utils
+from gym_gazebo2.utils import ut_launch, ut_generic, ut_mara, ut_math, tree_urdf, general_utils
 from gym.utils import seeding
 
 # ROS 2
@@ -35,8 +36,12 @@ class MARARealEnv(gym.Env):
         args = ut_generic.getArgsParserMARA().parse_args()
         self.realSpeed = args.realSpeed
         self.velocity = args.velocity
+
         # Set the path of the corresponding URDF file
-        URDF_PATH = get_prefix_path("mara_description") + "/share/mara_description/urdf/mara_robot_gripper_140.urdf"
+        urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf/mara_robot_gripper_140.urdf"
+
+        # Launch mara in a new Process
+        self.launch_subp = ut_launch.startLaunchServiceProcess( ut_launch.launchReal() )
 
         # Create the node after the new ROS_DOMAIN_ID is set in generate_launch_description()
         rclpy.init(args=None)
@@ -44,11 +49,7 @@ class MARARealEnv(gym.Env):
 
         # class variables
         self._observation_msg = None
-        self.obs = None
-        self.action_space = None
-        self.targetPosition = None
-        self.target_orientation = None
-        self.max_episode_steps = 1024
+        self.max_episode_steps = 1024 #default value, can be updated from baselines
         self.iterator = 0
         self.reset_jnts = True
 
@@ -102,7 +103,7 @@ class MARARealEnv(gym.Env):
 
         reset_condition = {
             'initial_positions': INITIAL_JOINTS,
-             'initial_velocities': []
+            'initial_velocities': []
         }
         #############################
 
@@ -114,14 +115,13 @@ class MARARealEnv(gym.Env):
             'jointOrder': m_jointOrder,
             'linkNames': m_linkNames,
             'reset_conditions': reset_condition,
-            'tree_path': URDF_PATH,
+            'tree_path': urdfPath,
             'end_effector_points': EE_POINTS,
         }
 
         # Subscribe to the appropriate topics, taking into account the particular robot
         self._pub = self.node.create_publisher(JointTrajectory, JOINT_PUBLISHER, qos_profile=qos_profile_sensor_data)
         self._sub = self.node.create_subscription(JointTrajectoryControllerState, JOINT_SUBSCRIBER, self.observation_callback, qos_profile=qos_profile_sensor_data)
-        self.reset_sim = self.node.create_client(Empty, '/reset_simulation')
 
         # Initialize a tree structure from the robot urdf.
         #   note that the xacro of the urdf is updated by hand.
@@ -167,6 +167,7 @@ class MARARealEnv(gym.Env):
         obs_message = self._observation_msg
 
         while obs_message is None:
+            print("obs is empty")
             rclpy.spin_once(self.node)
             obs_message = self._observation_msg
 
@@ -228,7 +229,7 @@ class MARARealEnv(gym.Env):
             self.velocity))
 
         # Take an observation
-        self.ob = self.take_observation()
+        obs = self.take_observation()
 
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
         rewardDist = ut_math.rmseFunc( self.ob[self.numJoints:(self.numJoints+3)] )
@@ -240,7 +241,7 @@ class MARARealEnv(gym.Env):
         done = bool(self.iterator == self.max_episode_steps)
 
         # Return the corresponding observations, rewards, etc.
-        return self.ob, reward, done, {}
+        return obs, reward, done, {}
 
     def reset(self):
         """
@@ -248,16 +249,18 @@ class MARARealEnv(gym.Env):
         """
         self.iterator = 0
 
-        if self.reset_jnts is True:
-            # reset simulation
-            while not self.reset_sim.wait_for_service(timeout_sec=1.0):
-                self.node.get_logger().info('service not available, waiting again...')
-
-            reset_future = self.reset_sim.call_async(Empty.Request())
-            rclpy.spin_until_future_complete(self.node, reset_future)
-
         # Take an observation
-        self.ob = self.take_observation()
+        obs = self.take_observation()
 
         # Return the corresponding observation
-        return self.ob
+        return obs
+
+    def close(self):
+        try:
+            os.sys("curl -s") # Ignore errors raised by SIGINT/SIGTERM
+            os.killpg(os.getpgid(self.launch_subp.pid), signal.SIGINT) #SIGINT is used due to gazebo limitations
+        except:
+            pass
+        
+        rclpy.shutdown()
+        time.sleep(6) # mara_contact_publisher needs 5 seconds after receiving 'SIGINT' to escalating to 'SIGTERM'

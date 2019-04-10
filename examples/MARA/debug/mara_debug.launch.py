@@ -10,4 +10,4 @@ def generate_launch_description():
     multiInstance = False
     port = 11345
 
-    return ut_launch.generateLaunchDescriptionMara(gzclient, realSpeed, multiInstance, port, urdf)
+    return ut_launch.generateLaunchDescriptionMara(gzclient, realSpeed, multiInstance, port)
