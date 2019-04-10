@@ -305,7 +305,7 @@ class MARAEnv(gym.Env):
         obs = self.take_observation()
 
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
-        reward_dist = ut_math.rmse_func( obs[self.num_joints:(self.num_joints+3)] )
+        rewardDist = ut_math.rmseFunc( obs[self.numJoints:(self.numJoints+3)] )
 
         collided = self.collision()
 
@@ -314,7 +314,7 @@ class MARAEnv(gym.Env):
         # Calculate if the env has been solved
         done = bool(self.iterator == self.max_episode_steps)
 
-        self.buffer_dist_rewards.append(reward_dist)
+        self.buffer_dist_rewards.append(rewardDist)
         self.buffer_tot_rewards.append(reward)
         info = {}
         if self.iterator % self.max_episode_steps == 0:
