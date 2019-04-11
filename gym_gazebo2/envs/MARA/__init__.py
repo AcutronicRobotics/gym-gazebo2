@@ -1,4 +1,5 @@
 from gym_gazebo2.envs.MARA.mara import MARAEnv
+from gym_gazebo2.envs.MARA.mara import MARACameraEnv
 from gym_gazebo2.envs.MARA.mara_real import MARARealEnv
 from gym_gazebo2.envs.MARA.mara_orient import MARAOrientEnv
 from gym_gazebo2.envs.MARA.mara_collision import MARACollisionEnv

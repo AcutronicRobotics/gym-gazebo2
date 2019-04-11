@@ -9,6 +9,11 @@ register(
 )
 
 register(
+    id='MARACamera-v0',
+    entry_point='gym_gazebo2.envs.MARA:MARACameraEnv',
+)
+
+register(
     id='MARAReal-v0',
     entry_point='gym_gazebo2.envs.MARA:MARARealEnv',
 )

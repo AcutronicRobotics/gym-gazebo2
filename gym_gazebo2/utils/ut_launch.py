@@ -70,7 +70,7 @@ def getExclusiveNetworkParameters():
     return {'ros_domain_id':str(randomPort),
             'gazebo_master_uri':"http://localhost:" + str(randomPort)}
 
-def generateLaunchDescriptionMara(gzclient, realSpeed, multiInstance, port):
+def generateLaunchDescriptionMara(gzclient, realSpeed, multiInstance, port, urdf):
     """
         Returns ROS2 LaunchDescription object.
         Args:
@@ -162,7 +162,7 @@ def generateLaunchDescriptionMara(gzclient, realSpeed, multiInstance, port):
     return launchDesc
 
 def launchReal():
-    os.environ["ROS_DOMAIN_ID"] = str(40)
+    os.environ["ROS_DOMAIN_ID"] = str(22)
     os.environ["RMW_IMPLEMENTATION"] = "rmw_opensplice_cpp"
     installDir = get_package_prefix('mara_gazebo_plugins')
     launchDesc = LaunchDescription([

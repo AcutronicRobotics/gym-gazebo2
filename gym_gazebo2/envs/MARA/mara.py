@@ -56,7 +56,7 @@ class MARAEnv(gym.Env):
         # Launch mara in a new Process
         self.launch_subp = ut_launch.startLaunchServiceProcess(
             ut_launch.generateLaunchDescriptionMara(
-                self.gzclient, self.realSpeed, self.multiInstance, self.port))
+                self.gzclient, self.realSpeed, self.multiInstance, self.port, urdf))
 
         # Wait a bit for the spawn process.
         # TODO, replace sleep function.
@@ -105,8 +105,7 @@ class MARAEnv(gym.Env):
         # Set constants for links
         WORLD = 'world'
         TABLE = 'table'
-        BASE = 'baseLink'
-        BASE_ROBOT = 'base_robot'
+        BASE = 'base_link'
         MARA_MOTOR1_LINK = 'motor1_link'
         MARA_MOTOR2_LINK = 'motor2_link'
         MARA_MOTOR3_LINK = 'motor3_link'
@@ -117,7 +116,7 @@ class MARAEnv(gym.Env):
 
         JOINT_ORDER = [MOTOR1_JOINT,MOTOR2_JOINT, MOTOR3_JOINT,
                         MOTOR4_JOINT, MOTOR5_JOINT, MOTOR6_JOINT]
-        LINK_NAMES = [ WORLD, TABLE, BASE, BASE_ROBOT,
+        LINK_NAMES = [ WORLD, TABLE, BASE,
                         MARA_MOTOR1_LINK, MARA_MOTOR2_LINK,
                         MARA_MOTOR3_LINK, MARA_MOTOR4_LINK,
                         MARA_MOTOR5_LINK, MARA_MOTOR6_LINK, EE_LINK]

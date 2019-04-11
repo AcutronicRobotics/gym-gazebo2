@@ -7,18 +7,18 @@ import math
 import os
 import signal
 import sys
-import transforms3d as tf3d
 from gym import utils, spaces
 from gym_gazebo2.utils import ut_generic, ut_launch, ut_mara, ut_math, ut_gazebo, tree_urdf, general_utils
 from gym.utils import seeding
 from gazebo_msgs.srv import SpawnEntity
-from multiprocessing import Process
+import subprocess
 import argparse
+import transforms3d as tf3d
 
 # ROS 2
 import rclpy
 from rclpy.qos import QoSProfile, qos_profile_sensor_data
-from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint # Used for publishing mara joint angles.
 from control_msgs.msg import JointTrajectoryControllerState
 from gazebo_msgs.msg import ContactState
 from std_msgs.msg import String
@@ -30,7 +30,7 @@ from builtin_interfaces.msg import Duration
 # Algorithm specific
 from PyKDL import ChainJntToJacSolver # For KDL Jacobians
 
-class MARAOrientEnv(gym.Env):
+class MARAEnv(gym.Env):
     """
     TODO. Define the environment.
     """
@@ -49,9 +49,9 @@ class MARAOrientEnv(gym.Env):
 
         # Set the path of the corresponding URDF file
         if self.realSpeed:
-            urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf/reinforcement_learning/mara_robot_gripper_140_run.urdf"
+            urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf/reinforcement_learning/mara_robot_gripper_140_camera_run.urdf"
         else:
-            urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf/reinforcement_learning/mara_robot_gripper_140_train.urdf"
+            urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf/reinforcement_learning/mara_robot_gripper_140_camera_train.urdf"
 
         # Launch mara in a new Process
         self.launch_subp = ut_launch.startLaunchServiceProcess(
@@ -82,7 +82,7 @@ class MARAOrientEnv(gym.Env):
         # self.targetPosition = np.asarray([-0.386752, -0.000756, 1.40557]) # easy point
         # self.target_orientation = np.asarray([-0.4958324, 0.5041332, 0.5041331, -0.4958324]) # arrow looking opposite to MARA [w, x, y, z]
 
-        EE_POINTS = np.asmatrix([[0, 0, 0]]) # offset
+        EE_POINTS = np.asmatrix([[0, 0, 0]])
         EE_VELOCITIES = np.asmatrix([[0, 0, 0]])
 
         # Initial joint position
@@ -146,7 +146,7 @@ class MARAOrientEnv(gym.Env):
         self.reset_sim = self.node.create_client(Empty, '/reset_simulation')
 
         # Initialize a tree structure from the robot urdf.
-        # Note that the xacro of the urdf is updated by hand.
+        #   note that the xacro of the urdf is updated by hand.
         # The urdf must be compiled.
         _, self.ur_tree = tree_urdf.treeFromFile(self.environment['tree_path'])
         # Retrieve a chain structure between the base and the start of the end effector.
@@ -155,11 +155,11 @@ class MARAOrientEnv(gym.Env):
         # Initialize a KDL Jacobian solver from the chain.
         self.jacSolver = ChainJntToJacSolver(self.mara_chain)
 
-        self.obs_dim = self.numJoints + 10
+        self.obs_dim = self.numJoints + 6
 
-        # Here idially we should find the control range of the robot. Unfortunatelly in ROS/KDL there is nothing like this.
-        # I have tested this with the mujoco enviroment and the output is always same low[-1.,-1.], high[1.,1.]
-        # Does not change anything
+        # # Here idially we should find the control range of the robot. Unfortunatelly in ROS/KDL there is nothing like this.
+        # # I have tested this with the mujoco enviroment and the output is always same low[-1.,-1.], high[1.,1.]
+
         low = -np.pi * np.ones(self.numJoints)
         high = np.pi * np.ones(self.numJoints)
 
@@ -255,9 +255,6 @@ class MARAOrientEnv(gym.Env):
                                                 baseLink=self.environment['linkNames'][0], # make the table as the base to get the world coordinate system
                                                 endLink=self.environment['linkNames'][-1])
 
-            current_quaternion = tf3d.quaternions.mat2quat(rot) #[w, x, y ,z]
-            quat_error = tf3d.quaternions.qmult(current_quaternion, tf3d.quaternions.qconjugate(self.target_orientation))
-
             current_eePos_tgt = np.ndarray.flatten(general_utils.getEePoints(self.environment['end_effector_points'], translation, rot).T)
             eePos_points = current_eePos_tgt - self.targetPosition
 
@@ -267,7 +264,6 @@ class MARAOrientEnv(gym.Env):
             # vector, typically denoted asrobot_id 'x'.
             state = np.r_[np.reshape(lastObservations, -1),
                           np.reshape(eePos_points, -1),
-                          np.reshape(quat_error, -1),
                           np.reshape(eeVelocities, -1),]
 
             return state
@@ -313,14 +309,14 @@ class MARAOrientEnv(gym.Env):
 
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
         rewardDist = ut_math.rmseFunc( obs[self.numJoints:(self.numJoints+3)] )
-        reward_orientation = 2 * np.arccos( abs( obs[self.numJoints+3] ) )
 
         collided = self.collision()
 
-        reward = ut_math.computeReward(rewardDist, rewardOrientation)
+        reward = ut_math.computeReward(rewardDist)
 
         # Calculate if the env has been solved
         done = bool(self.iterator == self.max_episode_steps)
+
         self.buffer_dist_rewards.append(rewardDist)
         self.buffer_tot_rewards.append(reward)
         info = {}
