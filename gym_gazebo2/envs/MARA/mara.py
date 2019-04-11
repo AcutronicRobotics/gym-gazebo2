@@ -337,3 +337,13 @@ class MARAEnv(gym.Env):
 
         # Return the corresponding observation
         return self.ob
+
+    def close(self):
+        try:
+            os.sys("curl -s") # Ignore errors raised by SIGINT/SIGTERM
+            os.killpg(os.getpgid(self.launch_subp.pid), signal.SIGINT) #SIGINT is used due to gazebo limitations
+        except:
+            pass
+
+        rclpy.shutdown()
+        time.sleep(6) # mara_contact_publisher needs 5 seconds after receiving 'SIGINT' to escalating to 'SIGTERM'
