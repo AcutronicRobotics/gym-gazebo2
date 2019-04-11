@@ -23,5 +23,5 @@ before_script:
 script:
  - docker build -t linter .
  - docker run -v /tmp/gym-gazebo2:/gym-gazebo2 linter
- - cd .ci/envs_tests && docker build -t envs .
+ - cd ../.ci/envs_tests && docker build -t envs .
  - docker run envs
