@@ -2,6 +2,7 @@ notifications:
   email:
     recipients:
       - lander@erlerobotics.com
+      - nestor@erlerobotics.com
     on_failure: always
     only: master
 
