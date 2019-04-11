@@ -86,7 +86,6 @@ class MARARealEnv(gym.Env):
         WORLD = 'world'
         TABLE = 'table'
         BASE = 'base_link'
-        BASE_ROBOT = 'base_robot'
         MARA_MOTOR1_LINK = 'motor1_link'
         MARA_MOTOR2_LINK = 'motor2_link'
         MARA_MOTOR3_LINK = 'motor3_link'
@@ -97,7 +96,7 @@ class MARARealEnv(gym.Env):
 
         JOINT_ORDER = [MOTOR1_JOINT,MOTOR2_JOINT, MOTOR3_JOINT,
                         MOTOR4_JOINT, MOTOR5_JOINT, MOTOR6_JOINT]
-        LINK_NAMES = [ WORLD, TABLE, BASE, BASE_ROBOT,
+        LINK_NAMES = [ WORLD, TABLE, BASE,
                         MARA_MOTOR1_LINK, MARA_MOTOR2_LINK,
                         MARA_MOTOR3_LINK, MARA_MOTOR4_LINK,
                         MARA_MOTOR5_LINK, MARA_MOTOR6_LINK, EE_LINK]
@@ -134,7 +133,7 @@ class MARARealEnv(gym.Env):
         # Initialize a KDL Jacobian solver from the chain.
         self.jacSolver = ChainJntToJacSolver(self.mara_chain)
 
-        self.obs_dim = self.numJoints + 10
+        self.obs_dim = self.numJoints + 6
 
         # # Here idially we should find the control range of the robot. Unfortunatelly in ROS/KDL there is nothing like this.
         # # I have tested this with the mujoco enviroment and the output is always same low[-1.,-1.], high[1.,1.]
@@ -204,7 +203,7 @@ class MARARealEnv(gym.Env):
             # vector, typically denoted asrobot_id 'x'.
             state = np.r_[np.reshape(lastObservations, -1),
                           np.reshape(eePos_points, -1),
-                          np.reshape(quat_error, -1),
+                          # np.reshape(quat_error, -1),
                           np.reshape(eeVelocities, -1),]
 
             return state
