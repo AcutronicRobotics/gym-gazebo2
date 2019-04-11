@@ -70,7 +70,7 @@ def getExclusiveNetworkParameters():
     return {'ros_domain_id':str(randomPort),
             'gazebo_master_uri':"http://localhost:" + str(randomPort)}
 
-def generateLaunchDescriptionMara(gzclient, realSpeed, multiInstance, port):
+def generateLaunchDescriptionMara(gzclient, realSpeed, multiInstance, port, urdf):
     """
         Returns ROS2 LaunchDescription object.
         Args:
@@ -133,7 +133,7 @@ def generateLaunchDescriptionMara(gzclient, realSpeed, multiInstance, port):
                 cmd=[gazeboCmd, '--verbose', '-s', 'libgazebo_ros_factory.so', '-s',
                      'libgazebo_ros_init.so', worldPath], output='screen', env=envs),
             Node(package='mara_utils_scripts', node_executable='spawn_mara_arg.py',
-                 arguments=["reinforcement_learning/mara_robot_gripper_140_run.urdf"],
+                 arguments=[urdf],
                  output='screen'),
             Node(package='hros_cognition_mara_components',
                  node_executable='hros_cognition_mara_components', output='screen',
@@ -152,7 +152,7 @@ def generateLaunchDescriptionMara(gzclient, realSpeed, multiInstance, port):
                 env=envs
             ),
             Node(package='mara_utils_scripts', node_executable='spawn_mara_arg.py',
-                 arguments=["reinforcement_learning/mara_robot_gripper_140_train.urdf"],
+                 arguments=[urdf],
                  output='screen'),
             Node(package='hros_cognition_mara_components',
                  node_executable='hros_cognition_mara_components',
@@ -164,7 +164,7 @@ def generateLaunchDescriptionMara(gzclient, realSpeed, multiInstance, port):
     return launchDesc
 
 def launchReal():
-    os.environ["ROS_DOMAIN_ID"] = str(40)
+    os.environ["ROS_DOMAIN_ID"] = str(22)
     os.environ["RMW_IMPLEMENTATION"] = "rmw_opensplice_cpp"
     installDir = get_package_prefix('mara_gazebo_plugins')
     launchDesc = LaunchDescription([

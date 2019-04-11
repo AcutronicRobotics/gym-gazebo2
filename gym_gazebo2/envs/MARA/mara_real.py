@@ -38,7 +38,7 @@ class MARARealEnv(gym.Env):
         self.velocity = args.velocity
 
         # Set the path of the corresponding URDF file
-        urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf/mara_robot_gripper_140.urdf"
+        urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf/reinforcement_learning/mara_robot_gripper_140_camera_run.urdf"
 
         # Launch mara in a new Process
         self.launch_subp = ut_launch.startLaunchServiceProcess( ut_launch.launchReal() )
@@ -84,7 +84,7 @@ class MARARealEnv(gym.Env):
         # Set constants for links
         WORLD = 'world'
         TABLE = 'table'
-        BASE = 'baseLink'
+        BASE = 'base_link'
         BASE_ROBOT = 'base_robot'
         MARA_MOTOR1_LINK = 'motor1_link'
         MARA_MOTOR2_LINK = 'motor2_link'
@@ -261,6 +261,6 @@ class MARARealEnv(gym.Env):
             os.killpg(os.getpgid(self.launch_subp.pid), signal.SIGINT) #SIGINT is used due to gazebo limitations
         except:
             pass
-        
+
         rclpy.shutdown()
         time.sleep(6) # mara_contact_publisher needs 5 seconds after receiving 'SIGINT' to escalating to 'SIGTERM'
