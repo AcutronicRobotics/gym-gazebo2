@@ -50,14 +50,16 @@ class MARACollisionEnv(gym.Env):
 
         # Set the path of the corresponding URDF file
         if self.realSpeed:
-            urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf/reinforcement_learning/mara_robot_gripper_140_run.urdf"
+            urdf = "reinforcement_learning/mara_robot_gripper_140_run.urdf"
+            urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf/" + urdf
         else:
-            urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf/reinforcement_learning/mara_robot_gripper_140_train.urdf"
+            urdf = "reinforcement_learning/mara_robot_gripper_140_train.urdf"
+            urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf" + urdf
 
         # Launch mara in a new Process
         self.launch_subp = ut_launch.startLaunchServiceProcess(
             ut_launch.generateLaunchDescriptionMara(
-                self.gzclient, self.realSpeed, self.multiInstance, self.port))
+                self.gzclient, self.realSpeed, self.multiInstance, self.port, urdf))
 
         # Wait a bit for the spawn process.
         # TODO, replace sleep function.
