@@ -35,7 +35,7 @@ sudo apt update && sudo apt install -y \
   wget
 
 pip3 install tensorflow==1.12
-pip3 install transforms3d billiard
+pip3 install transforms3d billiard psutil
 
 # Fast-RTPS dependencies
 sudo apt install --no-install-recommends -y \
