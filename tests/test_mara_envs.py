@@ -9,12 +9,15 @@ import gym_gazebo2
 
 environments = []
 action = np.asarray([0.04, 0.09, 0.19, 0.39, 0.79, 1.57])
+tested_envs = 0
 
 for env in envs.registry.all():
     if env.id.startswith('MARA') and 'Real' not in env.id:
         environments.append(env.id)
 
+print("\nSTARTING MARA ENVS TEST")
 for e in environments:
+    print("\nStarting " + str(e) + " environment test.\n")
     env = gym.make(e)
     obs = env.reset()
     assert obs is not None
@@ -23,4 +26,8 @@ for e in environments:
     obs, rew, done, _ = env.step(action)
     assert (obs, rew, done) is not None
 
+    tested_envs += 1
     env.close()
+
+assert tested_envs == len(environments)
+sys.exit(0)

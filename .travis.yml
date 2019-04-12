@@ -2,7 +2,9 @@ notifications:
   email:
     recipients:
       - lander@erlerobotics.com
+      - nestor@erlerobotics.com
     on_failure: always
+    only: master
 
 matrix:
   include:
@@ -16,8 +18,10 @@ matrix:
 before_script:
   - mkdir /tmp/gym-gazebo2
   - mv * /tmp/gym-gazebo2
-  - cd .ci
+  - cd .ci/linter
 
 script:
  - docker build -t linter .
  - docker run -v /tmp/gym-gazebo2:/gym-gazebo2 linter
+ - cd ../envs_tests && docker build -t envs .
+ - docker run envs

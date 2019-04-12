@@ -9,11 +9,10 @@ import psutil
 import signal
 import sys
 from gym import utils, spaces
-from gym_gazebo2.utils.tree_urdf import treeFromFile
 from gym_gazebo2.utils import ut_generic, ut_launch, ut_mara, ut_math, ut_gazebo, tree_urdf, general_utils
 from gym.utils import seeding
 from gazebo_msgs.srv import SpawnEntity
-from multiprocessing import Process
+import subprocess
 import argparse
 import transforms3d as tf3d
 
@@ -32,7 +31,7 @@ from builtin_interfaces.msg import Duration
 # Algorithm specific
 from PyKDL import ChainJntToJacSolver # For KDL Jacobians
 
-class MARACollisionEnv(gym.Env):
+class MARACameraEnv(gym.Env):
     """
     TODO. Define the environment.
     """
@@ -51,10 +50,10 @@ class MARACollisionEnv(gym.Env):
 
         # Set the path of the corresponding URDF file
         if self.realSpeed:
-            urdf = "reinforcement_learning/mara_robot_gripper_140_run.urdf"
+            urdf = "reinforcement_learning/mara_robot_gripper_140_camera_run.urdf"
             urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf/" + urdf
         else:
-            urdf = "reinforcement_learning/mara_robot_gripper_140_train.urdf"
+            urdf = "reinforcement_learning/mara_robot_gripper_140_camera_train.urdf"
             urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf/" + urdf
 
         # Launch mara in a new Process
@@ -91,11 +90,11 @@ class MARACollisionEnv(gym.Env):
 
         # Initial joint position
         INITIAL_JOINTS = np.array([0., 0., 0., 0., 0., 0.])
-        # INITIAL_JOINTS = np.array([0., 0., 0., 0., -1.57, 0.])
 
         # # Topics for the robot publisher and subscriber.
         JOINT_PUBLISHER = '/mara_controller/command'
         JOINT_SUBSCRIBER = '/mara_controller/state'
+
 
         # joint names:
         MOTOR1_JOINT = 'motor1'
@@ -163,8 +162,10 @@ class MARACollisionEnv(gym.Env):
 
         # # Here idially we should find the control range of the robot. Unfortunatelly in ROS/KDL there is nothing like this.
         # # I have tested this with the mujoco enviroment and the output is always same low[-1.,-1.], high[1.,1.]
+
         low = -np.pi * np.ones(self.numJoints)
         high = np.pi * np.ones(self.numJoints)
+
         self.action_space = spaces.Box(low, high)
 
         high = np.inf*np.ones(self.obs_dim)
@@ -259,6 +260,7 @@ class MARACollisionEnv(gym.Env):
 
             current_eePos_tgt = np.ndarray.flatten(general_utils.getEePoints(self.environment['end_effector_points'], translation, rot).T)
             eePos_points = current_eePos_tgt - self.targetPosition
+
             eeVelocities = ut_mara.getEePointsVelocities(ee_link_jacobians, self.environment['end_effector_points'], rot, lastObservations)
 
             # Concatenate the information that defines the robot state
@@ -268,10 +270,6 @@ class MARACollisionEnv(gym.Env):
                           np.reshape(eeVelocities, -1),]
 
             return state
-
-    def seed(self, seed=None):
-        self.np_random, seed = seeding.np_random(seed)
-        return [seed]
 
     def collision(self):
         # Reset if there is a collision
@@ -287,6 +285,10 @@ class MARACollisionEnv(gym.Env):
         else:
             return False
 
+    def seed(self, seed=None):
+        self.np_random, seed = seeding.np_random(seed)
+        return [seed]
+
     def step(self, action):
         """
         Implement the environment step abstraction. Execute action and returns:
@@ -295,13 +297,13 @@ class MARACollisionEnv(gym.Env):
             - reward
             - done (status)
         """
-        self.iterator += 1
+        self.iterator+=1
 
         # Execute "action"
-        self._pub.publish( ut_mara.getTrajectoryMessage(
+        self._pub.publish(ut_mara.getTrajectoryMessage(
             action[:self.numJoints],
             self.environment['jointOrder'],
-            self.velocity) )
+            self.velocity))
 
         self.ros_clock = rclpy.clock.Clock().now().nanoseconds
 
@@ -313,7 +315,7 @@ class MARACollisionEnv(gym.Env):
 
         collided = self.collision()
 
-        reward = ut_math.computeReward(rewardDist, collision = collided)
+        reward = ut_math.computeReward(rewardDist)
 
         # Calculate if the env has been solved
         done = bool(self.iterator == self.max_episode_steps)

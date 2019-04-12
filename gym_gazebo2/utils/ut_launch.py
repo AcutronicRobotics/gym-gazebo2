@@ -5,6 +5,7 @@ import pathlib
 
 from datetime import datetime
 from billiard import Process
+
 from ament_index_python.packages import get_package_prefix
 from launch import LaunchService, LaunchDescription
 from launch.actions.execute_process import ExecuteProcess
@@ -13,7 +14,7 @@ from launch_ros.actions import Node
 import gym_gazebo2
 from gym_gazebo2.utils import ut_generic
 
-def startLaunchServideProcess(launchDesc):
+def startLaunchServiceProcess(launchDesc):
     """Starts a Launch Service process. To be called from subclasses.
 
     Args:
@@ -27,6 +28,8 @@ def startLaunchServideProcess(launchDesc):
     # to avoid leaving orphaned processes running
     process.daemon = True
     process.start()
+
+    return process
 
 def isPortInUse(port):
     """Checks if the given port is being used.
@@ -69,7 +72,7 @@ def getExclusiveNetworkParameters():
     return {'ros_domain_id':str(randomPort),
             'gazebo_master_uri':"http://localhost:" + str(randomPort)}
 
-def generateLaunchDescriptionMara(gzclient, realSpeed, multiInstance, port):
+def generateLaunchDescriptionMara(gzclient, realSpeed, multiInstance, port, urdf):
     """
         Returns ROS2 LaunchDescription object.
         Args:
@@ -131,7 +134,8 @@ def generateLaunchDescriptionMara(gzclient, realSpeed, multiInstance, port):
             ExecuteProcess(
                 cmd=[gazeboCmd, '--verbose', '-s', 'libgazebo_ros_factory.so', '-s',
                      'libgazebo_ros_init.so', worldPath], output='screen', env=envs),
-            Node(package='mara_utils_scripts', node_executable='spawn_mara_gripper_140_run.py',
+            Node(package='mara_utils_scripts', node_executable='spawn_mara_arg.py',
+                 arguments=[urdf],
                  output='screen'),
             Node(package='hros_cognition_mara_components',
                  node_executable='hros_cognition_mara_components', output='screen',
@@ -146,14 +150,29 @@ def generateLaunchDescriptionMara(gzclient, realSpeed, multiInstance, port):
         launchDesc = LaunchDescription([
             ExecuteProcess(
                 cmd=[gazeboCmd, '--verbose', '-s', 'libgazebo_ros_factory.so', '-s',
-                     'libgazebo_ros_init.so', worldPath], output='screen', env=envs),
-            Node(package='mara_utils_scripts', node_executable='spawn_mara_gripper_140.py',
+                     'libgazebo_ros_init.so', worldPath], output='screen',
+                env=envs
+            ),
+            Node(package='mara_utils_scripts', node_executable='spawn_mara_arg.py',
+                 arguments=[urdf],
                  output='screen'),
             Node(package='hros_cognition_mara_components',
-                 node_executable='hros_cognition_mara_components', output='screen',
+                 node_executable='hros_cognition_mara_components',
                  arguments=["-motors", installDir \
-                 + "/share/hros_cognition_mara_components/link_order.yaml"]),
+                 + "/share/hros_cognition_mara_components/link_order.yaml"], output='screen'),
             Node(package='mara_contact_publisher', node_executable='mara_contact_publisher',
                  output='screen')
         ])
+    return launchDesc
+
+def launchReal():
+    os.environ["ROS_DOMAIN_ID"] = str(22)
+    os.environ["RMW_IMPLEMENTATION"] = "rmw_opensplice_cpp"
+    installDir = get_package_prefix('mara_gazebo_plugins')
+    launchDesc = LaunchDescription([
+        Node(package='hros_cognition_mara_components',
+             node_executable='hros_cognition_mara_components',
+             arguments=["-motors", installDir \
+             + "/share/hros_cognition_mara_components/link_order_real.yaml"], output='screen')
+    ])
     return launchDesc
