@@ -20,6 +20,6 @@ RUN \
         billiard \
         psutil \
         pylint \
-COPY ./docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+COPY docker-entrypoint.sh /
 WORKDIR /gym-gazebo2
 ENTRYPOINT ["docker-entrypoint.sh"]
