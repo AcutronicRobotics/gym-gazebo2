@@ -19,6 +19,8 @@ language: cpp
 
 cache:
   ccache: true
+  directories:
+    - $HOME/opt
 
 before_script:
   - mkdir /tmp/gym-gazebo2
