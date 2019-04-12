@@ -15,6 +15,8 @@ matrix:
       sudo:
         - required
 
+language: cpp
+
 cache:
   ccache: true
 
