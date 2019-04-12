@@ -29,6 +29,8 @@ def startLaunchServiceProcess(launchDesc):
     process.daemon = True
     process.start()
 
+    return process
+
 def isPortInUse(port):
     """Checks if the given port is being used.
 
