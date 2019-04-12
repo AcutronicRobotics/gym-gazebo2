@@ -14,10 +14,10 @@ RUN \
          python3-sip-dev \
          libeigen3-dev \
          && rm -rf /var/lib/apt/lists/* \
- 	&&  pip3 install \
-        	tensorflow==1.12 \
-        	transforms3d \
-        	billiard \
+  &&  pip3 install \
+          tensorflow==1.12 \
+          transforms3d \
+          billiard \
           psutil \
           pylint \
 COPY ./docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
