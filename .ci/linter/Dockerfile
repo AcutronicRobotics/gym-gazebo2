@@ -18,7 +18,8 @@ RUN \
         	tensorflow==1.12 \
         	transforms3d \
         	billiard \
-                pylint
+          psutil \
+          pylint \
 COPY ./docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 WORKDIR /gym-gazebo2
 ENTRYPOINT ["docker-entrypoint.sh"]

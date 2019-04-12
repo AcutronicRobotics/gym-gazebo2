@@ -26,6 +26,7 @@ RUN \
         	tensorflow==1.12 \
         	transforms3d \
         	billiard \
+          psutil \
   	&& apt update -qq && apt install -qq -y \
     		python3-colcon-common-extensions \
     		python3-vcstool \
