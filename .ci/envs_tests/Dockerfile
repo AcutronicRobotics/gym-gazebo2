@@ -29,12 +29,9 @@ RUN \
         billiard \
         psutil \
       && apt update -qq && apt install -qq -y \
-        python3-colcon-common-extensions \
-        python3-vcstool \
         python3-numpy \
         python3-sip-dev \
         libeigen3-dev \
-        wget \
         libboost-all-dev \
         ros-$ROS2_DISTRO-ros-base \
         ros-$ROS2_DISTRO-action-msgs \
