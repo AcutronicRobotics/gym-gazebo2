@@ -65,8 +65,8 @@ touch ~/ros2_mara_ws/src/orocos_kinematics_dynamics/orocos_kinematics_dynamics/C
 Generate [HRIM](https://github.com/erlerobot/HRIM) dependencies:
 
 ```sh
-cd ~/ros2_mara_ws/src/HRIM
-pip3 install -e installator
+cd ~/ros2_mara_ws/src/HRIM/installator
+sudo python3 setup.py install && cd ..
 hrim generate models/actuator/servo/servo.xml
 hrim generate models/actuator/gripper/gripper.xml
 ```
