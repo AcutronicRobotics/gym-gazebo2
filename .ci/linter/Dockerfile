@@ -19,8 +19,7 @@ RUN \
         transforms3d \
         billiard \
         psutil \
-        pylint \
-RUN echo -e '#!/bin/bash\nset -e\n\npylint --rcfile linter/.pylintrc gym_gazebo2\n\nres=$?\n\nif [ $res -ne 0 ]; then\n\techo "Linter error"\n\texit 123\nfi'> /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+        pylint
+COPY ./docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 WORKDIR /gym-gazebo2
 ENTRYPOINT ["docker-entrypoint.sh"]
