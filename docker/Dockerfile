@@ -43,10 +43,10 @@ RUN \
         ros-$ROS2_DISTRO-cv-bridge \
         ros-$ROS2_DISTRO-control-msgs \
         ros-$ROS2_DISTRO-image-transport \
-        ros-$ROS2_DISTRO-gazebo_dev \
-        ros-$ROS2_DISTRO-gazebo_msgs \
-        ros-$ROS2_DISTRO-gazebo_plugins \
-        ros-$ROS2_DISTRO-gazebo_ros \
+        ros-$ROS2_DISTRO-gazebo-dev \
+        ros-$ROS2_DISTRO-gazebo-msgs \
+        ros-$ROS2_DISTRO-gazebo-plugins \
+        ros-$ROS2_DISTRO-gazebo-ros \
         ros-$ROS2_DISTRO-gazebo-ros-pkgs \
         libopencv-dev \
       && rm -rf /var/lib/apt/lists/* \
