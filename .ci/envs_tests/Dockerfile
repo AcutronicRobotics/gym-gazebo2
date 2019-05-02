@@ -1,4 +1,4 @@
-FROM ubuntu:bionic
+ROM ubuntu:bionic
 
 LABEL maintainer="Lander Usategui <lander at erlerobotics dot com>"
 
@@ -21,14 +21,14 @@ RUN \
         git \
         python3-colcon-common-extensions \
         python3-pip \
-        python3-vcstool \
         wget \
       &&  pip3 install \
-        tensorflow==1.12 \
-        transforms3d \
-        billiard \
-        psutil \
+          tensorflow==1.12 \
+          transforms3d \
+          billiard \
+          psutil \
       && apt update -qq && apt install -qq -y \
+        python3-vcstool \
         python3-numpy \
         python3-sip-dev \
         libeigen3-dev \
@@ -40,25 +40,31 @@ RUN \
         ros-$ROS2_DISTRO-urdf ros-$ROS2_DISTRO-rttest ros-$ROS2_DISTRO-tf2 \
         ros-$ROS2_DISTRO-tf2-geometry-msgs \
         ros-$ROS2_DISTRO-rclcpp-action \
+        ros-$ROS2_DISTRO-cv-bridge \
+        ros-$ROS2_DISTRO-control-msgs \
+        ros-$ROS2_DISTRO-image-transport \
+        ros-$ROS2_DISTRO-gazebo-dev \
+        ros-$ROS2_DISTRO-gazebo-msgs \
+        ros-$ROS2_DISTRO-gazebo-plugins \
+        ros-$ROS2_DISTRO-gazebo-ros \
+        ros-$ROS2_DISTRO-gazebo-ros-pkgs \
         libopencv-dev \
       && rm -rf /var/lib/apt/lists/* \
-      #Gazebo
-      && curl -sSL http://get.gazebosim.org | sh \
       && wget https://raw.githubusercontent.com/AcutronicRobotics/MARA/master/mara-ros2.repos && vcs import src < mara-ros2.repos \
       && wget https://raw.githubusercontent.com/AcutronicRobotics/gym-gazebo2/master/provision/additional-repos.repos && vcs import src < additional-repos.repos \
       #Generete HRIM packages
-      && cd ~/ros2_mara_ws/src/HRIM/installator \
-      && python3 setup.py install && cd .. \
+      && cd ~/ros2_mara_ws/src/HRIM \
+      && pip3 install hrim \
       && hrim generate models/actuator/servo/servo.xml \
       && hrim generate models/actuator/gripper/gripper.xml \
       #Compile the work-space
       && bash -c " cd /root/ros2_mara_ws \
-      && source /opt/ros/crystal/setup.bash && colcon build --merge-install --parallel-workers $(nproc) --packages-ignore orocos_kinematics_dynamics \
+      && source /opt/ros/crystal/setup.bash && colcon build --merge-install --parallel-workers $(nproc) --packages-ignore orocos_kinematics_dynamics individual_trajectories_bridge \
       && touch /root/ros2_mara_ws/install/share/orocos_kdl/local_setup.sh /root/ros2_mara_ws/install/share/orocos_kdl/local_setup.bash \
       && cd /root/ && git clone https://github.com/ros/urdf_parser_py.git -b melodic-devel && cd /root/urdf_parser_py && pip3 install -e . \
       && cd /root && git clone https://github.com/openai/gym && cd /root/gym && pip3 install -e . \
       #gym-gazebo2
-        && cd /root && git clone https://github.com/AcutronicRobotics/gym-gazebo2 && cd /root/gym-gazebo2 && pip3 install -e . \
+      && cd /root && git clone https://github.com/AcutronicRobotics/gym-gazebo2 && cd /root/gym-gazebo2 && pip3 install -e . \
       #Load provisioning script
       && echo 'source /root/gym-gazebo2/provision/mara_setup.sh' >> ~/.bashrc \
       "
