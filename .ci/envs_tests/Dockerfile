@@ -1,4 +1,4 @@
-ROM ubuntu:bionic
+FROM ubuntu:bionic
 
 LABEL maintainer="Lander Usategui <lander at erlerobotics dot com>"
 
