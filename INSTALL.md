@@ -21,6 +21,25 @@ For the complete MARA experiments installation, please refer first to the **ROS2
 ## Dependent tools
 
 ```sh
+# ROS 2 extra packages
+sudo apt update && sudo apt install -y \
+ros-crystal-action-msgs \
+ros-crystal-message-filters \
+ros-crystal-yaml-cpp-vendor \
+ros-crystal-urdf \
+ros-crystal-rttest \
+ros-crystal-tf2 \
+ros-crystal-tf2-geometry-msgs \
+ros-crystal-rclcpp-action \
+ros-crystal-cv-bridge \
+ros-crystal-control-msgs \
+ros-crystal-image-transport \
+ros-crystal-gazebo-dev \
+ros-crystal-gazebo-msgs \
+ros-crystal-gazebo-plugins \
+ros-crystal-gazebo-ros \
+ros-crystal-gazebo-ros-pkgs \
+
 sudo apt update && sudo apt install -y \
   build-essential \
   cmake \
