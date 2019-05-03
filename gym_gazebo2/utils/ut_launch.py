@@ -130,39 +130,24 @@ def generateLaunchDescriptionMara(gzclient, realSpeed, multiInstance, port, urdf
     if realSpeed:
         worldPath = os.path.join(os.path.dirname(gym_gazebo2.__file__), 'worlds',
                                  'empty__state_plugin.world')
-        launchDesc = LaunchDescription([
-            ExecuteProcess(
-                cmd=[gazeboCmd, '--verbose', '-s', 'libgazebo_ros_factory.so', '-s',
-                     'libgazebo_ros_init.so', worldPath], output='screen', env=envs),
-            Node(package='mara_utils_scripts', node_executable='spawn_mara_arg.py',
-                 arguments=[urdf],
-                 output='screen'),
-            Node(package='hros_cognition_mara_components',
-                 node_executable='hros_cognition_mara_components', output='screen',
-                 arguments=["-motors", installDir \
-                 + "/share/hros_cognition_mara_components/link_order.yaml"]),
-            Node(package='mara_contact_publisher', node_executable='mara_contact_publisher',
-                 output='screen')
-        ])
     else:
         worldPath = os.path.join(os.path.dirname(gym_gazebo2.__file__), 'worlds',
                                  'empty__state_plugin__speed_up.world')
-        launchDesc = LaunchDescription([
-            ExecuteProcess(
-                cmd=[gazeboCmd, '--verbose', '-s', 'libgazebo_ros_factory.so', '-s',
-                     'libgazebo_ros_init.so', worldPath], output='screen',
-                env=envs
-            ),
-            Node(package='mara_utils_scripts', node_executable='spawn_mara_arg.py',
-                 arguments=[urdf],
-                 output='screen'),
-            Node(package='hros_cognition_mara_components',
-                 node_executable='hros_cognition_mara_components',
-                 arguments=["-motors", installDir \
-                 + "/share/hros_cognition_mara_components/link_order.yaml"], output='screen'),
-            Node(package='mara_contact_publisher', node_executable='mara_contact_publisher',
-                 output='screen')
-        ])
+
+    launchDesc = LaunchDescription([
+        ExecuteProcess(
+            cmd=[gazeboCmd, '--verbose', '-s', 'libgazebo_ros_factory.so', '-s',
+                 'libgazebo_ros_init.so', worldPath], output='screen', env=envs),
+        Node(package='mara_utils_scripts', node_executable='spawn_mara_arg.py',
+             arguments=[urdf],
+             output='screen'),
+        Node(package='hros_cognition_mara_components',
+             node_executable='hros_cognition_mara_components', output='screen',
+             arguments=["-motors", installDir \
+             + "/share/hros_cognition_mara_components/link_order.yaml"]),
+        Node(package='mara_contact_publisher', node_executable='mara_contact_publisher',
+             output='screen')
+    ])
     return launchDesc
 
 def launchReal():
