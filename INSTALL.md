@@ -2,7 +2,7 @@
 For the complete MARA experiments installation, please refer first to the **ROS2learn** installation instructions:  [github/acutronicrobotics/ros2learn/Install](https://github.com/acutronicrobotics/ros2learn/blob/master/Install.md).
 
 ## Table of Contents
-- [ROS 2 and Gazebo 9.6](#ros2-and-gazebo)
+- [ROS 2.0](#ros-20)
 - [Dependent tools](#dependent-tools)
 - [MARA](#mara)
   - [Create a ROS workspace](#create-a-ros-workspace)
@@ -13,15 +13,33 @@ For the complete MARA experiments installation, please refer first to the **ROS2
   - [gym-gazebo2](#gym-gazebo2)
     - [Provisioning](#provisioning)
 
-## ROS2 and Gazebo
+## ROS 2.0
 
-- **Gazebo 9.6**. Install Gazebo 9.6 following the official one-liner installation instructions. [Instructions](http://gazebosim.org/tutorials?tut=install_ubuntu#Defaultinstallation:one-liner).
 - **ROS 2 Crystal**.
-   - Ubuntu 18: Install ROS 2 following the official instructions, binaries recommended. [Instructions](https://index.ros.org/doc/ros2/Installation/Linux-Install-Debians/).
+   - Ubuntu 18: Install ROS 2 Desktop following the official instructions, binaries recommended. [Instructions](https://index.ros.org/doc/ros2/Installation/Linux-Install-Debians/).
 
 ## Dependent tools
 
 ```sh
+# ROS 2 extra packages
+sudo apt update && sudo apt install -y \
+ros-crystal-action-msgs \
+ros-crystal-message-filters \
+ros-crystal-yaml-cpp-vendor \
+ros-crystal-urdf \
+ros-crystal-rttest \
+ros-crystal-tf2 \
+ros-crystal-tf2-geometry-msgs \
+ros-crystal-rclcpp-action \
+ros-crystal-cv-bridge \
+ros-crystal-control-msgs \
+ros-crystal-image-transport \
+ros-crystal-gazebo-dev \
+ros-crystal-gazebo-msgs \
+ros-crystal-gazebo-plugins \
+ros-crystal-gazebo-ros \
+ros-crystal-gazebo-ros-pkgs
+
 sudo apt update && sudo apt install -y \
   build-essential \
   cmake \
@@ -65,8 +83,8 @@ touch ~/ros2_mara_ws/src/orocos_kinematics_dynamics/orocos_kinematics_dynamics/C
 Generate [HRIM](https://github.com/erlerobot/HRIM) dependencies:
 
 ```sh
-cd ~/ros2_mara_ws/src/HRIM/installator
-sudo python3 setup.py install && cd ..
+cd ~/ros2_mara_ws/src/HRIM
+sudo pip3 install hrim
 hrim generate models/actuator/servo/servo.xml
 hrim generate models/actuator/gripper/gripper.xml
 ```
