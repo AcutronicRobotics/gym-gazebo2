@@ -38,7 +38,7 @@ ros-crystal-gazebo-dev \
 ros-crystal-gazebo-msgs \
 ros-crystal-gazebo-plugins \
 ros-crystal-gazebo-ros \
-ros-crystal-gazebo-ros-pkgs \
+ros-crystal-gazebo-ros-pkgs
 
 sudo apt update && sudo apt install -y \
   build-essential \
