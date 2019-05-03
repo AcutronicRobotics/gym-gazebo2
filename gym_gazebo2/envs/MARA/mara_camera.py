@@ -61,10 +61,6 @@ class MARACameraEnv(gym.Env):
             ut_launch.generateLaunchDescriptionMara(
                 self.gzclient, self.realSpeed, self.multiInstance, self.port, urdf))
 
-        # Wait a bit for the spawn process.
-        # TODO, replace sleep function.
-        time.sleep(5)
-
         # Create the node after the new ROS_DOMAIN_ID is set in generate_launch_description()
         rclpy.init(args=None)
         self.node = rclpy.create_node(self.__class__.__name__)
