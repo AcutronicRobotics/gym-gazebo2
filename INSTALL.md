@@ -2,7 +2,7 @@
 For the complete MARA experiments installation, please refer first to the **ROS2learn** installation instructions:  [github/acutronicrobotics/ros2learn/Install](https://github.com/acutronicrobotics/ros2learn/blob/master/Install.md).
 
 ## Table of Contents
-- [ROS 2 and Gazebo 9.6](#ros2-and-gazebo)
+- [ROS 2 Desktop](#ros2-desktop)
 - [Dependent tools](#dependent-tools)
 - [MARA](#mara)
   - [Create a ROS workspace](#create-a-ros-workspace)
@@ -15,9 +15,8 @@ For the complete MARA experiments installation, please refer first to the **ROS2
 
 ## ROS2 and Gazebo
 
-- **Gazebo 9.6**. Install Gazebo 9.6 following the official one-liner installation instructions. [Instructions](http://gazebosim.org/tutorials?tut=install_ubuntu#Defaultinstallation:one-liner).
 - **ROS 2 Crystal**.
-   - Ubuntu 18: Install ROS 2 following the official instructions, binaries recommended. [Instructions](https://index.ros.org/doc/ros2/Installation/Linux-Install-Debians/).
+   - Ubuntu 18: Install ROS 2 Desktop following the official instructions, binaries recommended. [Instructions](https://index.ros.org/doc/ros2/Installation/Linux-Install-Debians/).
 
 ## Dependent tools
 
@@ -65,8 +64,8 @@ touch ~/ros2_mara_ws/src/orocos_kinematics_dynamics/orocos_kinematics_dynamics/C
 Generate [HRIM](https://github.com/erlerobot/HRIM) dependencies:
 
 ```sh
-cd ~/ros2_mara_ws/src/HRIM/installator
-sudo python3 setup.py install && cd ..
+cd ~/ros2_mara_ws/src/HRIM
+sudo pip3 install hrim
 hrim generate models/actuator/servo/servo.xml
 hrim generate models/actuator/gripper/gripper.xml
 ```
