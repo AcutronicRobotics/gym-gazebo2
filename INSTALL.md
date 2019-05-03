@@ -2,7 +2,7 @@
 For the complete MARA experiments installation, please refer first to the **ROS2learn** installation instructions:  [github/acutronicrobotics/ros2learn/Install](https://github.com/acutronicrobotics/ros2learn/blob/master/Install.md).
 
 ## Table of Contents
-- [ROS 2 Desktop](#ros2-desktop)
+- [ROS 2.0](#ros-20)
 - [Dependent tools](#dependent-tools)
 - [MARA](#mara)
   - [Create a ROS workspace](#create-a-ros-workspace)
@@ -13,7 +13,7 @@ For the complete MARA experiments installation, please refer first to the **ROS2
   - [gym-gazebo2](#gym-gazebo2)
     - [Provisioning](#provisioning)
 
-## ROS2 and Gazebo
+## ROS 2.0
 
 - **ROS 2 Crystal**.
    - Ubuntu 18: Install ROS 2 Desktop following the official instructions, binaries recommended. [Instructions](https://index.ros.org/doc/ros2/Installation/Linux-Install-Debians/).
