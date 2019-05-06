@@ -2,6 +2,7 @@
 
 import os
 import sys
+import time
 import numpy as np
 import gym
 from gym import envs
@@ -23,8 +24,10 @@ for e in environments:
     assert obs is not None
     assert env.obs_dim == len(obs)
 
-    obs, rew, done, _ = env.step(action)
-    assert (obs, rew, done) is not None
+    for x in range(10): # test the step 10 times 
+        obs, rew, done, _ = env.step(action)
+        assert (obs, rew, done) is not None
+        time.sleep(0.5)
 
     tested_envs += 1
     env.close()
