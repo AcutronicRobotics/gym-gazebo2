@@ -59,7 +59,7 @@ class MARACollisionOrientEnv(gym.Env):
         # Launch mara in a new Process
         self.launch_subp = ut_launch.startLaunchServiceProcess(
             ut_launch.generateLaunchDescriptionMara(
-                self.gzclient, self.realSpeed, self.multiInstance, self.port, urdf))
+                self.gzclient, self.realSpeed, self.multiInstance, self.port, urdfPath))
 
         # Create the node after the new ROS_DOMAIN_ID is set in generate_launch_description()
         rclpy.init(args=None)
