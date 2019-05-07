@@ -2,7 +2,7 @@
 For the complete MARA experiments installation, please refer first to the **ROS2learn** installation instructions:  [github/acutronicrobotics/ros2learn/Install](https://github.com/acutronicrobotics/ros2learn/blob/master/Install.md).
 
 ## Table of Contents
-- [ROS 2 and Gazebo 9.6](#ros2-and-gazebo)
+- [ROS 2.0](#ros-20)
 - [Dependent tools](#dependent-tools)
 - [MARA](#mara)
   - [Create a ROS workspace](#create-a-ros-workspace)
@@ -13,15 +13,34 @@ For the complete MARA experiments installation, please refer first to the **ROS2
   - [gym-gazebo2](#gym-gazebo2)
     - [Provisioning](#provisioning)
 
-## ROS2 and Gazebo
+## ROS 2.0
 
-- **Gazebo 9.6**. Install Gazebo 9.6 following the official one-liner installation instructions. [Instructions](http://gazebosim.org/tutorials?tut=install_ubuntu#Defaultinstallation:one-liner).
 - **ROS 2 Crystal**.
-   - Ubuntu 18: Install ROS 2 following the official instructions, binaries recommended. [Instructions](https://index.ros.org/doc/ros2/Installation/Linux-Install-Debians/).
+   - Ubuntu 18: Install ROS 2 Desktop following the official instructions, binaries recommended. [Instructions](https://index.ros.org/doc/ros2/Installation/Linux-Install-Debians/).
 
 ## Dependent tools
+**Note**: We recommend installing **Gazebo 9.0.0** via **ROS Crystal Debian packages** and removing previous gazebo installations to avoid undesired conflicts, e.g. `apt-get remove *gazebo*`. You can also use different versions of the simulator such as Gazebo 10, but you must skip the installation of `ros-crystal-gazebo*` packages and add [gazebo_ros_pkgs](https://github.com/ros-simulation/gazebo_ros_pkgs/tree/crystal) to the `ros2_mara_ws` we are going to build in the [Create a ROS workspace](#create-a-ros-workspace) section.
 
 ```sh
+# ROS 2 extra packages
+sudo apt update && sudo apt install -y \
+ros-crystal-action-msgs \
+ros-crystal-message-filters \
+ros-crystal-yaml-cpp-vendor \
+ros-crystal-urdf \
+ros-crystal-rttest \
+ros-crystal-tf2 \
+ros-crystal-tf2-geometry-msgs \
+ros-crystal-rclcpp-action \
+ros-crystal-cv-bridge \
+ros-crystal-control-msgs \
+ros-crystal-image-transport \
+ros-crystal-gazebo-dev \
+ros-crystal-gazebo-msgs \
+ros-crystal-gazebo-plugins \
+ros-crystal-gazebo-ros \
+ros-crystal-gazebo-ros-pkgs
+
 sudo apt update && sudo apt install -y \
   build-essential \
   cmake \
@@ -35,7 +54,7 @@ sudo apt update && sudo apt install -y \
   wget
 
 pip3 install tensorflow==1.12
-pip3 install transforms3d billiard
+pip3 install transforms3d billiard psutil
 
 # Fast-RTPS dependencies
 sudo apt install --no-install-recommends -y \
@@ -66,7 +85,7 @@ Generate [HRIM](https://github.com/erlerobot/HRIM) dependencies:
 
 ```sh
 cd ~/ros2_mara_ws/src/HRIM
-pip3 install -e installator
+sudo pip3 install hrim
 hrim generate models/actuator/servo/servo.xml
 hrim generate models/actuator/gripper/gripper.xml
 ```

@@ -5,6 +5,7 @@ import numpy as np
 import copy
 import math
 import os
+import psutil
 import signal
 import sys
 from gym import utils, spaces
@@ -54,16 +55,12 @@ class MARACollisionEnv(gym.Env):
             urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf/" + urdf
         else:
             urdf = "reinforcement_learning/mara_robot_gripper_140_train.urdf"
-            urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf" + urdf
+            urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf/" + urdf
 
         # Launch mara in a new Process
         self.launch_subp = ut_launch.startLaunchServiceProcess(
             ut_launch.generateLaunchDescriptionMara(
-                self.gzclient, self.realSpeed, self.multiInstance, self.port, urdf))
-
-        # Wait a bit for the spawn process.
-        # TODO, replace sleep function.
-        time.sleep(5)
+                self.gzclient, self.realSpeed, self.multiInstance, self.port, urdfPath))
 
         # Create the node after the new ROS_DOMAIN_ID is set in generate_launch_description()
         rclpy.init(args=None)
@@ -175,7 +172,7 @@ class MARACollisionEnv(gym.Env):
         spawn_cli = self.node.create_client(SpawnEntity, '/spawn_entity')
 
         while not spawn_cli.wait_for_service(timeout_sec=1.0):
-            self.node.get_logger().info('service not available, waiting again...')
+            self.node.get_logger().info('/spawn_entity service not available, waiting again...')
 
         modelXml = ut_gazebo.getTargetSdf()
 
@@ -276,7 +273,7 @@ class MARACollisionEnv(gym.Env):
         # Reset if there is a collision
         if self._collision_msg is not None:
             while not self.reset_sim.wait_for_service(timeout_sec=1.0):
-                self.node.get_logger().info('service not available, waiting again...')
+                self.node.get_logger().info('/reset_simulation service not available, waiting again...')
 
             reset_future = self.reset_sim.call_async(Empty.Request())
             rclpy.spin_until_future_complete(self.node, reset_future)
@@ -347,7 +344,7 @@ class MARACollisionEnv(gym.Env):
         if self.reset_jnts is True:
             # reset simulation
             while not self.reset_sim.wait_for_service(timeout_sec=1.0):
-                self.node.get_logger().info('service not available, waiting again...')
+                self.node.get_logger().info('/reset_simulation service not available, waiting again...')
 
             reset_future = self.reset_sim.call_async(Empty.Request())
             rclpy.spin_until_future_complete(self.node, reset_future)
@@ -361,11 +358,9 @@ class MARACollisionEnv(gym.Env):
         return obs
 
     def close(self):
-        try:
-            os.sys("curl -s") # Ignore errors raised by SIGINT/SIGTERM
-            os.killpg(os.getpgid(self.launch_subp.pid), signal.SIGINT) #SIGINT is used due to gazebo limitations
-        except:
-            pass
-
+        print("Closing " + self.__class__.__name__ + " environment.")
+        parent = psutil.Process(self.launch_subp.pid)
+        for child in parent.children(recursive=True):
+            child.kill()
         rclpy.shutdown()
-        time.sleep(6) # mara_contact_publisher needs 5 seconds after receiving 'SIGINT' to escalating to 'SIGTERM'
+        parent.kill()
