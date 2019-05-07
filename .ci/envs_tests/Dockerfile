@@ -68,6 +68,7 @@ RUN \
       #Load provisioning script
       && echo 'source /root/gym-gazebo2/provision/mara_setup.sh' >> ~/.bashrc \
       "
+COPY run_environment.sh /
 WORKDIR /root/gym-gazebo2/
 EXPOSE 11596
-ENTRYPOINT ["bash"]
+ENTRYPOINT ["/run_environment.sh"]

@@ -4,6 +4,7 @@ import time
 import numpy as np
 import copy
 import os
+import psutil
 import signal
 import sys
 import math
@@ -231,10 +232,10 @@ class MARARealEnv(gym.Env):
         obs = self.take_observation()
 
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
-        rewardDist = ut_math.rmseFunc( obs[self.numJoints:(self.numJoints+3)] )
-        reward_orientation = 2 * np.arccos( abs( obs[self.numJoints+3] ) )
+        rewardDist = ut_math.rmseFunc( self.ob[self.numJoints:(self.numJoints+3)] )
+        rewardOrientation = 2 * np.arccos( abs( self.ob[self.numJoints+3] ) )
 
-        reward = ut_math.computeReward(rewardDist, reward_orientation)
+        reward = ut_math.computeReward(rewardDist, rewardOrientation, False)
 
         # Calculate if the env has been solved
         done = bool(self.iterator == self.max_episode_steps)
@@ -255,11 +256,9 @@ class MARARealEnv(gym.Env):
         return obs
 
     def close(self):
-        try:
-            os.sys("curl -s") # Ignore errors raised by SIGINT/SIGTERM
-            os.killpg(os.getpgid(self.launch_subp.pid), signal.SIGINT) #SIGINT is used due to gazebo limitations
-        except:
-            pass
-
+        print("Closing " + self.__class__.__name__ + " environment.")
+        parent = psutil.Process(self.launch_subp.pid)
+        for child in parent.children(recursive=True):
+            child.kill()
         rclpy.shutdown()
-        time.sleep(6) # mara_contact_publisher needs 5 seconds after receiving 'SIGINT' to escalating to 'SIGTERM'
+        parent.kill()
