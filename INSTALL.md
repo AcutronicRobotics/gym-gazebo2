@@ -53,7 +53,7 @@ sudo apt update && sudo apt install -y \
   python3-numpy \
   wget
 
-pip3 install tensorflow==1.12
+pip3 install tensorflow
 pip3 install transforms3d billiard psutil
 
 # Fast-RTPS dependencies

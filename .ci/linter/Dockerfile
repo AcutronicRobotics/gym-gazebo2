@@ -15,7 +15,7 @@ RUN \
         libeigen3-dev \
       && rm -rf /var/lib/apt/lists/* \
       &&  pip3 install \
-        tensorflow==1.12 \
+        tensorflow \
         transforms3d \
         billiard \
         psutil \
