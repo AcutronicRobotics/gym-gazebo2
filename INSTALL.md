@@ -55,7 +55,7 @@ Create the workspace and download source files:
 ```sh
 mkdir -p ~/ros2_mara_ws/src
 cd ~/ros2_mara_ws
-wget https://raw.githubusercontent.com/AcutronicRobotics/MARA/ai/mara-ros2.repos
+wget https://raw.githubusercontent.com/AcutronicRobotics/MARA/master/mara-ros2.repos
 vcs import src < mara-ros2.repos
 wget https://raw.githubusercontent.com/AcutronicRobotics/gym-gazebo2/master/provision/additional-repos.repos
 vcs import src < additional-repos.repos
@@ -81,7 +81,7 @@ Build the workspace using the `--merge-install` flag. Make sure you have enough 
 ```sh
 source /opt/ros/crystal/setup.bash
 cd ~/ros2_mara_ws
-colcon build --merge-install
+colcon build --merge-install --packages-skip individual_trajectories_bridge
 # Remove warnings
 touch ~/ros2_mara_ws/install/share/orocos_kdl/local_setup.sh ~/ros2_mara_ws/install/share/orocos_kdl/local_setup.bash
 ```

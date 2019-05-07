@@ -21,7 +21,6 @@ RUN \
          git \
          python3-colcon-common-extensions \
          python3-pip \
-         python3-vcstool \
          wget \
  	&&  pip3 install \
         	tensorflow==1.12 \
@@ -46,7 +45,7 @@ RUN \
     		&& rm -rf /var/lib/apt/lists/* \
   	#Gazebo
  	 && curl -sSL http://get.gazebosim.org | sh \
-  	 && wget https://raw.githubusercontent.com/AcutronicRobotics/MARA/ai/mara-ros2.repos && vcs import src < mara-ros2.repos \
+  	 && wget https://raw.githubusercontent.com/AcutronicRobotics/MARA/master/mara-ros2.repos && vcs import src < mara-ros2.repos \
          && wget https://raw.githubusercontent.com/AcutronicRobotics/gym-gazebo2/master/provision/additional-repos.repos && vcs import src < additional-repos.repos \
   	#Generete HRIM packages
   	&& cd ~/ros2_mara_ws/src/HRIM/installator \
