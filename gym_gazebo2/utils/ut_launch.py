@@ -144,13 +144,14 @@ def generateLaunchDescriptionMara(gzclient, realSpeed, multiInstance, port, urdf
         Node(package='hros_cognition_mara_components',
              node_executable='hros_cognition_mara_components', output='screen',
              arguments=["-motors", installDir \
-             + "/share/hros_cognition_mara_components/link_order.yaml"]),
+             + "/share/hros_cognition_mara_components/motors.yaml", "sim"]),
         Node(package='mara_contact_publisher', node_executable='mara_contact_publisher',
              output='screen')
     ])
     return launchDesc
 
 def launchReal():
+    #TODO: it is hard-coded
     os.environ["ROS_DOMAIN_ID"] = str(22)
     os.environ["RMW_IMPLEMENTATION"] = "rmw_opensplice_cpp"
     installDir = get_package_prefix('mara_gazebo_plugins')
@@ -158,6 +159,6 @@ def launchReal():
         Node(package='hros_cognition_mara_components',
              node_executable='hros_cognition_mara_components',
              arguments=["-motors", installDir \
-             + "/share/hros_cognition_mara_components/link_order_real.yaml"], output='screen')
+             + "/share/hros_cognition_mara_components/motors.yaml", "real"], output='screen')
     ])
     return launchDesc
