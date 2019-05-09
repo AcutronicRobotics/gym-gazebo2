@@ -53,7 +53,10 @@ sudo apt update && sudo apt install -y \
   python3-numpy \
   wget
 
-pip3 install tensorflow==1.12
+# Install TensorFlow CPU. Feel free to get the GPU version at https://www.tensorflow.org/install/gpu.
+pip3 install tensorflow
+
+# Additional utilities
 pip3 install transforms3d billiard psutil
 
 # Fast-RTPS dependencies
