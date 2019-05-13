@@ -3,3 +3,7 @@
     type: git
     url: https://github.com/erlerobot/orocos_kinematics_dynamics
     version: ros2
+  urdf_parser_py:
+    type: git
+    url: https://github.com/AcutronicRobotics/urdf_parser_py
+    version: ros2

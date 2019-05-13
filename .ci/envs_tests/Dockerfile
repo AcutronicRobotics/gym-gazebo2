@@ -61,7 +61,6 @@ RUN \
       && bash -c " cd /root/ros2_mara_ws \
       && source /opt/ros/crystal/setup.bash && colcon build --merge-install --parallel-workers $(nproc) --packages-ignore orocos_kinematics_dynamics individual_trajectories_bridge \
       && touch /root/ros2_mara_ws/install/share/orocos_kdl/local_setup.sh /root/ros2_mara_ws/install/share/orocos_kdl/local_setup.bash \
-      && cd /root/ && git clone https://github.com/ros/urdf_parser_py.git -b melodic-devel && cd /root/urdf_parser_py && pip3 install -e . \
       && cd /root && git clone https://github.com/openai/gym && cd /root/gym && pip3 install -e . \
       #gym-gazebo2
       && cd /root && git clone https://github.com/AcutronicRobotics/gym-gazebo2 && cd /root/gym-gazebo2 && pip3 install -e . \
