@@ -2,6 +2,10 @@ FROM ubuntu:bionic
 
 LABEL maintainer="Lander Usategui <lander at erlerobotics dot com>"
 
+# setup environment
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
+
 ENV ROS2_DISTRO crystal
 #Prepare work-space
 RUN mkdir -p /root/ros2_mara_ws/src
