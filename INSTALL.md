@@ -8,7 +8,6 @@ For the complete MARA experiments installation, please refer first to the **ROS2
   - [Create a ROS workspace](#create-a-ros-workspace)
   - [Compile the workspace](#compile-the-workspace)
     - [Ubuntu 18](#ubuntu-18)
-  - [URDF Parser](#urdf-parser)
   - [OpenAI Gym](#openai-gym)
   - [gym-gazebo2](#gym-gazebo2)
     - [Provisioning](#provisioning)
@@ -114,16 +113,6 @@ A few packages are expected to throw warning messages. The expected output is th
 4 packages had stderr output: cv_bridge orocos_kdl python_orocos_kdl robotiq_gripper_gazebo_plugins
 ```
 
-### URDF Parser
-
-Standalone URDF parser for Python3.
-
-```sh
-cd ~
-git clone https://github.com/ros/urdf_parser_py.git -b melodic-devel
-cd urdf_parser_py
-pip3 install -e .
-```
 ### OpenAI Gym
 
 It is recommended to install Gym's latest version, which means using the source code. If you already installed Gym via pip3, you can uninstall it via `pip3 uninstall gym` to avoid overlapping:
