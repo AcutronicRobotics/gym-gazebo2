@@ -8,6 +8,7 @@ import os
 import psutil
 import signal
 import sys
+from scipy.stats import skew
 from gym import utils, spaces
 from gym_gazebo2.utils import ut_generic, ut_launch, ut_mara, ut_math, ut_gazebo, tree_urdf, general_utils
 from gym.utils import seeding
@@ -21,7 +22,8 @@ import rclpy
 from rclpy.qos import QoSProfile, qos_profile_sensor_data
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint # Used for publishing mara joint angles.
 from control_msgs.msg import JointTrajectoryControllerState
-from gazebo_msgs.msg import ContactState
+from gazebo_msgs.srv import SetEntityState, DeleteEntity
+from gazebo_msgs.msg import ContactState, ModelState, EntityState#, GetModelList
 from std_msgs.msg import String
 from std_srvs.srv import Empty
 from geometry_msgs.msg import Pose
@@ -50,10 +52,10 @@ class MARAEnv(gym.Env):
 
         # Set the path of the corresponding URDF file
         if self.realSpeed:
-            urdf = "reinforcement_learning/mara_robot_gripper_140_run.urdf"
+            urdf = "reinforcement_learning/mara_robot_run.urdf"
             urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf/" + urdf
         else:
-            urdf = "reinforcement_learning/mara_robot_gripper_140_train.urdf"
+            urdf = "reinforcement_learning/mara_robot_train.urdf"
             urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf/" + urdf
 
         # Launch mara in a new Process
@@ -76,7 +78,8 @@ class MARAEnv(gym.Env):
         #   Environment hyperparams
         #############################
         # Target, where should the agent reach
-        self.targetPosition = np.asarray([-0.40028, 0.095615, 0.72466]) # close to the table
+        self.targetPosition = np.asarray([-0.40028, 0.095615, 0.25]) # close to the table
+        # self.targetPosition =  np.asarray([round(np.random.uniform(-0.615082, -0.35426), 5), round(np.random.uniform( -0.18471, 0.1475), 5), 0.35])
         self.target_orientation = np.asarray([0., 0.7071068, 0.7071068, 0.]) # arrow looking down [w, x, y, z]
         # self.targetPosition = np.asarray([-0.386752, -0.000756, 1.40557]) # easy point
         # self.target_orientation = np.asarray([-0.4958324, 0.5041332, 0.5041331, -0.4958324]) # arrow looking opposite to MARA [w, x, y, z]
@@ -143,6 +146,9 @@ class MARAEnv(gym.Env):
         self._sub = self.node.create_subscription(JointTrajectoryControllerState, JOINT_SUBSCRIBER, self.observation_callback, qos_profile=qos_profile_sensor_data)
         self._sub_coll = self.node.create_subscription(ContactState, '/gazebo_contacts', self.collision_callback, qos_profile=qos_profile_sensor_data)
         self.reset_sim = self.node.create_client(Empty, '/reset_simulation')
+        self.set_entity_state = self.node.create_client(SetEntityState, '/set_entity_state')
+        #self.remove_model = self.node.create_client(DeleteEntity, '/delete_model')
+        #self.get_model_list = self.node.create_client(GetModelList, '/get_model_list')
 
         # Initialize a tree structure from the robot urdf.
         #   note that the xacro of the urdf is updated by hand.
@@ -168,15 +174,13 @@ class MARAEnv(gym.Env):
         low = -high
         self.observation_space = spaces.Box(low, high)
 
-        # Spawn Target element in gazebo.
-        # node & spawn_cli initialized in super class
+
         spawn_cli = self.node.create_client(SpawnEntity, '/spawn_entity')
 
         while not spawn_cli.wait_for_service(timeout_sec=1.0):
             self.node.get_logger().info('/spawn_entity service not available, waiting again...')
 
         modelXml = ut_gazebo.getTargetSdf()
-
         pose = Pose()
         pose.position.x = self.targetPosition[0]
         pose.position.y = self.targetPosition[1]
@@ -197,12 +201,12 @@ class MARAEnv(gym.Env):
         #ROS2 Spawn Entity
         target_future = spawn_cli.call_async(self.spawn_request)
         rclpy.spin_until_future_complete(self.node, target_future)
-
         # Seed the environment
         self.seed()
         self.buffer_dist_rewards = []
         self.buffer_tot_rewards = []
         self.collided = 0
+
 
     def observation_callback(self, message):
         """
@@ -263,7 +267,7 @@ class MARAEnv(gym.Env):
             # vector, typically denoted asrobot_id 'x'.
             state = np.r_[np.reshape(lastObservations, -1),
                           np.reshape(eePos_points, -1),
-                          np.reshape(eeVelocities, -1),]
+                          np.reshape(eeVelocities, -1)]
 
             return state
 
@@ -320,16 +324,24 @@ class MARAEnv(gym.Env):
         self.buffer_tot_rewards.append(reward)
         info = {}
         if self.iterator % self.max_episode_steps == 0:
+
             max_dist_tgt = max(self.buffer_dist_rewards)
             mean_dist_tgt = np.mean(self.buffer_dist_rewards)
+            std_dist_tgt = np.std(self.buffer_dist_rewards)
             min_dist_tgt = min(self.buffer_dist_rewards)
+            skew_dist_tgt = skew(self.buffer_dist_rewards)
+
             max_tot_rew = max(self.buffer_tot_rewards)
             mean_tot_rew = np.mean(self.buffer_tot_rewards)
+            std_tot_rew = np.std(self.buffer_tot_rewards)
             min_tot_rew = min(self.buffer_tot_rewards)
+            skew_tot_rew = skew(self.buffer_tot_rewards)
+
             num_coll = self.collided
 
             info = {"infos":{"ep_dist_max": max_dist_tgt,"ep_dist_mean": mean_dist_tgt,"ep_dist_min": min_dist_tgt,\
-                "ep_rew_max": max_tot_rew,"ep_rew_mean": mean_tot_rew,"ep_rew_min": min_tot_rew,"num_coll": num_coll}}
+                "ep_rew_max": max_tot_rew,"ep_rew_mean": mean_tot_rew,"ep_rew_min": min_tot_rew,"num_coll": num_coll,\
+                "ep_dist_skew": skew_dist_tgt,"ep_dist_std": std_dist_tgt, "ep_rew_std": std_tot_rew, "ep_rew_skew":skew_tot_rew}}
             self.buffer_dist_rewards = []
             self.buffer_tot_rewards = []
             self.collided = 0
