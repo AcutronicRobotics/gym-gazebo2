@@ -4,11 +4,11 @@
 
 ```bash
 docker rm gg2 || true && docker run -it --name=gg2 -h gym-gazebo2 -v `pwd`:/tmp/gym-gazebo2 acutronicrobotics/gym-gazebo2
-cp -r /root/ros2_mara_ws /tmp #Inside the docker container, used to load visual models
+cp -r /root/ros2_mara_ws /tmp/gym-gazebo2 #Inside the docker container, used to load visual models
 ```
 
 ## Run the example
-```shell 
+```shell
 # inside the docker container
 cd ~/gym-gazebo2/examples/MARA
 python3 gg_random.py
@@ -23,4 +23,3 @@ cd ~ && git clone https://github.com/AcutronicRobotics/gym-gazebo2
 cd ~/gym-gazebo2/docker
 sh gzclient.sh
  ```
- 
