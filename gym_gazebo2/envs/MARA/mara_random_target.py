@@ -289,8 +289,10 @@ class MARARandomTargetEnv(gym.Env):
         """
         Callback method for the subscriber of Collision data
         """
+        collision_messages = ["mara::base_robot::base_robot_collision", "ground_plane::link::collision"]
         if message.collision1_name != message.collision2_name:
-            self._collision_msg = message
+            if message.collision1_name not in collision_messages and message.collision2_name not in collision_messages:
+                self._collision_msg = message
 
     def set_episode_size(self, episode_size):
         self.max_episode_steps = episode_size
