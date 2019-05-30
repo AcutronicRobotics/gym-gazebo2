@@ -105,7 +105,6 @@ class MARARandomTargetEnv(gym.Env):
 
         # Set constants for links
         WORLD = 'world'
-        TABLE = 'table'
         BASE = 'base_robot'
         MARA_MOTOR1_LINK = 'motor1_link'
         MARA_MOTOR2_LINK = 'motor2_link'
@@ -207,7 +206,7 @@ class MARARandomTargetEnv(gym.Env):
         self.buffer_tot_rewards = []
         self.collided = 0
 
-### Kill and respawn target
+    ### Kill and respawn target
     # def spawn_target(self):
     #
     #     while not self.remove_model.wait_for_service(timeout_sec=1.0):
@@ -328,7 +327,7 @@ class MARARandomTargetEnv(gym.Env):
             translation, rot = general_utils.forwardKinematics(self.mara_chain,
                                                 self.environment['linkNames'],
                                                 lastObservations[:self.numJoints],
-                                                baseLink=self.environment['linkNames'][0], # make the table as the base to get the world coordinate system
+                                                baseLink=self.environment['linkNames'][0], # use the base_robot coordinate system
                                                 endLink=self.environment['linkNames'][-1])
 
             current_eePos_tgt = np.ndarray.flatten(general_utils.getEePoints(self.environment['end_effector_points'], translation, rot).T)
