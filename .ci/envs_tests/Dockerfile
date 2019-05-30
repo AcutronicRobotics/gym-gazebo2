@@ -16,7 +16,7 @@ RUN \
       && ln -s /usr/share/zoneinfo/Etc/UTC /etc/localtime \
       && apt-get update -qq && apt-get install -qq -y tzdata dirmngr gnupg2 lsb-release curl \
       # setup ros2 keys
-      && curl http://repo.ros2.org/repos.key | apt-key add - \
+      && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 5523BAEEB01FA116 \
       # setup sources.list
       && echo "deb [arch=amd64,arm64] http://packages.ros.org/ros2/ubuntu `lsb_release -cs` main" > /etc/apt/sources.list.d/ros2-latest.list \
       && apt-get update -qq && apt-get install -qq -y \
