@@ -37,3 +37,8 @@ register(
     id='MARARandomTarget-v0',
     entry_point='gym_gazebo2.envs.MARA:MARARandomTargetEnv',
 )
+
+register(
+    id='MARAOrientIK-v0',
+    entry_point='gym_gazebo2.envs.MARA:MARAOrientIKEnv',
+)
