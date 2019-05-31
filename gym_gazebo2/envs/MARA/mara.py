@@ -46,6 +46,7 @@ class MARAEnv(gym.Env):
         args = ut_generic.getArgsParserMARA().parse_args()
         self.gzclient = args.gzclient
         self.realSpeed = args.realSpeed
+        # self.realSpeed = True
         self.velocity = args.velocity
         self.multiInstance = args.multiInstance
         self.port = args.port
@@ -106,8 +107,7 @@ class MARAEnv(gym.Env):
 
         # Set constants for links
         WORLD = 'world'
-        TABLE = 'table'
-        BASE = 'base_link'
+        BASE = 'base_robot'
         MARA_MOTOR1_LINK = 'motor1_link'
         MARA_MOTOR2_LINK = 'motor2_link'
         MARA_MOTOR3_LINK = 'motor3_link'
@@ -118,7 +118,7 @@ class MARAEnv(gym.Env):
 
         JOINT_ORDER = [MOTOR1_JOINT,MOTOR2_JOINT, MOTOR3_JOINT,
                         MOTOR4_JOINT, MOTOR5_JOINT, MOTOR6_JOINT]
-        LINK_NAMES = [ WORLD, TABLE, BASE,
+        LINK_NAMES = [ WORLD, BASE,
                         MARA_MOTOR1_LINK, MARA_MOTOR2_LINK,
                         MARA_MOTOR3_LINK, MARA_MOTOR4_LINK,
                         MARA_MOTOR5_LINK, MARA_MOTOR6_LINK, EE_LINK]
@@ -160,7 +160,7 @@ class MARAEnv(gym.Env):
         # Initialize a KDL Jacobian solver from the chain.
         self.jacSolver = ChainJntToJacSolver(self.mara_chain)
 
-        self.obs_dim = self.numJoints + 6
+        self.obs_dim = self.numJoints + 6 + 12
 
         # # Here idially we should find the control range of the robot. Unfortunatelly in ROS/KDL there is nothing like this.
         # # I have tested this with the mujoco enviroment and the output is always same low[-1.,-1.], high[1.,1.]
@@ -207,7 +207,6 @@ class MARAEnv(gym.Env):
         self.buffer_tot_rewards = []
         self.collided = 0
 
-
     def observation_callback(self, message):
         """
         Callback method for the subscriber of JointTrajectoryControllerState
@@ -218,8 +217,10 @@ class MARAEnv(gym.Env):
         """
         Callback method for the subscriber of Collision data
         """
+        collision_messages = ["mara::base_robot::base_robot_collision", "ground_plane::link::collision"]
         if message.collision1_name != message.collision2_name:
-            self._collision_msg = message
+            if not (message.collision1_name in collision_messages) and (message.collision2_name in collision_messages):
+                self._collision_msg = message
 
     def set_episode_size(self, episode_size):
         self.max_episode_steps = episode_size
@@ -267,7 +268,9 @@ class MARAEnv(gym.Env):
             # vector, typically denoted asrobot_id 'x'.
             state = np.r_[np.reshape(lastObservations, -1),
                           np.reshape(eePos_points, -1),
-                          np.reshape(eeVelocities, -1)]
+                          np.reshape(eeVelocities, -1),
+                          np.reshape(current_eePos_tgt,-1),
+                          np.reshape(rot.reshape(1, 9),-1)]
 
             return state
 
@@ -298,12 +301,13 @@ class MARAEnv(gym.Env):
             - done (status)
         """
         self.iterator+=1
-
         # Execute "action"
         self._pub.publish(ut_mara.getTrajectoryMessage(
             action[:self.numJoints],
             self.environment['jointOrder'],
             self.velocity))
+
+        # time.sleep(1)
 
         self.ros_clock = rclpy.clock.Clock().now().nanoseconds
 

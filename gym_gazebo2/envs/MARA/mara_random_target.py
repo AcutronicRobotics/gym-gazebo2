@@ -185,8 +185,18 @@ class MARARandomTargetEnv(gym.Env):
         self.buffer_tot_rewards = []
         self.collided = 0
 
+    # def sample_position(self):
+    #     return [ round(np.random.uniform(-0.615082, -0.35426), 5), round(np.random.uniform( -0.18471, 0.1475), 5), 0.25 ]
+
+    def sample_position(self):
+        sample = np.random.uniform(0,1)
+        if sample > 0.5:
+            return [ -0.5 , 0.2 , 0.25 ]
+        else:
+            return [ -0.5 , -0.2 , 0.25 ]
+
     def spawn_target(self):
-        self.targetPosition = [ round(np.random.uniform(-0.615082, -0.35426), 5), round(np.random.uniform( -0.18471, 0.1475), 5), 0.25 ]
+        self.targetPosition = self.sample_position()
 
         spawn_cli = self.node.create_client(SpawnEntity, '/spawn_entity')
 
