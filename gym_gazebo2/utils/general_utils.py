@@ -362,6 +362,7 @@ def inverseKinematics(robotChain, pos, rot, qGuess=None, minJoints=None, maxJoin
     Returns:
         list of joint positions or None (no solution)
     """
+    # print("inside inverse: ", pos, " ; ", rot)
     posKdl = kdl.Vector(pos[0], pos[1], pos[2])
     rotKdl = kdl.Rotation(rot[0, 0], rot[0, 1], rot[0, 2],
                           rot[1, 0], rot[1, 1], rot[1, 2],
