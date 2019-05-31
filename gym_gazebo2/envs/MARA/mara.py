@@ -106,8 +106,8 @@ class MARAEnv(gym.Env):
 
         # Set constants for links
         WORLD = 'world'
-        TABLE = 'table'
-        BASE = 'base_link'
+        # TABLE = 'table'
+        BASE = 'base_robot'
         MARA_MOTOR1_LINK = 'motor1_link'
         MARA_MOTOR2_LINK = 'motor2_link'
         MARA_MOTOR3_LINK = 'motor3_link'
@@ -118,7 +118,7 @@ class MARAEnv(gym.Env):
 
         JOINT_ORDER = [MOTOR1_JOINT,MOTOR2_JOINT, MOTOR3_JOINT,
                         MOTOR4_JOINT, MOTOR5_JOINT, MOTOR6_JOINT]
-        LINK_NAMES = [ WORLD, TABLE, BASE,
+        LINK_NAMES = [ WORLD, BASE,
                         MARA_MOTOR1_LINK, MARA_MOTOR2_LINK,
                         MARA_MOTOR3_LINK, MARA_MOTOR4_LINK,
                         MARA_MOTOR5_LINK, MARA_MOTOR6_LINK, EE_LINK]
@@ -219,7 +219,9 @@ class MARAEnv(gym.Env):
         Callback method for the subscriber of Collision data
         """
         if message.collision1_name != message.collision2_name:
-            self._collision_msg = message
+            if message.collision1_name is not 'base_robot' and message.collision2_name is not 'world':
+                if message.collision1_name is not 'world' and  message.collision2_name is not 'base_robot':
+                    self._collision_msg = message
 
     def set_episode_size(self, episode_size):
         self.max_episode_steps = episode_size
