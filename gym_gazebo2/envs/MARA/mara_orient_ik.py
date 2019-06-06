@@ -44,7 +44,7 @@ class MARAOrientIKEnv(gym.Env):
         args = ut_generic.getArgsParserMARA().parse_args()
         self.gzclient = True#args.gzclient
         self.realSpeed = True#args.realSpeed
-        self.velocity = 0.3#args.velocity
+        self.velocity = 0.4#args.velocity
         self.multiInstance = True#args.multiInstance
         self.port = args.port
 
