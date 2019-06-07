@@ -103,8 +103,7 @@ class MARACameraEnv(gym.Env):
 
         # Set constants for links
         WORLD = 'world'
-        TABLE = 'table'
-        BASE = 'base_link'
+        BASE = 'base_robot'
         MARA_MOTOR1_LINK = 'motor1_link'
         MARA_MOTOR2_LINK = 'motor2_link'
         MARA_MOTOR3_LINK = 'motor3_link'
@@ -115,7 +114,7 @@ class MARACameraEnv(gym.Env):
 
         JOINT_ORDER = [MOTOR1_JOINT,MOTOR2_JOINT, MOTOR3_JOINT,
                         MOTOR4_JOINT, MOTOR5_JOINT, MOTOR6_JOINT]
-        LINK_NAMES = [ WORLD, TABLE, BASE,
+        LINK_NAMES = [ WORLD, BASE,
                         MARA_MOTOR1_LINK, MARA_MOTOR2_LINK,
                         MARA_MOTOR3_LINK, MARA_MOTOR4_LINK,
                         MARA_MOTOR5_LINK, MARA_MOTOR6_LINK, EE_LINK]
@@ -214,8 +213,10 @@ class MARACameraEnv(gym.Env):
         """
         Callback method for the subscriber of Collision data
         """
+        collision_messages = ["mara::base_robot::base_robot_collision", "ground_plane::link::collision"]
         if message.collision1_name != message.collision2_name:
-            self._collision_msg = message
+            if not ((message.collision1_name in collision_messages) and (message.collision2_name in collision_messages)):
+                self._collision_msg = message
 
     def set_episode_size(self, episode_size):
         self.max_episode_steps = episode_size
@@ -251,7 +252,7 @@ class MARACameraEnv(gym.Env):
             translation, rot = general_utils.forwardKinematics(self.mara_chain,
                                                 self.environment['linkNames'],
                                                 lastObservations[:self.numJoints],
-                                                baseLink=self.environment['linkNames'][0], # make the table as the base to get the world coordinate system
+                                                baseLink=self.environment['linkNames'][0], # use the base_robot coordinate system
                                                 endLink=self.environment['linkNames'][-1])
 
             current_eePos_tgt = np.ndarray.flatten(general_utils.getEePoints(self.environment['end_effector_points'], translation, rot).T)

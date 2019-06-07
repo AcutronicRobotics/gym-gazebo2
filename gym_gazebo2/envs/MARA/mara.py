@@ -219,7 +219,7 @@ class MARAEnv(gym.Env):
         """
         collision_messages = ["mara::base_robot::base_robot_collision", "ground_plane::link::collision"]
         if message.collision1_name != message.collision2_name:
-            if not (message.collision1_name in collision_messages) and (message.collision2_name in collision_messages):
+            if not ((message.collision1_name in collision_messages) and (message.collision2_name in collision_messages)):
                 self._collision_msg = message
 
     def set_episode_size(self, episode_size):
@@ -256,7 +256,7 @@ class MARAEnv(gym.Env):
             translation, rot = general_utils.forwardKinematics(self.mara_chain,
                                                 self.environment['linkNames'],
                                                 lastObservations[:self.numJoints],
-                                                baseLink=self.environment['linkNames'][0], # make the table as the base to get the world coordinate system
+                                                baseLink=self.environment['linkNames'][0], # use the base_robot coordinate system
                                                 endLink=self.environment['linkNames'][-1])
 
             current_eePos_tgt = np.ndarray.flatten(general_utils.getEePoints(self.environment['end_effector_points'], translation, rot).T)

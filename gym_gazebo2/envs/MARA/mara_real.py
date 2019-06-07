@@ -84,8 +84,7 @@ class MARARealEnv(gym.Env):
 
         # Set constants for links
         WORLD = 'world'
-        TABLE = 'table'
-        BASE = 'base_link'
+        BASE = 'base_robot'
         MARA_MOTOR1_LINK = 'motor1_link'
         MARA_MOTOR2_LINK = 'motor2_link'
         MARA_MOTOR3_LINK = 'motor3_link'
@@ -188,7 +187,7 @@ class MARARealEnv(gym.Env):
             translation, rot = general_utils.forwardKinematics(self.mara_chain,
                                                 self.environment['linkNames'],
                                                 lastObservations[:self.numJoints],
-                                                baseLink=self.environment['linkNames'][0], # make the table as the base to get the world coordinate system
+                                                baseLink=self.environment['linkNames'][0], # use the base_robot coordinate system
                                                 endLink=self.environment['linkNames'][-1])
 
             current_quaternion = tf3d.quaternions.mat2quat(rot) #[w, x, y ,z]
