@@ -215,7 +215,7 @@ class MARAEnv(gym.Env):
         """
         collision_messages = ["mara::base_robot::base_robot_collision", "ground_plane::link::collision"]
         if message.collision1_name != message.collision2_name:
-            if message.collision1_name not in collision_messages and message.collision2_name not in collision_messages:
+            if not ((message.collision1_name in collision_messages) and (message.collision2_name in collision_messages)):
                 self._collision_msg = message
 
     def set_episode_size(self, episode_size):
