@@ -147,6 +147,7 @@ class MARARandomTargetEnv(gym.Env):
         self.set_entity_state = self.node.create_client(SetEntityState, '/set_entity_state')
         #self.remove_model = self.node.create_client(DeleteEntity, '/delete_model')
         self.delete_entity_cli = self.node.create_client(DeleteEntity, '/delete_entity')
+        self.spawn_cli = self.node.create_client(SpawnEntity, '/spawn_entity')
 
         self.counter = 0
         # Initialize a tree structure from the robot urdf.
@@ -174,88 +175,18 @@ class MARARandomTargetEnv(gym.Env):
         self.observation_space = spaces.Box(low, high)
 
         # Spawn Target element in gazebo.
-        # node & spawn_cli initialized in super class
-        spawn_cli = self.node.create_client(SpawnEntity, '/spawn_entity')
+        self.spawn_target()
 
-        while not spawn_cli.wait_for_service(timeout_sec=1.0):
-            self.node.get_logger().info('/spawn_entity service not available, waiting again...')
-
-        modelXml = ut_gazebo.getTargetSdf()
-
-        pose = Pose()
-        pose.position.x = self.targetPosition[0]
-        pose.position.y = self.targetPosition[1]
-        pose.position.z = self.targetPosition[2]
-        pose.orientation.x = self.target_orientation[1]
-        pose.orientation.y= self.target_orientation[2]
-        pose.orientation.z = self.target_orientation[3]
-        pose.orientation.w = self.target_orientation[0]
-
-        #override previous spawn_request element.
-        self.spawn_request = SpawnEntity.Request()
-        self.spawn_request.name = "target"
-        self.spawn_request.xml = modelXml
-        self.spawn_request.robot_namespace = ""
-        self.spawn_request.initial_pose = pose
-        self.spawn_request.reference_frame = "world"
-
-        #ROS2 Spawn Entity
-        target_future = spawn_cli.call_async(self.spawn_request)
-        rclpy.spin_until_future_complete(self.node, target_future)
         # Seed the environment
         self.seed()
         self.buffer_dist_rewards = []
         self.buffer_tot_rewards = []
         self.collided = 0
 
-    ### Kill and respawn target
-    # def spawn_target(self):
-    #
-    #     while not self.remove_model.wait_for_service(timeout_sec=1.0):
-    #         self.node.get_logger().info('/delete_entity service not available, waiting again...')
-    #
-    #     self.remove_request = DeleteEntity.Request()
-    #     self.remove_request.name = "target"
-    #
-    #     #ROS2 Spawn Entity
-    #     target_remove = self.remove_model.call_async(self.remove_request)
-    #     rclpy.spin_until_future_complete(self.node, target_remove)
-    #
-    #     self.targetPosition = [ round(np.random.uniform(-0.615082, -0.35426), 5), round(np.random.uniform( -0.18471, 0.1475), 5), 0.72466 ]
-    #
-    #     spawn_cli = self.node.create_client(SpawnEntity, '/spawn_entity')
-    #
-    #     while not spawn_cli.wait_for_service(timeout_sec=1.0):
-    #         self.node.get_logger().info('/spawn_entity service not available, waiting again...')
-    #
-    #     modelXml = ut_gazebo.getTargetSdf()
-    #     pose = Pose()
-    #     pose.position.x = self.targetPosition[0]
-    #     pose.position.y = self.targetPosition[1]
-    #     pose.position.z = self.targetPosition[2]
-    #     pose.orientation.x = self.target_orientation[1]
-    #     pose.orientation.y= self.target_orientation[2]
-    #     pose.orientation.z = self.target_orientation[3]
-    #     pose.orientation.w = self.target_orientation[0]
-    #
-    #     #override previous spawn_request element.
-    #     self.spawn_request = SpawnEntity.Request()
-    #     self.spawn_request.name = "target"
-    #     self.spawn_request.xml = modelXml
-    #     self.spawn_request.robot_namespace = ""
-    #     self.spawn_request.initial_pose = pose
-    #     self.spawn_request.reference_frame = "world"
-    #
-    #     #ROS2 Spawn Entity
-    #     target_future = spawn_cli.call_async(self.spawn_request)
-    #     rclpy.spin_until_future_complete(self.node, target_future)
-
     def spawn_target(self):
         self.targetPosition = [ round(np.random.uniform(-0.615082, -0.35426), 5), round(np.random.uniform( -0.18471, 0.1475), 5), 0.25 ]
 
-        spawn_cli = self.node.create_client(SpawnEntity, '/spawn_entity')
-
-        while not spawn_cli.wait_for_service(timeout_sec=1.0):
+        while not self.spawn_cli.wait_for_service(timeout_sec=1.0):
             self.node.get_logger().info('/spawn_entity service not available, waiting again...')
 
         modelXml = ut_gazebo.getTargetSdf()
@@ -277,7 +208,7 @@ class MARARandomTargetEnv(gym.Env):
         self.spawn_request.reference_frame = "world"
 
         #ROS2 Spawn Entity
-        target_future = spawn_cli.call_async(self.spawn_request)
+        target_future = self.spawn_cli.call_async(self.spawn_request)
         rclpy.spin_until_future_complete(self.node, target_future)
 
     def observation_callback(self, message):
