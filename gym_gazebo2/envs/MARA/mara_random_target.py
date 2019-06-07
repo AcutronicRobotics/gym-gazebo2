@@ -146,6 +146,8 @@ class MARARandomTargetEnv(gym.Env):
         self.reset_sim = self.node.create_client(Empty, '/reset_simulation')
         self.set_entity_state = self.node.create_client(SetEntityState, '/set_entity_state')
         #self.remove_model = self.node.create_client(DeleteEntity, '/delete_model')
+        self.delete_entity_cli = self.node.create_client(DeleteEntity, '/delete_entity')
+
         self.counter = 0
         # Initialize a tree structure from the robot urdf.
         #   note that the xacro of the urdf is updated by hand.
@@ -442,14 +444,12 @@ class MARARandomTargetEnv(gym.Env):
 
 
         # delete entity
-        delete_entity_cli = self.node.create_client(DeleteEntity, '/delete_entity')
-
-        while not delete_entity_cli.wait_for_service(timeout_sec=1.0):
+        while not self.delete_entity_cli.wait_for_service(timeout_sec=1.0):
             self.node.get_logger().info('/reset_simulation service not available, waiting again...')
 
         req = DeleteEntity.Request()
         req.name = "target"
-        delete_future = delete_entity_cli.call_async(req)
+        delete_future = self.delete_entity_cli.call_async(req)
         rclpy.spin_until_future_complete(self.node, delete_future)
 
 
