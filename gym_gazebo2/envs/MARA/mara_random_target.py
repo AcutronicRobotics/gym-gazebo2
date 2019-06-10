@@ -105,7 +105,6 @@ class MARARandomTargetEnv(gym.Env):
 
         # Set constants for links
         WORLD = 'world'
-        TABLE = 'table'
         BASE = 'base_robot'
         MARA_MOTOR1_LINK = 'motor1_link'
         MARA_MOTOR2_LINK = 'motor2_link'
@@ -147,6 +146,9 @@ class MARARandomTargetEnv(gym.Env):
         self.reset_sim = self.node.create_client(Empty, '/reset_simulation')
         self.set_entity_state = self.node.create_client(SetEntityState, '/set_entity_state')
         #self.remove_model = self.node.create_client(DeleteEntity, '/delete_model')
+        self.delete_entity_cli = self.node.create_client(DeleteEntity, '/delete_entity')
+        self.spawn_cli = self.node.create_client(SpawnEntity, '/spawn_entity')
+
         self.counter = 0
         # Initialize a tree structure from the robot urdf.
         #   note that the xacro of the urdf is updated by hand.
@@ -173,34 +175,8 @@ class MARARandomTargetEnv(gym.Env):
         self.observation_space = spaces.Box(low, high)
 
         # Spawn Target element in gazebo.
-        # node & spawn_cli initialized in super class
-        spawn_cli = self.node.create_client(SpawnEntity, '/spawn_entity')
+        self.spawn_target()
 
-        while not spawn_cli.wait_for_service(timeout_sec=1.0):
-            self.node.get_logger().info('/spawn_entity service not available, waiting again...')
-
-        modelXml = ut_gazebo.getTargetSdf()
-
-        pose = Pose()
-        pose.position.x = self.targetPosition[0]
-        pose.position.y = self.targetPosition[1]
-        pose.position.z = self.targetPosition[2]
-        pose.orientation.x = self.target_orientation[1]
-        pose.orientation.y= self.target_orientation[2]
-        pose.orientation.z = self.target_orientation[3]
-        pose.orientation.w = self.target_orientation[0]
-
-        #override previous spawn_request element.
-        self.spawn_request = SpawnEntity.Request()
-        self.spawn_request.name = "target"
-        self.spawn_request.xml = modelXml
-        self.spawn_request.robot_namespace = ""
-        self.spawn_request.initial_pose = pose
-        self.spawn_request.reference_frame = "world"
-
-        #ROS2 Spawn Entity
-        target_future = spawn_cli.call_async(self.spawn_request)
-        rclpy.spin_until_future_complete(self.node, target_future)
         # Seed the environment
         self.seed()
         self.buffer_dist_rewards = []
@@ -210,9 +186,7 @@ class MARARandomTargetEnv(gym.Env):
     def spawn_target(self):
         self.targetPosition = [ round(np.random.uniform(-0.615082, -0.35426), 5), round(np.random.uniform( -0.18471, 0.1475), 5), 0.25 ]
 
-        spawn_cli = self.node.create_client(SpawnEntity, '/spawn_entity')
-
-        while not spawn_cli.wait_for_service(timeout_sec=1.0):
+        while not self.spawn_cli.wait_for_service(timeout_sec=1.0):
             self.node.get_logger().info('/spawn_entity service not available, waiting again...')
 
         modelXml = ut_gazebo.getTargetSdf()
@@ -234,7 +208,7 @@ class MARARandomTargetEnv(gym.Env):
         self.spawn_request.reference_frame = "world"
 
         #ROS2 Spawn Entity
-        target_future = spawn_cli.call_async(self.spawn_request)
+        target_future = self.spawn_cli.call_async(self.spawn_request)
         rclpy.spin_until_future_complete(self.node, target_future)
 
     def observation_callback(self, message):
@@ -249,7 +223,7 @@ class MARARandomTargetEnv(gym.Env):
         """
         collision_messages = ["mara::base_robot::base_robot_collision", "ground_plane::link::collision"]
         if message.collision1_name != message.collision2_name:
-            if message.collision1_name not in collision_messages and message.collision2_name not in collision_messages:
+            if not ((message.collision1_name in collision_messages) and (message.collision2_name in collision_messages)):
                 self._collision_msg = message
 
     def set_episode_size(self, episode_size):
@@ -286,7 +260,7 @@ class MARARandomTargetEnv(gym.Env):
             translation, rot = general_utils.forwardKinematics(self.mara_chain,
                                                 self.environment['linkNames'],
                                                 lastObservations[:self.numJoints],
-                                                baseLink=self.environment['linkNames'][0], # make the table as the base to get the world coordinate system
+                                                baseLink=self.environment['linkNames'][0], # use the base_robot coordinate system
                                                 endLink=self.environment['linkNames'][-1])
 
             current_eePos_tgt = np.ndarray.flatten(general_utils.getEePoints(self.environment['end_effector_points'], translation, rot).T)
@@ -401,14 +375,12 @@ class MARARandomTargetEnv(gym.Env):
 
 
         # delete entity
-        delete_entity_cli = self.node.create_client(DeleteEntity, '/delete_entity')
-
-        while not delete_entity_cli.wait_for_service(timeout_sec=1.0):
+        while not self.delete_entity_cli.wait_for_service(timeout_sec=1.0):
             self.node.get_logger().info('/reset_simulation service not available, waiting again...')
 
         req = DeleteEntity.Request()
         req.name = "target"
-        delete_future = delete_entity_cli.call_async(req)
+        delete_future = self.delete_entity_cli.call_async(req)
         rclpy.spin_until_future_complete(self.node, delete_future)
 
 
