@@ -22,8 +22,8 @@ import rclpy
 from rclpy.qos import QoSProfile, qos_profile_sensor_data
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint # Used for publishing mara joint angles.
 from control_msgs.msg import JointTrajectoryControllerState
-from gazebo_msgs.srv import SetEntityState, DeleteEntity
-from gazebo_msgs.msg import ContactState, ModelState, EntityState
+from gazebo_msgs.srv import DeleteEntity
+from gazebo_msgs.msg import ContactState, ModelState
 from std_msgs.msg import String
 from std_srvs.srv import Empty
 from geometry_msgs.msg import Pose
@@ -147,9 +147,6 @@ class MARARandomTargetEnv(gym.Env):
         self.spawn_cli = self.node.create_client(SpawnEntity, '/spawn_entity')
 
         # delete entity
-        self.delete_entity_cli = self.node.create_client(DeleteEntity, '/delete_entity')
-        self.set_entity_state = self.node.create_client(SetEntityState, '/set_entity_state')
-        #self.remove_model = self.node.create_client(DeleteEntity, '/delete_model')
         self.delete_entity_cli = self.node.create_client(DeleteEntity, '/delete_entity')
         self.spawn_cli = self.node.create_client(SpawnEntity, '/spawn_entity')
 

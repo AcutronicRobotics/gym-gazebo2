@@ -22,8 +22,8 @@ import rclpy
 from rclpy.qos import QoSProfile, qos_profile_sensor_data
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint # Used for publishing mara joint angles.
 from control_msgs.msg import JointTrajectoryControllerState
-from gazebo_msgs.srv import SetEntityState, DeleteEntity
-from gazebo_msgs.msg import ContactState, ModelState, EntityState#, GetModelList
+# from gazebo_msgs.srv import SetEntityState, DeleteEntity
+from gazebo_msgs.msg import ContactState, ModelState#, GetModelList
 from std_msgs.msg import String
 from std_srvs.srv import Empty
 from geometry_msgs.msg import Pose
@@ -146,9 +146,6 @@ class MARAEnv(gym.Env):
         self._sub = self.node.create_subscription(JointTrajectoryControllerState, JOINT_SUBSCRIBER, self.observation_callback, qos_profile=qos_profile_sensor_data)
         self._sub_coll = self.node.create_subscription(ContactState, '/gazebo_contacts', self.collision_callback, qos_profile=qos_profile_sensor_data)
         self.reset_sim = self.node.create_client(Empty, '/reset_simulation')
-        self.set_entity_state = self.node.create_client(SetEntityState, '/set_entity_state')
-        #self.remove_model = self.node.create_client(DeleteEntity, '/delete_model')
-        #self.get_model_list = self.node.create_client(GetModelList, '/get_model_list')
 
         # Initialize a tree structure from the robot urdf.
         #   note that the xacro of the urdf is updated by hand.

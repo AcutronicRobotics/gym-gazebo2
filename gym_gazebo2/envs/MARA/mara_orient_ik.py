@@ -105,7 +105,6 @@ class MARAOrientIKEnv(gym.Env):
 
         # Set constants for links
         WORLD = 'world'
-        TABLE = 'table'
         BASE = 'base_robot'
         MARA_MOTOR1_LINK = 'motor1_link'
         MARA_MOTOR2_LINK = 'motor2_link'
