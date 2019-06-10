@@ -50,7 +50,7 @@ class MARAOrientIKEnv(gym.Env):
 
         # Set the path of the corresponding URDF file
         # if self.realSpeed:
-        urdf = "mara_robot_camera.urdf"
+        urdf = "reinforcement_learning/mara_robot_camera_run.urdf"
         urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf/" + urdf
         # else:
         #     urdf = "reinforcement_learning/mara_robot_train.urdf"
