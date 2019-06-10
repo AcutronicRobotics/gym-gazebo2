@@ -145,6 +145,8 @@ class MARARandomTargetEnv(gym.Env):
         self._sub = self.node.create_subscription(JointTrajectoryControllerState, JOINT_SUBSCRIBER, self.observation_callback, qos_profile=qos_profile_sensor_data)
         self._sub_coll = self.node.create_subscription(ContactState, '/gazebo_contacts', self.collision_callback, qos_profile=qos_profile_sensor_data)
         self.reset_sim = self.node.create_client(Empty, '/reset_simulation')
+        self.spawn_cli = self.node.create_client(SpawnEntity, '/spawn_entity')
+
         # delete entity
         self.delete_entity_cli = self.node.create_client(DeleteEntity, '/delete_entity')
 
@@ -198,9 +200,7 @@ class MARARandomTargetEnv(gym.Env):
     def spawn_target(self):
         self.targetPosition = self.sample_position()
 
-        spawn_cli = self.node.create_client(SpawnEntity, '/spawn_entity')
-
-        while not spawn_cli.wait_for_service(timeout_sec=1.0):
+        while not self.spawn_cli.wait_for_service(timeout_sec=1.0):
             self.node.get_logger().info('/spawn_entity service not available, waiting again...')
 
         modelXml = ut_gazebo.getTargetSdf()
@@ -222,7 +222,7 @@ class MARARandomTargetEnv(gym.Env):
         self.spawn_request.reference_frame = "world"
 
         #ROS2 Spawn Entity
-        target_future = spawn_cli.call_async(self.spawn_request)
+        target_future = self.spawn_cli.call_async(self.spawn_request)
         rclpy.spin_until_future_complete(self.node, target_future)
 
     def observation_callback(self, message):
