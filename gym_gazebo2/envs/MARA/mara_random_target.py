@@ -144,6 +144,10 @@ class MARARandomTargetEnv(gym.Env):
         self._sub = self.node.create_subscription(JointTrajectoryControllerState, JOINT_SUBSCRIBER, self.observation_callback, qos_profile=qos_profile_sensor_data)
         self._sub_coll = self.node.create_subscription(ContactState, '/gazebo_contacts', self.collision_callback, qos_profile=qos_profile_sensor_data)
         self.reset_sim = self.node.create_client(Empty, '/reset_simulation')
+        self.spawn_cli = self.node.create_client(SpawnEntity, '/spawn_entity')
+
+        # delete entity
+        self.delete_entity_cli = self.node.create_client(DeleteEntity, '/delete_entity')
         self.set_entity_state = self.node.create_client(SetEntityState, '/set_entity_state')
         #self.remove_model = self.node.create_client(DeleteEntity, '/delete_model')
         self.delete_entity_cli = self.node.create_client(DeleteEntity, '/delete_entity')
@@ -184,7 +188,7 @@ class MARARandomTargetEnv(gym.Env):
         self.collided = 0
 
     def spawn_target(self):
-        self.targetPosition = [ round(np.random.uniform(-0.615082, -0.35426), 5), round(np.random.uniform( -0.18471, 0.1475), 5), 0.25 ]
+        self.targetPosition = self.sample_position()
 
         while not self.spawn_cli.wait_for_service(timeout_sec=1.0):
             self.node.get_logger().info('/spawn_entity service not available, waiting again...')
