@@ -161,7 +161,7 @@ class MARARandomTargetEnv(gym.Env):
         # Initialize a KDL Jacobian solver from the chain.
         self.jacSolver = ChainJntToJacSolver(self.mara_chain)
 
-        self.obs_dim = self.numJoints + 9
+        self.obs_dim = self.numJoints + 6
 
         # # Here idially we should find the control range of the robot. Unfortunatelly in ROS/KDL there is nothing like this.
         # # I have tested this with the mujoco enviroment and the output is always same low[-1.,-1.], high[1.,1.]
@@ -286,8 +286,8 @@ class MARARandomTargetEnv(gym.Env):
             # vector, typically denoted asrobot_id 'x'.
             state = np.r_[np.reshape(lastObservations, -1),
                           np.reshape(eePos_points, -1),
-                          np.reshape(eeVelocities, -1),
-                          np.reshape(self.targetPosition,-1)]
+                          np.reshape(eeVelocities, -1),]
+                          #np.reshape(self.targetPosition,-1)]
 
             return state
 
