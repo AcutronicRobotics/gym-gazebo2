@@ -79,6 +79,7 @@ def generateLaunchDescriptionMara(gzclient, realSpeed, multiInstance, port, urdf
             realSpeed: bool   True if RTF must be set to 1, False if RTF must be set to maximum.
     """
     installDir = get_package_prefix('mara_gazebo_plugins')
+    configFile = "/share/hros_cognition_mara_components/motors.yaml"
 
     if 'GAZEBO_MODEL_PATH' in os.environ:
         os.environ['GAZEBO_MODEL_PATH'] = os.environ['GAZEBO_MODEL_PATH'] + ':' + installDir \
@@ -134,6 +135,7 @@ def generateLaunchDescriptionMara(gzclient, realSpeed, multiInstance, port, urdf
         worldPath = os.path.join(os.path.dirname(gym_gazebo2.__file__), 'worlds',
                                  'empty__state_plugin__speed_up.world')
 
+    os.environ["RMW_IMPLEMENTATION"] = "rmw_opensplice_cpp"
     launchDesc = LaunchDescription([
         ExecuteProcess(
             cmd=[gazeboCmd, '--verbose', '-s', 'libgazebo_ros_factory.so', '-s',
@@ -141,10 +143,8 @@ def generateLaunchDescriptionMara(gzclient, realSpeed, multiInstance, port, urdf
         Node(package='mara_utils_scripts', node_executable='spawn_mara.py',
              arguments=[urdf],
              output='screen'),
-        Node(package='hros_cognition_mara_components',
-             node_executable='hros_cognition_mara_components', output='screen',
-             arguments=["-motors", installDir \
-             + "/share/hros_cognition_mara_components/motors.yaml", "sim"]),
+        Node(package='hros_cognition_mara_components', node_executable='hros_cognition_mara_components',
+             output='screen', arguments=["-motors", installDir + "/share/hros_cognition_mara_components/motors.yaml", "sim"]),
         Node(package='mara_contact_publisher', node_executable='mara_contact_publisher',
              output='screen')
     ])

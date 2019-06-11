@@ -45,12 +45,12 @@ class MARAOrientIKEnv(gym.Env):
         self.gzclient = True#args.gzclient
         self.realSpeed = True#args.realSpeed
         self.velocity = 0.4#args.velocity
-        self.multiInstance = True#args.multiInstance
-        self.port = args.port
+        self.multiInstance = False#args.multiInstance
+        self.port = 47#args.port
 
         # Set the path of the corresponding URDF file
         # if self.realSpeed:
-        urdf = "reinforcement_learning/mara_robot_camera_run.urdf"
+        urdf = "reinforcement_learning/mara_robot_run.urdf"
         urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf/" + urdf
         # else:
         #     urdf = "reinforcement_learning/mara_robot_train.urdf"
@@ -143,7 +143,7 @@ class MARAOrientIKEnv(gym.Env):
         self._pub = self.node.create_publisher(JointTrajectory, JOINT_PUBLISHER, qos_profile=qos_profile_sensor_data)
         self._sub = self.node.create_subscription(JointTrajectoryControllerState, JOINT_SUBSCRIBER, self.observation_callback, qos_profile=qos_profile_sensor_data)
         self._sub_coll = self.node.create_subscription(ContactState, '/gazebo_contacts', self.collision_callback, qos_profile=qos_profile_sensor_data)
-        self.reset_sim = self.node.create_client(Empty, '/reset_simulation')
+        # self.reset_sim = self.node.create_client(Empty, '/reset_simulation')
 
         # Initialize a tree structure from the robot urdf.
         # Note that the xacro of the urdf is updated by hand.
@@ -293,11 +293,11 @@ class MARAOrientIKEnv(gym.Env):
     def collision(self):
         # Reset if there is a collision
         if self._collision_msg is not None:
-            while not self.reset_sim.wait_for_service(timeout_sec=1.0):
-                self.node.get_logger().info('/reset_simulation service not available, waiting again...')
-
-            reset_future = self.reset_sim.call_async(Empty.Request())
-            rclpy.spin_until_future_complete(self.node, reset_future)
+            # while not self.reset_sim.wait_for_service(timeout_sec=1.0):
+            #     self.node.get_logger().info('/reset_simulation service not available, waiting again...')
+            #
+            # reset_future = self.reset_sim.call_async(Empty.Request())
+            # rclpy.spin_until_future_complete(self.node, reset_future)
             self._collision_msg = None
             self.collided += 1
             return True
@@ -347,13 +347,13 @@ class MARAOrientIKEnv(gym.Env):
         """
         self.iterator = 0
 
-        if self.reset_jnts is True:
+        # if self.reset_jnts is True:
             # reset simulation
-            while not self.reset_sim.wait_for_service(timeout_sec=1.0):
-                self.node.get_logger().info('/reset_simulation service not available, waiting again...')
-
-            reset_future = self.reset_sim.call_async(Empty.Request())
-            rclpy.spin_until_future_complete(self.node, reset_future)
+            # while not self.reset_sim.wait_for_service(timeout_sec=1.0):
+            #     self.node.get_logger().info('/reset_simulation service not available, waiting again...')
+            #
+            # reset_future = self.reset_sim.call_async(Empty.Request())
+            # rclpy.spin_until_future_complete(self.node, reset_future)
 
         self.ros_clock = rclpy.clock.Clock().now().nanoseconds
 

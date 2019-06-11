@@ -7,12 +7,6 @@
 
     TODO: A world plugin could handle disabling atmosphere/magnetic_field.. which would result in a very very slight performance improvement. -->
 
-    <plugin name="gazebo_ros_state" filename="libgazebo_ros_state.so">
-      <ros>
-        <namespace></namespace>
-      </ros>
-    </plugin>
-
     <!-- A global light source -->
     <include>
       <uri>model://sun</uri>
