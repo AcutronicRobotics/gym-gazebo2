@@ -14,7 +14,7 @@ For the complete MARA experiments installation, please refer first to the **ROS2
 
 ## ROS 2.0
 
-- **ROS 2 dashing**.
+- **ROS 2 Dashing**.
    - Ubuntu 18: Install ROS 2 Desktop following the official instructions, binaries recommended. [Instructions](https://index.ros.org/doc/ros2/Installation/Linux-Install-Debians/).
 
 ## Dependent tools
@@ -32,7 +32,6 @@ ros-dashing-tf2 \
 ros-dashing-tf2-geometry-msgs \
 ros-dashing-rclcpp-action \
 ros-dashing-cv-bridge \
-ros-dashing-control-msgs \
 ros-dashing-image-transport \
 ros-dashing-gazebo-dev \
 ros-dashing-gazebo-msgs \
