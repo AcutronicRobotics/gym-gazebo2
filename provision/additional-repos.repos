@@ -1,4 +1,8 @@
- repositories:  
+ repositories:
+   gazebo_ros_pkgs:
+    type: git
+    url: https://github.com/ros-simulation/gazebo_ros_pkgs
+    version: ros2
   orocos_kinematics_dynamics:
     type: git
     url: https://github.com/erlerobot/orocos_kinematics_dynamics
