@@ -1,5 +1,5 @@
 # Installation
-For the complete MARA experiments installation, please refer first to the **ROS2learn** installation instructions:  [github/acutronicrobotics/ros2learn/Install](https://github.com/acutronicrobotics/ros2learn/blob/master/Install.md).
+For the complete MARA experiments installation, please refer first to the **ROS2learn** installation instructions:  [github/acutronicrobotics/ros2learn/Install](https://github.com/AcutronicRobotics/ros2learn/blob/crystal/Install.md).
 
 ## Table of Contents
 - [ROS 2.0](#ros-20)
@@ -18,26 +18,17 @@ For the complete MARA experiments installation, please refer first to the **ROS2
    - Ubuntu 18: Install ROS 2 Desktop following the official instructions, binaries recommended. [Instructions](https://index.ros.org/doc/ros2/Installation/Linux-Install-Debians/).
 
 ## Dependent tools
-**Note**: We recommend installing **Gazebo 9.0.0** via **ROS Crystal Debian packages** and removing previous gazebo installations to avoid undesired conflicts, e.g. `apt-get remove *gazebo*`. You can also use different versions of the simulator such as Gazebo 10, but you must skip the installation of `ros-crystal-gazebo*` packages and add [gazebo_ros_pkgs](https://github.com/ros-simulation/gazebo_ros_pkgs/tree/crystal) to the `ros2_mara_ws` we are going to build in the [Create a ROS workspace](#create-a-ros-workspace) section.
+**Note**: We recommend installing **Gazebo 9.9.0** via **ROS Crystal Debian packages** and removing previous gazebo installations to avoid undesired conflicts, e.g. `apt-get remove *gazebo*`. You can also use different versions of the simulator such as Gazebo 10, but you must skip the installation of `ros-crystal-gazebo*` packages.
 
 ```sh
 # ROS 2 extra packages
 sudo apt update && sudo apt install -y \
-ros-crystal-action-msgs \
-ros-crystal-message-filters \
-ros-crystal-yaml-cpp-vendor \
-ros-crystal-urdf \
-ros-crystal-rttest \
-ros-crystal-tf2 \
-ros-crystal-tf2-geometry-msgs \
-ros-crystal-rclcpp-action \
 ros-crystal-cv-bridge \
 ros-crystal-control-msgs \
 ros-crystal-image-transport \
 ros-crystal-gazebo-dev \
 ros-crystal-gazebo-msgs \
 ros-crystal-gazebo-plugins \
-ros-crystal-gazebo-ros \
 ros-crystal-gazebo-ros-pkgs
 
 sudo apt update && sudo apt install -y \
@@ -76,14 +67,14 @@ Create the workspace and download source files:
 ```sh
 mkdir -p ~/ros2_mara_ws/src
 cd ~/ros2_mara_ws
-wget https://raw.githubusercontent.com/AcutronicRobotics/MARA/master/mara-ros2.repos
+wget https://raw.githubusercontent.com/AcutronicRobotics/MARA/crystal/mara-ros2.repos
 vcs import src < mara-ros2.repos
-wget https://raw.githubusercontent.com/AcutronicRobotics/gym-gazebo2/master/provision/additional-repos.repos
+wget https://raw.githubusercontent.com/AcutronicRobotics/gym-gazebo2/crystal/provision/additional-repos.repos
 vcs import src < additional-repos.repos
 # Avoid compiling erroneus package
 touch ~/ros2_mara_ws/src/orocos_kinematics_dynamics/orocos_kinematics_dynamics/COLCON_IGNORE
 ```
-Generate [HRIM](https://github.com/erlerobot/HRIM) dependencies:
+Generate [HRIM](https://github.com/AcutronicRobotics/HRIM/tree/Coliza) dependencies:
 
 ```sh
 cd ~/ros2_mara_ws/src/HRIM
@@ -127,7 +118,7 @@ pip3 install -e .
 
 Install the gym-gazebo2 toolkit.
 
-If you are using [**ros2learn**](https://github.com/AcutronicRobotics/ros2learn):
+If you are using [**ros2learn**](https://github.com/AcutronicRobotics/ros2learn/tree/crystal):
 ```sh
 cd ~/ros2learn/environments/gym-gazebo2
 pip3 install -e .
@@ -135,7 +126,7 @@ pip3 install -e .
 
 If not:
 ```sh
-cd ~ && git clone https://github.com/AcutronicRobotics/gym-gazebo2
+cd ~ && git clone https://github.com/AcutronicRobotics/gym-gazebo2 -b crystal
 cd gym-gazebo2
 pip3 install -e .
 ```
@@ -148,16 +139,4 @@ First we need setup ROS2, MARA ROS2 workspace and Gazebo. It is convenient that 
 cd gym-gazebo2
 echo "source `pwd`/provision/mara_setup.sh" >> ~/.bashrc
 source ~/.bashrc
-```
-
-**Note**: This setup file contains paths to ROS and Gazebo used by default by this toolkit. If you installed ROS from sources, you must modify the first line of the provisioning script:
-
-```diff
--  source /opt/ros/crystal/setup.bash
-+  source ~/ros2_ws/install/setup.bash
-   source ~/ros2_mara_ws/install/setup.bash
-   source /usr/share/gazebo-9/setup.sh
-   export PYTHONPATH=$PYTHONPATH:~/ros2_mara_ws/install/lib/python3/dist-packages
-   export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:~/ros2_mara_ws/src/MARA
-   export GAZEBO_PLUGIN_PATH=$GAZEBO_PLUGIN_PATH:~/ros2_mara_ws/src/MARA/mara_gazebo_plugins/build/
 ```
