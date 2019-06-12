@@ -109,8 +109,8 @@ touch ~/ros2_mara_ws/install/share/orocos_kdl/local_setup.sh ~/ros2_mara_ws/inst
 A few packages are expected to throw warning messages. The expected output is the following:
 
 ```sh
-35 packages finished [12min 26s]
-4 packages had stderr output: cv_bridge orocos_kdl python_orocos_kdl robotiq_gripper_gazebo_plugins
+Summary: 31 packages finished [4min 30s]
+  2 packages had stderr output: orocos_kdl python_orocos_kdl
 ```
 
 ### OpenAI Gym
