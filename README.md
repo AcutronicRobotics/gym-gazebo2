@@ -21,7 +21,7 @@ A whitepaper regarding previous work of gym-gazebo is available at https://arxiv
 
 **gym-gazebo2** is a complex piece of software for roboticists that puts together simulation tools, robot middlewares (ROS 2), machine learning and reinforcement learning techniques. All together to create an environment where to benchmark and develop behaviors with robots. Setting up `gym-gazebo2` appropriately requires relevant familiarity with these tools.
 
-**Docs**. In-depth explanations and actively growing tutorials can be found at https://acutronicrobotics.com/docs. The following is an example of what you can achieve using gym-gazebo2 as a submodule of [ros2learn](https://github.com/AcutronicRobotics/ros2learn) repository. The goal is to reach the green target.
+**Docs**. In-depth explanations and actively growing tutorials can be found at https://acutronicrobotics.com/docs. The following is an example of what you can achieve using gym-gazebo2 as a submodule of [ros2learn](https://github.com/AcutronicRobotics/ros2learn/tree/crystal) repository. The goal is to reach the green target.
  - 1. Left image shows the start of a training
  - 2. To the right we execute an already trained policy.
 
@@ -49,7 +49,8 @@ A whitepaper regarding previous work of gym-gazebo is available at https://arxiv
 
 ## Environments
 The code for each environment group is housed in its own subdirectory
-[gym_gazebo2/envs](https://github.com/AcutronicRobotics/gym-gazebo2/blob/crystal/gym_gazebo2/envs). Robot specific simulation files should be housed in robot specific ROS2 packages.
+
+[gym_gazebo2/envs](https://github.com/AcutronicRobotics/gym-gazebo2/tree/crystal/gym_gazebo2/envs). Robot specific simulation files should be housed in robot specific ROS2 packages.
 
 ### MARA
 #### Real Robot
@@ -65,7 +66,7 @@ MARA stands for Modular Articulated Robotic Arm and is a collaborative robotic a
 <p>
 <img src="imgs/mara_2.gif" align="left" height="125">
 
-MARA also provides an accurate simulated version in Gazebo, which allows to translate behaviors from the simulated environment to the real robot. This is the version we will be training in gym-gazebo2. Please refer to [github.com/acutronicRobotics/MARA](https://github.com/acutronicRobotics/MARA) for additional simulation related content for Gazebo, MoveIt! and rviz2.
+MARA also provides an accurate simulated version in Gazebo, which allows to translate behaviors from the simulated environment to the real robot. This is the version we will be training in gym-gazebo2. Please refer to [github.com/acutronicRobotics/MARA](https://github.com/AcutronicRobotics/MARA/tree/crystal) for additional simulation related content for Gazebo, MoveIt! and rviz2.
 </p><br>
 
 ## Installation
