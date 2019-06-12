@@ -13,7 +13,8 @@ action = np.asarray([0.04, 0.09, 0.19, 0.39, 0.79, 1.57])
 tested_envs = 0
 
 for env in envs.registry.all():
-    if env.id.startswith('MARA') and 'Real' not in env.id:
+    if env.id.startswith('MARA') and 'Real' not in env.id \
+    and 'MARAOrientIK' not in env.id:
         environments.append(env.id)
 
 print("\nSTARTING MARA ENVS TEST")
