@@ -141,3 +141,15 @@ cd gym-gazebo2
 echo "source `pwd`/provision/mara_setup.sh" >> ~/.bashrc
 source ~/.bashrc
 ```
+
+**Note**: This setup file contains paths to ROS and Gazebo used by default by this toolkit. If you installed ROS from sources, you must modify the first line of the provisioning script:
+
+```diff
+-  source /opt/ros/crystal/setup.bash
++  source ~/ros2_ws/install/setup.bash
+   source ~/ros2_mara_ws/install/setup.bash
+   source /usr/share/gazebo-9/setup.sh
+   export PYTHONPATH=$PYTHONPATH:~/ros2_mara_ws/install/lib/python3/dist-packages
+   export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:~/ros2_mara_ws/src/MARA
+   export GAZEBO_PLUGIN_PATH=$GAZEBO_PLUGIN_PATH:~/ros2_mara_ws/src/MARA/mara_gazebo_plugins/build/
+```
