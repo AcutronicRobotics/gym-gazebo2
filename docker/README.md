@@ -3,7 +3,7 @@
 ## Pull container from docker hub
 
 ```bash
-docker rm gg2 || true && docker run -it --name=gg2 -h gym-gazebo2 -v `pwd`:/tmp/gym-gazebo2 acutronicrobotics/gym-gazebo2
+docker rm gg2 || true && docker run -it --name=gg2 -h gym-gazebo2 -v `pwd`:/tmp/gym-gazebo2 acutronicrobotics/gym-gazebo2:crystal
 cp -r /root/ros2_mara_ws /tmp/gym-gazebo2 #Inside the docker container, used to load visual models
 ```
 
