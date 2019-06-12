@@ -1,5 +1,5 @@
 # Installation
-For the complete MARA experiments installation, please refer first to the **ROS2learn** installation instructions:  [github/acutronicrobotics/ros2learn/Install](https://github.com/acutronicrobotics/ros2learn/blob/master/Install.md).
+For the complete MARA experiments installation, please refer first to the **ROS2learn** installation instructions:  [github/acutronicrobotics/ros2learn/Install](https://github.com/acutronicrobotics/ros2learn/blob/crystal/Install.md).
 
 ## Table of Contents
 - [ROS 2.0](#ros-20)
@@ -127,7 +127,7 @@ pip3 install -e .
 
 Install the gym-gazebo2 toolkit.
 
-If you are using [**ros2learn**](https://github.com/AcutronicRobotics/ros2learn):
+If you are using [**ros2learn**](https://github.com/AcutronicRobotics/ros2learn/tree/crystal):
 ```sh
 cd ~/ros2learn/environments/gym-gazebo2
 pip3 install -e .
