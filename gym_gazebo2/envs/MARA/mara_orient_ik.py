@@ -44,7 +44,7 @@ class MARAOrientIKEnv(gym.Env):
         args = ut_generic.getArgsParserMARA().parse_args()
         self.gzclient = True#args.gzclient
         self.realSpeed = True#args.realSpeed
-        self.velocity = 0.4#args.velocity
+        self.velocity = args.velocity
         self.multiInstance = True#args.multiInstance
         self.port = args.port
 
@@ -168,6 +168,36 @@ class MARAOrientIKEnv(gym.Env):
         high = np.inf*np.ones(self.obs_dim)
         low = -high
         self.observation_space = spaces.Box(low, high)
+
+        # Spawn Target element in gazebo.
+        # node & spawn_cli initialized in super class
+        spawn_cli = self.node.create_client(SpawnEntity, '/spawn_entity')
+
+        while not spawn_cli.wait_for_service(timeout_sec=1.0):
+            self.node.get_logger().info('/spawn_entity service not available, waiting again...')
+
+        modelXml = ut_gazebo.getTargetSdf()
+
+        pose = Pose()
+        pose.position.x = self.targetPosition[0]
+        pose.position.y = self.targetPosition[1]
+        pose.position.z = self.targetPosition[2]
+        pose.orientation.x = self.target_orientation[1]
+        pose.orientation.y= self.target_orientation[2]
+        pose.orientation.z = self.target_orientation[3]
+        pose.orientation.w = self.target_orientation[0]
+
+        #override previous spawn_request element.
+        self.spawn_request = SpawnEntity.Request()
+        self.spawn_request.name = "target"
+        self.spawn_request.xml = modelXml
+        self.spawn_request.robot_namespace = ""
+        self.spawn_request.initial_pose = pose
+        self.spawn_request.reference_frame = "world"
+
+        #ROS2 Spawn Entity
+        target_future = spawn_cli.call_async(self.spawn_request)
+        rclpy.spin_until_future_complete(self.node, target_future)
 
         # Seed the environment
         self.seed()
@@ -324,6 +354,7 @@ class MARAOrientIKEnv(gym.Env):
             action[:self.numJoints],
             self.environment['jointOrder'],
             self.velocity))
+
         # Wait until the action is finished.
         # self.wait_for_action(action)
 
