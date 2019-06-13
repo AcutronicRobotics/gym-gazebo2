@@ -66,7 +66,7 @@ RUN \
       && touch /root/ros2_mara_ws/install/share/orocos_kdl/local_setup.sh /root/ros2_mara_ws/install/share/orocos_kdl/local_setup.bash \
       && cd /root && git clone https://github.com/openai/gym && cd /root/gym && pip3 install -e . \
       #gym-gazebo2
-      && cd /root && git clone https://github.com/AcutronicRobotics/gym-gazebo2 && cd /root/gym-gazebo2 && pip3 install -e . \
+      && cd /root && git clone -b dashing https://github.com/AcutronicRobotics/gym-gazebo2 && cd /root/gym-gazebo2 && pip3 install -e . \
       #Load provisioning script
       && echo 'source /root/gym-gazebo2/provision/mara_setup.sh' >> ~/.bashrc \
       "
