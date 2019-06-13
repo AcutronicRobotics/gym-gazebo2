@@ -46,11 +46,6 @@ RUN \
         ros-$ROS2_DISTRO-rclcpp-action \
         ros-$ROS2_DISTRO-cv-bridge \
         ros-$ROS2_DISTRO-image-transport \
-        ros-$ROS2_DISTRO-gazebo-dev \
-        ros-$ROS2_DISTRO-gazebo-msgs \
-        ros-$ROS2_DISTRO-gazebo-plugins \
-        ros-$ROS2_DISTRO-gazebo-ros \
-        ros-$ROS2_DISTRO-gazebo-ros-pkgs \
         libopencv-dev \
       && rm -rf /var/lib/apt/lists/* \
       && wget https://raw.githubusercontent.com/AcutronicRobotics/MARA/master/mara-ros2.repos && vcs import src < mara-ros2.repos \

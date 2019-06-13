@@ -33,11 +33,6 @@ ros-dashing-tf2-geometry-msgs \
 ros-dashing-rclcpp-action \
 ros-dashing-cv-bridge \
 ros-dashing-image-transport \
-ros-dashing-gazebo-dev \
-ros-dashing-gazebo-msgs \
-ros-dashing-gazebo-plugins \
-ros-dashing-gazebo-ros \
-ros-dashing-gazebo-ros-pkgs
 
 sudo apt update && sudo apt install -y \
   build-essential \
