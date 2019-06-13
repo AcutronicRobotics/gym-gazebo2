@@ -92,7 +92,7 @@ hrim generate models/actuator/gripper/gripper.xml
 ```
 ### Compile the workspace
 
-Please make sure you are not sourcing ROS1 workspaces via `bashrc` or any other way.
+Please make sure you are not sourcing ROS1 workspaces via `bashrc` or any other way. Also make sure you are not sourcing any provisioning script from other ROS2 distribution compliant gym-gazebo2 installation, e.g. gym-gazebo2 `crystal`.
 
 #### Ubuntu 18
 
