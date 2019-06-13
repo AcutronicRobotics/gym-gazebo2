@@ -135,7 +135,6 @@ def generateLaunchDescriptionMara(gzclient, realSpeed, multiInstance, port, urdf
         worldPath = os.path.join(os.path.dirname(gym_gazebo2.__file__), 'worlds',
                                  'empty__state_plugin__speed_up.world')
 
-    os.environ["RMW_IMPLEMENTATION"] = "rmw_opensplice_cpp"
     launchDesc = LaunchDescription([
         ExecuteProcess(
             cmd=[gazeboCmd, '--verbose', '-s', 'libgazebo_ros_factory.so', '-s',
