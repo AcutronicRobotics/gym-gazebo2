@@ -143,7 +143,12 @@ cd gym-gazebo2
 echo "source `pwd`/provision/mara_setup.sh" >> ~/.bashrc
 source ~/.bashrc
 ```
+**Note**: In Dashing we need to use opensplice implementation of DDS, since Fast-RTPS and others are still buggy and not supported well in this use case. Please export the the opensplice DDS implementation:
 
+'''sh
+export RMW_IMPLEMENTATION=rmw_opensplice_cpp
+'''
+before running/training any example of the MARA enviroment.
 **Note**: This setup file contains paths to ROS and Gazebo used by default by this toolkit. If you installed ROS from sources, you must modify the first line of the provisioning script:
 
 ```diff
@@ -154,4 +159,5 @@ source ~/.bashrc
    export PYTHONPATH=$PYTHONPATH:~/ros2_mara_ws/install/lib/python3/dist-packages
    export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:~/ros2_mara_ws/src/MARA
    export GAZEBO_PLUGIN_PATH=$GAZEBO_PLUGIN_PATH:~/ros2_mara_ws/src/MARA/mara_gazebo_plugins/build/
+   export RMW_IMPLEMENTATION=rmw_opensplice_cpp
 ```
