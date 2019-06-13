@@ -1,4 +1,4 @@
-source /opt/ros/crystal/setup.bash
+source /opt/ros/dashing/setup.bash
 source ~/ros2_mara_ws/install/setup.bash
 source /usr/share/gazebo-9/setup.sh
 export PYTHONPATH=$PYTHONPATH:~/ros2_mara_ws/install/lib/python3/dist-packages

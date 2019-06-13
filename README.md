@@ -4,7 +4,7 @@
 
 **gym-gazebo2 is a toolkit for developing and comparing reinforcement learning algorithms using ROS 2 and Gazebo**. Built as an extension of [gym-gazebo](https://github.com/erlerobot/gym-gazebo/tree/master), gym-gazebo2 has been redesigned with community feedback and adopts now a standalone architecture while mantaining the core concepts of previous work inspired originally by the OpenAI gym.
 
-[![Travis](https://travis-ci.org/AcutronicRobotics/gym-gazebo2.svg?branch=master)](https://travis-ci.org/AcutronicRobotics/gym-gazebo2) [![Article](https://img.shields.io/badge/article-arxiv%3A1903.06278-ecb80c.svg)](https://arxiv.org/pdf/1903.06278.pdf)
+[![Travis](https://travis-ci.org/AcutronicRobotics/gym-gazebo2.svg?branch=dashing)](https://travis-ci.org/AcutronicRobotics/gym-gazebo2) [![Article](https://img.shields.io/badge/article-arxiv%3A1903.06278-ecb80c.svg)](https://arxiv.org/pdf/1903.06278.pdf)
 
 This work presents an upgraded, real world application oriented version of gym-gazebo, the Robot Operating System (ROS) and Gazebo based Reinforcement Learning (RL) toolkit, which complies with OpenAI Gym. A whitepaper about this work is available at https://arxiv.org/abs/1903.06278. Please use the following BibTex entry to cite our work:
 
@@ -26,7 +26,7 @@ A whitepaper regarding previous work of gym-gazebo is available at https://arxiv
  - 2. To the right we execute an already trained policy.
 
 <p align="center">
-  <img height="300" src="https://github.com/AcutronicRobotics/gym-gazebo2/blob/master/imgs/example_train.gif"> <img height="300" src="https://github.com/AcutronicRobotics/gym-gazebo2/blob/master/imgs/example_run.gif">
+  <img height="300" src="https://github.com/AcutronicRobotics/gym-gazebo2/blob/dashing/imgs/example_train.gif"> <img height="300" src="https://github.com/AcutronicRobotics/gym-gazebo2/blob/dashing/imgs/example_run.gif">
 </p>
 
 <!--<p align="center">
@@ -49,7 +49,7 @@ A whitepaper regarding previous work of gym-gazebo is available at https://arxiv
 
 ## Environments
 The code for each environment group is housed in its own subdirectory
-[gym_gazebo2/envs](https://github.com/AcutronicRobotics/gym-gazebo2/blob/master/gym_gazebo2/envs). Robot specific simulation files should be housed in robot specific ROS2 packages.
+[gym_gazebo2/envs](https://github.com/AcutronicRobotics/gym-gazebo2/blob/dashing/gym_gazebo2/envs). Robot specific simulation files should be housed in robot specific ROS2 packages.
 
 ### MARA
 #### Real Robot
