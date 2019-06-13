@@ -32,7 +32,6 @@ ros-dashing-tf2 \
 ros-dashing-tf2-geometry-msgs \
 ros-dashing-rclcpp-action \
 ros-dashing-cv-bridge \
-ros-dashing-control-msgs \
 ros-dashing-image-transport \
 ros-dashing-gazebo-dev \
 ros-dashing-gazebo-msgs \

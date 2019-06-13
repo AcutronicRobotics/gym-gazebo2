@@ -45,7 +45,6 @@ RUN \
         ros-$ROS2_DISTRO-tf2-geometry-msgs \
         ros-$ROS2_DISTRO-rclcpp-action \
         ros-$ROS2_DISTRO-cv-bridge \
-        ros-$ROS2_DISTRO-control-msgs \
         ros-$ROS2_DISTRO-image-transport \
         ros-$ROS2_DISTRO-gazebo-dev \
         ros-$ROS2_DISTRO-gazebo-msgs \
