@@ -78,12 +78,11 @@ Refer to [docker/README.md](/docker/README.md) for gym-gazebo2 Docker container 
 
 ### Executing an algorithm
 
-**Note**: In Dashing we need to use opensplice implementation of DDS, since Fast-RTPS and others are still buggy and not supported well in this use case. Please export the the opensplice DDS implementation:
+**Note**: In Dashing we need to use opensplice implementation of DDS, since Fast-RTPS and others are still buggy and not supported well in this use case. Please export the OpenSplice DDS implementation manually or use the provisioning script before running/training any example of the MARA enviroment.
 
 ```sh
 export RMW_IMPLEMENTATION=rmw_opensplice_cpp
 ```
-before running/training any example of the MARA enviroment.
 
 If you added the privisioning script to your `~/.bashrc`, you can directly execute the algorithm. Load the environment variables manually otherwise.
 

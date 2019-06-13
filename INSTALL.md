@@ -34,6 +34,9 @@ ros-dashing-rclcpp-action \
 ros-dashing-cv-bridge \
 ros-dashing-image-transport \
 
+# Install OpenSplice RMW implementation. Required for dashing until default FastRTPS is fixed.
+sudo apt install ros-dashing-rmw-opensplice-cpp
+
 sudo apt update && sudo apt install -y \
   build-essential \
   cmake \
@@ -143,12 +146,12 @@ cd gym-gazebo2
 echo "source `pwd`/provision/mara_setup.sh" >> ~/.bashrc
 source ~/.bashrc
 ```
-**Note**: In Dashing we need to use opensplice implementation of DDS, since Fast-RTPS and others are still buggy and not supported well in this use case. Please export the the opensplice DDS implementation:
+**Note**: In Dashing we need to use opensplice implementation of DDS, since Fast-RTPS and others are still buggy and not supported well in this use case. Please export the OpenSplice DDS implementation manually or use the provisioning script before running/training any example of the MARA enviroment.
 
 ```sh
 export RMW_IMPLEMENTATION=rmw_opensplice_cpp
 ```
-before running/training any example of the MARA enviroment.
+
 **Note**: This setup file contains paths to ROS and Gazebo used by default by this toolkit. If you installed ROS from sources, you must modify the first line of the provisioning script:
 
 ```diff
