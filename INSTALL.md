@@ -14,31 +14,28 @@ For the complete MARA experiments installation, please refer first to the **ROS2
 
 ## ROS 2.0
 
-- **ROS 2 Crystal**.
+- **ROS 2 Dashing**.
    - Ubuntu 18: Install ROS 2 Desktop following the official instructions, binaries recommended. [Instructions](https://index.ros.org/doc/ros2/Installation/Linux-Install-Debians/).
 
 ## Dependent tools
-**Note**: We recommend installing **Gazebo 9.0.0** via **ROS Crystal Debian packages** and removing previous gazebo installations to avoid undesired conflicts, e.g. `apt-get remove *gazebo*`. You can also use different versions of the simulator such as Gazebo 10, but you must skip the installation of `ros-crystal-gazebo*` packages and add [gazebo_ros_pkgs](https://github.com/ros-simulation/gazebo_ros_pkgs/tree/crystal) to the `ros2_mara_ws` we are going to build in the [Create a ROS workspace](#create-a-ros-workspace) section.
+**Note**: We recommend installing **Gazebo 9.9.0** via **ROS Dashing Debian packages** and removing previous gazebo installations to avoid undesired conflicts, e.g. `apt-get remove *gazebo*`. You can also use different versions of the simulator such as Gazebo 10, but you must skip the installation of `ros-dashing-gazebo*` packages and add [gazebo_ros_pkgs](https://github.com/ros-simulation/gazebo_ros_pkgs/tree/ros2) to the `ros2_mara_ws` we are going to build in the [Create a ROS workspace](#create-a-ros-workspace) section.
 
 ```sh
 # ROS 2 extra packages
 sudo apt update && sudo apt install -y \
-ros-crystal-action-msgs \
-ros-crystal-message-filters \
-ros-crystal-yaml-cpp-vendor \
-ros-crystal-urdf \
-ros-crystal-rttest \
-ros-crystal-tf2 \
-ros-crystal-tf2-geometry-msgs \
-ros-crystal-rclcpp-action \
-ros-crystal-cv-bridge \
-ros-crystal-control-msgs \
-ros-crystal-image-transport \
-ros-crystal-gazebo-dev \
-ros-crystal-gazebo-msgs \
-ros-crystal-gazebo-plugins \
-ros-crystal-gazebo-ros \
-ros-crystal-gazebo-ros-pkgs
+ros-dashing-action-msgs \
+ros-dashing-message-filters \
+ros-dashing-yaml-cpp-vendor \
+ros-dashing-urdf \
+ros-dashing-rttest \
+ros-dashing-tf2 \
+ros-dashing-tf2-geometry-msgs \
+ros-dashing-rclcpp-action \
+ros-dashing-cv-bridge \
+ros-dashing-image-transport \
+
+# Install OpenSplice RMW implementation. Required for dashing until default FastRTPS is fixed.
+sudo apt install ros-dashing-rmw-opensplice-cpp
 
 sudo apt update && sudo apt install -y \
   build-essential \
@@ -93,14 +90,14 @@ hrim generate models/actuator/gripper/gripper.xml
 ```
 ### Compile the workspace
 
-Please make sure you are not sourcing ROS1 workspaces via `bashrc` or any other way.
+Please make sure you are not sourcing ROS1 workspaces via `bashrc` or any other way. Also make sure you are not sourcing any provisioning script from other ROS2 distribution compliant gym-gazebo2 installation, e.g. gym-gazebo2 `crystal`.
 
 #### Ubuntu 18
 
 Build the workspace using the `--merge-install` flag. Make sure you have enough Swap space.
 
 ```sh
-source /opt/ros/crystal/setup.bash
+source /opt/ros/dashing/setup.bash
 cd ~/ros2_mara_ws
 colcon build --merge-install --packages-skip individual_trajectories_bridge
 # Remove warnings
@@ -109,9 +106,9 @@ touch ~/ros2_mara_ws/install/share/orocos_kdl/local_setup.sh ~/ros2_mara_ws/inst
 A few packages are expected to throw warning messages. The expected output is the following:
 
 ```sh
-35 packages finished [12min 26s]
-4 packages had stderr output: cv_bridge orocos_kdl python_orocos_kdl robotiq_gripper_gazebo_plugins
-```
+Summary: 32 packages finished [13min 0s]
+  6 packages had stderr output: hros_cognition_mara_components mara_contact_publisher mara_gazebo_plugins orocos_kdl python_orocos_kdl robotiq_gripper_gazebo_plugins
+  ```
 
 ### OpenAI Gym
 
@@ -149,15 +146,21 @@ cd gym-gazebo2
 echo "source `pwd`/provision/mara_setup.sh" >> ~/.bashrc
 source ~/.bashrc
 ```
+**Note**: In Dashing we need to use opensplice implementation of DDS, since Fast-RTPS and others are still buggy and not supported well in this use case. Please export the OpenSplice DDS implementation manually or use the provisioning script before running/training any example of the MARA enviroment.
+
+```sh
+export RMW_IMPLEMENTATION=rmw_opensplice_cpp
+```
 
 **Note**: This setup file contains paths to ROS and Gazebo used by default by this toolkit. If you installed ROS from sources, you must modify the first line of the provisioning script:
 
 ```diff
--  source /opt/ros/crystal/setup.bash
+-  source /opt/ros/dashing/setup.bash
 +  source ~/ros2_ws/install/setup.bash
    source ~/ros2_mara_ws/install/setup.bash
    source /usr/share/gazebo-9/setup.sh
    export PYTHONPATH=$PYTHONPATH:~/ros2_mara_ws/install/lib/python3/dist-packages
    export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:~/ros2_mara_ws/src/MARA
    export GAZEBO_PLUGIN_PATH=$GAZEBO_PLUGIN_PATH:~/ros2_mara_ws/src/MARA/mara_gazebo_plugins/build/
+   export RMW_IMPLEMENTATION=rmw_opensplice_cpp
 ```

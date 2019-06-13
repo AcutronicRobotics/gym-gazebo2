@@ -19,7 +19,11 @@ import transforms3d as tf3d
 
 # ROS 2
 import rclpy
-from rclpy.qos import QoSProfile, qos_profile_sensor_data
+
+
+from rclpy.qos import qos_profile_sensor_data
+from rclpy.qos import QoSProfile
+from rclpy.qos import QoSReliabilityPolicy
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint # Used for publishing mara joint angles.
 from control_msgs.msg import JointTrajectoryControllerState
 # from gazebo_msgs.srv import SetEntityState, DeleteEntity
@@ -65,7 +69,7 @@ class MARAEnv(gym.Env):
                 self.gzclient, self.realSpeed, self.multiInstance, self.port, urdfPath))
 
         # Create the node after the new ROS_DOMAIN_ID is set in generate_launch_description()
-        rclpy.init(args=None)
+        rclpy.init()
         self.node = rclpy.create_node(self.__class__.__name__)
 
         # class variables
@@ -195,7 +199,7 @@ class MARAEnv(gym.Env):
         self.spawn_request.initial_pose = pose
         self.spawn_request.reference_frame = "world"
 
-        #ROS2 Spawn Entity
+        # #ROS2 Spawn Entity
         target_future = spawn_cli.call_async(self.spawn_request)
         rclpy.spin_until_future_complete(self.node, target_future)
         # Seed the environment
@@ -227,12 +231,14 @@ class MARAEnv(gym.Env):
         Take observation from the environment and return it.
         :return: state.
         """
-        # # Take an observation
+        # # # # Take an observation
         rclpy.spin_once(self.node)
         obs_message = self._observation_msg
 
         # Check that the observation is not prior to the action
-        while obs_message is None or int(str(obs_message.header.stamp.sec)+(str(obs_message.header.stamp.nanosec))) < self.ros_clock:
+        # obs_message = self._observation_msg
+        while obs_message is None or int(str(self._observation_msg.header.stamp.sec)+(str(self._observation_msg.header.stamp.nanosec))) < self.ros_clock:
+            # print("I am in obs_message is none")
             rclpy.spin_once(self.node)
             obs_message = self._observation_msg
 
@@ -310,7 +316,6 @@ class MARAEnv(gym.Env):
 
         # Take an observation
         obs = self.take_observation()
-
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
         rewardDist = ut_math.rmseFunc( obs[self.numJoints:(self.numJoints+3)] )
 
