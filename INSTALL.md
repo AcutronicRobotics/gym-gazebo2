@@ -145,9 +145,9 @@ source ~/.bashrc
 ```
 **Note**: In Dashing we need to use opensplice implementation of DDS, since Fast-RTPS and others are still buggy and not supported well in this use case. Please export the the opensplice DDS implementation:
 
-'''sh
+```sh
 export RMW_IMPLEMENTATION=rmw_opensplice_cpp
-'''
+```
 before running/training any example of the MARA enviroment.
 **Note**: This setup file contains paths to ROS and Gazebo used by default by this toolkit. If you installed ROS from sources, you must modify the first line of the provisioning script:
 
