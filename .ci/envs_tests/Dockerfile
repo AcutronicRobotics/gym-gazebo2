@@ -49,8 +49,8 @@ RUN \
         ros-$ROS2_DISTRO-rmw-opensplice-cpp \
         libopencv-dev \
       && rm -rf /var/lib/apt/lists/* \
-      && wget https://raw.githubusercontent.com/AcutronicRobotics/MARA/master/mara-ros2.repos && vcs import src < mara-ros2.repos \
-      && wget https://raw.githubusercontent.com/AcutronicRobotics/gym-gazebo2/master/provision/additional-repos.repos && vcs import src < additional-repos.repos \
+      && wget https://raw.githubusercontent.com/AcutronicRobotics/MARA/dashing/mara-ros2.repos && vcs import src < mara-ros2.repos \
+      && wget https://raw.githubusercontent.com/AcutronicRobotics/gym-gazebo2/dashing/provision/additional-repos.repos && vcs import src < additional-repos.repos \
       #Generete HRIM packages
       && cd ~/ros2_mara_ws/src/HRIM \
       && pip3 install hrim \

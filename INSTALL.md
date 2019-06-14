@@ -1,5 +1,5 @@
 # Installation
-For the complete MARA experiments installation, please refer first to the **ROS2learn** installation instructions:  [github/erlerobot/ros2learn/Install](https://github.com/erlerobot/ros2learn/blob/master/Install.md).
+For the complete MARA experiments installation, please refer first to the **ROS2learn** installation instructions:  [github/erlerobot/ros2learn/Install](https://github.com/erlerobot/ros2learn/blob/dashing/Install.md).
 
 ## Table of Contents
 - [ROS 2.0](#ros-20)
@@ -73,9 +73,9 @@ Create the workspace and download source files:
 ```sh
 mkdir -p ~/ros2_mara_ws/src
 cd ~/ros2_mara_ws
-wget https://raw.githubusercontent.com/AcutronicRobotics/MARA/master/mara-ros2.repos
+wget https://raw.githubusercontent.com/AcutronicRobotics/MARA/dashing/mara-ros2.repos
 vcs import src < mara-ros2.repos
-wget https://raw.githubusercontent.com/erlerobot/gym-gazebo2/master/provision/additional-repos.repos
+wget https://raw.githubusercontent.com/erlerobot/gym-gazebo2/dashing/provision/additional-repos.repos
 vcs import src < additional-repos.repos
 # Avoid compiling erroneus package
 touch ~/ros2_mara_ws/src/orocos_kinematics_dynamics/orocos_kinematics_dynamics/COLCON_IGNORE
