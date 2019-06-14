@@ -44,13 +44,13 @@ class MARAOrientIKEnv(gym.Env):
         args = ut_generic.getArgsParserMARA().parse_args()
         self.gzclient = True#args.gzclient
         self.realSpeed = True#args.realSpeed
-        self.velocity = args.velocity
-        self.multiInstance = True#args.multiInstance
-        self.port = args.port
+        self.velocity = 0.4#args.velocity
+        self.multiInstance = False#args.multiInstance
+        self.port = 47#args.port
 
         # Set the path of the corresponding URDF file
         # if self.realSpeed:
-        urdf = "reinforcement_learning/mara_robot_camera_run.urdf"
+        urdf = "reinforcement_learning/mara_robot_run.urdf"
         urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf/" + urdf
         # else:
         #     urdf = "reinforcement_learning/mara_robot_train.urdf"
@@ -105,7 +105,6 @@ class MARAOrientIKEnv(gym.Env):
 
         # Set constants for links
         WORLD = 'world'
-        TABLE = 'table'
         BASE = 'base_robot'
         MARA_MOTOR1_LINK = 'motor1_link'
         MARA_MOTOR2_LINK = 'motor2_link'
@@ -144,7 +143,7 @@ class MARAOrientIKEnv(gym.Env):
         self._pub = self.node.create_publisher(JointTrajectory, JOINT_PUBLISHER, qos_profile=qos_profile_sensor_data)
         self._sub = self.node.create_subscription(JointTrajectoryControllerState, JOINT_SUBSCRIBER, self.observation_callback, qos_profile=qos_profile_sensor_data)
         self._sub_coll = self.node.create_subscription(ContactState, '/gazebo_contacts', self.collision_callback, qos_profile=qos_profile_sensor_data)
-        self.reset_sim = self.node.create_client(Empty, '/reset_simulation')
+        # self.reset_sim = self.node.create_client(Empty, '/reset_simulation')
 
         # Initialize a tree structure from the robot urdf.
         # Note that the xacro of the urdf is updated by hand.
@@ -224,37 +223,38 @@ class MARAOrientIKEnv(gym.Env):
     def set_episode_size(self, episode_size):
         self.max_episode_steps = episode_size
 
-    # def returnIKSolution(self):
-    #     #, minJoints = -np.pi/2.0 * np.ones(self.numJoints), maxJoints = np.pi/2.0 * np.ones(self.numJoints)
-    #
-    #     # # Take an observation
-    #     rclpy.spin_once(self.node)
-    #     obs_message = self._observation_msg
-    #
-    #     # Check that the observation is not prior to the action
-    #     while obs_message is None or int(str(obs_message.header.stamp.sec)+(str(obs_message.header.stamp.nanosec))) < self.ros_clock:
-    #         rclpy.spin_once(self.node)
-    #         obs_message = self._observation_msg
-    #
-    #     lastObservations = ut_mara.processObservations(obs_message, self.environment)
-    #
-    #     translation, rot = general_utils.forwardKinematics(self.mara_chain,
-    #                                         self.environment['linkNames'],
-    #                                         lastObservations[:self.numJoints],
-    #                                         baseLink=self.environment['linkNames'][0], # make the table as the base to get the world coordinate system
-    #                                         endLink=self.environment['linkNames'][-1])
-    #
-    #     rot_tgt = tf3d.quaternions.quat2mat(self.target_orientation)
-    #     # print("FK: ",translation," ;", rot)
-    #
-    #
-    #     ikJntPos = general_utils.inverseKinematics(self.mara_chain, self.targetPosition, rot) # , minJoints = -np.pi/2.0 * np.ones(self.numJoints), maxJoints = np.pi/2.0 * np.ones(self.numJoints)
-    #     # print("joint pose from IK: ", ikJntPos)
-    #     sendIk = np.zeros(6)
-    #     if ikJntPos is not None:
-    #         sendIk = ikJntPos
+    def wait_for_action(self, action):
+        """Receives an action and loops until the robot reaches the pose set by the action.
 
-        # return sendIk
+        Note: This function can't be migrated to the ut_mara module since it reads constantly
+        from the observation callback provided by /mara_controller/state.
+        """
+        action_finished = False
+        resetting = False
+        trials = 0
+        while not action_finished:
+            # trials += 1
+            # if trials > 10000 and not resetting: #action failed, probably hitting the table.
+            #     print("Can't complete trajectory, setting new trajectory: initial_positions")
+            #     resetting = True
+            # if resetting:
+            #
+            #     # Reset simulation
+            #     reset_cli = self.node.create_client(Empty, '/reset_simulation')
+            #     while not reset_cli.wait_for_service(timeout_sec=1.0):
+            #         self.node.get_logger().info('service not available, waiting again...')
+            #
+            #     reset_future = reset_cli.call_async(Empty.Request())
+            #     rclpy.spin_until_future_complete(self.node, reset_future)
+            #
+            #     # Avoid unnecessary pose check.
+            #     break
+
+            rclpy.spin_once(self.node)
+            obs_message = self._observation_msg
+            if obs_message is not None:
+                last_observation = ut_mara.processObservations(obs_message, self.environment)
+                action_finished = ut_mara.positionsMatch(action, last_observation)
 
     def take_observation(self):
         """
@@ -323,11 +323,11 @@ class MARAOrientIKEnv(gym.Env):
     def collision(self):
         # Reset if there is a collision
         if self._collision_msg is not None:
-            while not self.reset_sim.wait_for_service(timeout_sec=1.0):
-                self.node.get_logger().info('/reset_simulation service not available, waiting again...')
-
-            reset_future = self.reset_sim.call_async(Empty.Request())
-            rclpy.spin_until_future_complete(self.node, reset_future)
+            # while not self.reset_sim.wait_for_service(timeout_sec=1.0):
+            #     self.node.get_logger().info('/reset_simulation service not available, waiting again...')
+            #
+            # reset_future = self.reset_sim.call_async(Empty.Request())
+            # rclpy.spin_until_future_complete(self.node, reset_future)
             self._collision_msg = None
             self.collided += 1
             return True
@@ -349,43 +349,25 @@ class MARAOrientIKEnv(gym.Env):
         self.iterator+=1
 
         # Execute "action"
+        # actions and services, or wait
         self._pub.publish(ut_mara.getTrajectoryMessage(
             action[:self.numJoints],
             self.environment['jointOrder'],
             self.velocity))
+
+        # Wait until the action is finished.
+        # self.wait_for_action(action)
 
         self.ros_clock = rclpy.clock.Clock().now().nanoseconds
 
         # Take an observation
         obs = self.take_observation()
 
-        # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
-        rewardDist = ut_math.rmseFunc(obs[self.numJoints:(self.numJoints+3)])
-        rewardOrientation = 2 * np.arccos(abs(obs[self.numJoints+3]))
-
         collided = self.collision()
 
-        reward = ut_math.computeReward(rewardDist, rewardOrientation)
-
-        # Calculate if the env has been solved
-        done = bool(self.iterator == self.max_episode_steps)
-        self.buffer_dist_rewards.append(rewardDist)
-        self.buffer_tot_rewards.append(reward)
+        reward = 0#ut_math.computeReward(rewardDist, rewardOrientation)
+        done = True
         info = {}
-        if self.iterator % self.max_episode_steps == 0:
-            max_dist_tgt = max(self.buffer_dist_rewards)
-            mean_dist_tgt = np.mean(self.buffer_dist_rewards)
-            min_dist_tgt = min(self.buffer_dist_rewards)
-            max_tot_rew = max(self.buffer_tot_rewards)
-            mean_tot_rew = np.mean(self.buffer_tot_rewards)
-            min_tot_rew = min(self.buffer_tot_rewards)
-            num_coll = self.collided
-
-            info = {"infos":{"ep_dist_max": max_dist_tgt,"ep_dist_mean": mean_dist_tgt,"ep_dist_min": min_dist_tgt,\
-                "ep_rew_max": max_tot_rew,"ep_rew_mean": mean_tot_rew,"ep_rew_min": min_tot_rew,"num_coll": num_coll}}
-            self.buffer_dist_rewards = []
-            self.buffer_tot_rewards = []
-            self.collided = 0
 
         # Return the corresponding observations, rewards, etc.
         return obs, reward, done, info
@@ -396,13 +378,13 @@ class MARAOrientIKEnv(gym.Env):
         """
         self.iterator = 0
 
-        if self.reset_jnts is True:
+        # if self.reset_jnts is True:
             # reset simulation
-            while not self.reset_sim.wait_for_service(timeout_sec=1.0):
-                self.node.get_logger().info('/reset_simulation service not available, waiting again...')
-
-            reset_future = self.reset_sim.call_async(Empty.Request())
-            rclpy.spin_until_future_complete(self.node, reset_future)
+            # while not self.reset_sim.wait_for_service(timeout_sec=1.0):
+            #     self.node.get_logger().info('/reset_simulation service not available, waiting again...')
+            #
+            # reset_future = self.reset_sim.call_async(Empty.Request())
+            # rclpy.spin_until_future_complete(self.node, reset_future)
 
         self.ros_clock = rclpy.clock.Clock().now().nanoseconds
 
