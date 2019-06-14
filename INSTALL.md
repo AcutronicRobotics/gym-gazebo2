@@ -32,6 +32,7 @@ ros-dashing-tf2-geometry-msgs \
 ros-dashing-rclcpp-action \
 ros-dashing-cv-bridge \
 ros-dashing-image-transport \
+ros-crystal-gazebo-dev
 
 # Install OpenSplice RMW implementation. Required for dashing until default FastRTPS is fixed.
 sudo apt install ros-dashing-rmw-opensplice-cpp
