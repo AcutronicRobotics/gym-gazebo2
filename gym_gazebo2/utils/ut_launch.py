@@ -134,10 +134,10 @@ def generateLaunchDescriptionMara(gzclient, realSpeed, multiInstance, port, urdf
 
     if realSpeed:
         worldPath = os.path.join(os.path.dirname(gym_gazebo2.__file__), 'worlds',
-                                 'empty__state_plugin.world')
+                                 'empty.world')
     else:
         worldPath = os.path.join(os.path.dirname(gym_gazebo2.__file__), 'worlds',
-                                 'empty__state_plugin__speed_up.world')
+                                 'empty_speed_up.world')
 
     launchDesc = LaunchDescription([
         ExecuteProcess(
