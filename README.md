@@ -2,7 +2,7 @@
 
 <a href="http://www.acutronicrobotics.com"><img src="/imgs/alr_logo.png" align="left" width="190"></a>
 
-**gym-gazebo2 is a toolkit for developing and comparing reinforcement learning algorithms using ROS 2 and Gazebo**. Built as an extension of [gym-gazebo](https://github.com/erlerobot/gym-gazebo/tree/master), gym-gazebo2 has been redesigned with community feedback and adopts now a standalone architecture while mantaining the core concepts of previous work inspired originally by the OpenAI gym.
+**gym-gazebo2 is a toolkit for developing and comparing reinforcement learning algorithms using ROS 2 and Gazebo**. Built as an extension of [gym-gazebo](https://github.com/AcutronicRobotics/gym-gazebo/tree/master), gym-gazebo2 has been redesigned with community feedback and adopts now a standalone architecture while mantaining the core concepts of previous work inspired originally by the OpenAI gym.
 
 [![Travis](https://travis-ci.org/AcutronicRobotics/gym-gazebo2.svg?branch=master)](https://travis-ci.org/AcutronicRobotics/gym-gazebo2) [![Article](https://img.shields.io/badge/article-arxiv%3A1903.06278-ecb80c.svg)](https://arxiv.org/pdf/1903.06278.pdf)
 
