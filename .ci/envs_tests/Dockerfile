@@ -47,6 +47,7 @@ RUN \
         ros-$ROS2_DISTRO-cv-bridge \
         ros-$ROS2_DISTRO-image-transport \
         ros-$ROS2_DISTRO-rmw-opensplice-cpp \
+        ros-$ROS2_DISTRO-gazebo-dev \
         libopencv-dev \
       && rm -rf /var/lib/apt/lists/* \
       && wget https://raw.githubusercontent.com/AcutronicRobotics/MARA/dashing/mara-ros2.repos && vcs import src < mara-ros2.repos \
