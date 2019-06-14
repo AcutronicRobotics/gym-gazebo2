@@ -310,8 +310,6 @@ class MARAEnv(gym.Env):
             self.environment['jointOrder'],
             self.velocity))
 
-        # time.sleep(1)
-
         self.ros_clock = rclpy.clock.Clock().now().nanoseconds
 
         # Take an observation
