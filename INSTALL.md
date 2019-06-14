@@ -80,7 +80,7 @@ vcs import src < additional-repos.repos
 touch ~/ros2_mara_ws/src/orocos_kinematics_dynamics/orocos_kinematics_dynamics/COLCON_IGNORE
 ```
 
-Generate [HRIM](https://github.com/AcutronicRobotics/HRIM) dependencies:
+Generate [HRIM](https://github.com/AcutronicRobotics/HRIM/tree/Coliza) dependencies:
 
 ```sh
 cd ~/ros2_mara_ws/src/HRIM
