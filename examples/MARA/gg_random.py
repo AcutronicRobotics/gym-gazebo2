@@ -11,6 +11,8 @@ env = gym.make('MARA-v0')
 #env = gym.make('MARACollisionOrient-v0')
 #env = gym.make('MARACollisionOrientRandomTarget-v0')
 
+
+
 while True:
     # take a random action
     observation, reward, done, info = env.step(env.action_space.sample())

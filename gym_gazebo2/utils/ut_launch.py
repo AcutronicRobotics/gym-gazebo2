@@ -50,10 +50,15 @@ def getExclusiveNetworkParameters():
         Dictionary {ros_domain_id (string), ros_domain_id (string)}
     """
 
-    randomPort = random.randint(10000, 15000)
-    while isPortInUse(randomPort):
+    randomPortROS = random.randint(0, 230)
+    randomPortGazebo = random.randint(10000, 15000)
+    while isPortInUse(randomPortROS):
         print("Randomly selected port is already in use, retrying.")
-        randomPort = random.randint(10000, 15000)
+        randomPortROS = random.randint(0, 230)
+
+    while isPortInUse(randomPortGazebo):
+        print("Randomly selected port is already in use, retrying.")
+        randomGazebo = random.randint(10000, 15000)
 
     # Save network segmentation related information in a temporary folder.
     tempPath = '/tmp/gym-gazebo-2/running/'
@@ -65,12 +70,12 @@ def getExclusiveNetworkParameters():
     filename = datetime.now().strftime('running_since_%H_%M__%d_%m_%Y.log')
 
     file = open(tempPath + '/' + filename, 'w+')
-    file.write(filename + '\nROS_DOMAIN_ID=' + str(randomPort) \
-        + '\nGAZEBO_MASTER_URI=http://localhost:' + str(randomPort))
+    file.write(filename + '\nROS_DOMAIN_ID=' + str(randomPortROS) \
+        + '\nGAZEBO_MASTER_URI=http://localhost:' + str(randomPortGazebo))
     file.close()
 
-    return {'ros_domain_id':str(randomPort),
-            'gazebo_master_uri':"http://localhost:" + str(randomPort)}
+    return {'ros_domain_id':str(randomPortROS),
+            'gazebo_master_uri':"http://localhost:" + str(randomPortGazebo)}
 
 def generateLaunchDescriptionMara(gzclient, realSpeed, multiInstance, port, urdf):
     """

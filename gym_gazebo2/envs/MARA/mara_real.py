@@ -231,8 +231,8 @@ class MARARealEnv(gym.Env):
         obs = self.take_observation()
 
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
-        rewardDist = ut_math.rmseFunc( self.ob[self.numJoints:(self.numJoints+3)] )
-        rewardOrientation = 2 * np.arccos( abs( self.ob[self.numJoints+3] ) )
+        rewardDist = ut_math.rmseFunc( obs[self.numJoints:(self.numJoints+3)] )
+        rewardOrientation = 2 * np.arccos( abs( obs[self.numJoints+3] ) )
 
         reward = ut_math.computeReward(rewardDist, rewardOrientation, False)
 

@@ -8,26 +8,20 @@ import os
 import psutil
 import signal
 import sys
-from scipy.stats import skew
+import transforms3d as tf3d
 from gym import utils, spaces
 from gym_gazebo2.utils import ut_generic, ut_launch, ut_mara, ut_math, ut_gazebo, tree_urdf, general_utils
 from gym.utils import seeding
 from gazebo_msgs.srv import SpawnEntity
-import subprocess
+from multiprocessing import Process
 import argparse
-import transforms3d as tf3d
 
 # ROS 2
 import rclpy
-
-
-from rclpy.qos import qos_profile_sensor_data
-from rclpy.qos import QoSProfile
-from rclpy.qos import QoSReliabilityPolicy
-from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint # Used for publishing mara joint angles.
+from rclpy.qos import QoSProfile, qos_profile_sensor_data
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from control_msgs.msg import JointTrajectoryControllerState
-# from gazebo_msgs.srv import SetEntityState, DeleteEntity
-from gazebo_msgs.msg import ContactState, ModelState#, GetModelList
+from gazebo_msgs.msg import ContactState
 from std_msgs.msg import String
 from std_srvs.srv import Empty
 from geometry_msgs.msg import Pose
@@ -37,7 +31,7 @@ from builtin_interfaces.msg import Duration
 # Algorithm specific
 from PyKDL import ChainJntToJacSolver # For KDL Jacobians
 
-class MARAEnv(gym.Env):
+class MARAOrientIKEnv(gym.Env):
     """
     TODO. Define the environment.
     """
@@ -48,20 +42,19 @@ class MARAEnv(gym.Env):
         """
         # Manage command line args
         args = ut_generic.getArgsParserMARA().parse_args()
-        self.gzclient = args.gzclient
-        self.realSpeed = args.realSpeed
-        # self.realSpeed = True
-        self.velocity = args.velocity
-        self.multiInstance = args.multiInstance
-        self.port = args.port
+        self.gzclient = True#args.gzclient
+        self.realSpeed = True#args.realSpeed
+        self.velocity = 0.4#args.velocity
+        self.multiInstance = False#args.multiInstance
+        self.port = 47#args.port
 
         # Set the path of the corresponding URDF file
-        if self.realSpeed:
-            urdf = "reinforcement_learning/mara_robot_run.urdf"
-            urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf/" + urdf
-        else:
-            urdf = "reinforcement_learning/mara_robot_train.urdf"
-            urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf/" + urdf
+        # if self.realSpeed:
+        urdf = "reinforcement_learning/mara_robot_run.urdf"
+        urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf/" + urdf
+        # else:
+        #     urdf = "reinforcement_learning/mara_robot_train.urdf"
+        #     urdfPath = get_prefix_path("mara_description") + "/share/mara_description/urdf/" + urdf
 
         # Launch mara in a new Process
         self.launch_subp = ut_launch.startLaunchServiceProcess(
@@ -69,7 +62,7 @@ class MARAEnv(gym.Env):
                 self.gzclient, self.realSpeed, self.multiInstance, self.port, urdfPath))
 
         # Create the node after the new ROS_DOMAIN_ID is set in generate_launch_description()
-        rclpy.init()
+        rclpy.init(args=None)
         self.node = rclpy.create_node(self.__class__.__name__)
 
         # class variables
@@ -83,13 +76,14 @@ class MARAEnv(gym.Env):
         #   Environment hyperparams
         #############################
         # Target, where should the agent reach
-        self.targetPosition = np.asarray([-0.40028, 0.095615, 0.25]) # close to the table
-        # self.targetPosition =  np.asarray([round(np.random.uniform(-0.615082, -0.35426), 5), round(np.random.uniform( -0.18471, 0.1475), 5), 0.35])
+        # self.targetPosition = np.asarray([-0.40028, 0.095615, 0.72466]) # close to the table
+        self.targetPosition = np.asarray([-0.60028, 0.095615, 0.35466]) # close to the table
+        # self.targetPosition = [ round(np.random.uniform(-0.615082, -0.35426), 5), round(np.random.uniform( -0.18471, 0.1475), 5), 0.25 ]
         self.target_orientation = np.asarray([0., 0.7071068, 0.7071068, 0.]) # arrow looking down [w, x, y, z]
         # self.targetPosition = np.asarray([-0.386752, -0.000756, 1.40557]) # easy point
         # self.target_orientation = np.asarray([-0.4958324, 0.5041332, 0.5041331, -0.4958324]) # arrow looking opposite to MARA [w, x, y, z]
 
-        EE_POINTS = np.asmatrix([[0, 0, 0]])
+        EE_POINTS = np.asmatrix([[0, 0, 0]]) # offset
         EE_VELOCITIES = np.asmatrix([[0, 0, 0]])
 
         # Initial joint position
@@ -149,10 +143,10 @@ class MARAEnv(gym.Env):
         self._pub = self.node.create_publisher(JointTrajectory, JOINT_PUBLISHER, qos_profile=qos_profile_sensor_data)
         self._sub = self.node.create_subscription(JointTrajectoryControllerState, JOINT_SUBSCRIBER, self.observation_callback, qos_profile=qos_profile_sensor_data)
         self._sub_coll = self.node.create_subscription(ContactState, '/gazebo_contacts', self.collision_callback, qos_profile=qos_profile_sensor_data)
-        self.reset_sim = self.node.create_client(Empty, '/reset_simulation')
+        # self.reset_sim = self.node.create_client(Empty, '/reset_simulation')
 
         # Initialize a tree structure from the robot urdf.
-        #   note that the xacro of the urdf is updated by hand.
+        # Note that the xacro of the urdf is updated by hand.
         # The urdf must be compiled.
         _, self.ur_tree = tree_urdf.treeFromFile(self.environment['tree_path'])
         # Retrieve a chain structure between the base and the start of the end effector.
@@ -161,11 +155,11 @@ class MARAEnv(gym.Env):
         # Initialize a KDL Jacobian solver from the chain.
         self.jacSolver = ChainJntToJacSolver(self.mara_chain)
 
-        self.obs_dim = self.numJoints + 6 + 12
+        self.obs_dim = self.numJoints + 22
 
-        # # Here idially we should find the control range of the robot. Unfortunatelly in ROS/KDL there is nothing like this.
-        # # I have tested this with the mujoco enviroment and the output is always same low[-1.,-1.], high[1.,1.]
-
+        # Here idially we should find the control range of the robot. Unfortunatelly in ROS/KDL there is nothing like this.
+        # I have tested this with the mujoco enviroment and the output is always same low[-1.,-1.], high[1.,1.]
+        # Does not change anything
         low = -np.pi * np.ones(self.numJoints)
         high = np.pi * np.ones(self.numJoints)
 
@@ -175,13 +169,15 @@ class MARAEnv(gym.Env):
         low = -high
         self.observation_space = spaces.Box(low, high)
 
-
+        # Spawn Target element in gazebo.
+        # node & spawn_cli initialized in super class
         spawn_cli = self.node.create_client(SpawnEntity, '/spawn_entity')
 
         while not spawn_cli.wait_for_service(timeout_sec=1.0):
             self.node.get_logger().info('/spawn_entity service not available, waiting again...')
 
         modelXml = ut_gazebo.getTargetSdf()
+
         pose = Pose()
         pose.position.x = self.targetPosition[0]
         pose.position.y = self.targetPosition[1]
@@ -199,9 +195,10 @@ class MARAEnv(gym.Env):
         self.spawn_request.initial_pose = pose
         self.spawn_request.reference_frame = "world"
 
-        # #ROS2 Spawn Entity
+        #ROS2 Spawn Entity
         target_future = spawn_cli.call_async(self.spawn_request)
         rclpy.spin_until_future_complete(self.node, target_future)
+
         # Seed the environment
         self.seed()
         self.buffer_dist_rewards = []
@@ -220,25 +217,56 @@ class MARAEnv(gym.Env):
         """
         collision_messages = ["mara::base_robot::base_robot_collision", "ground_plane::link::collision"]
         if message.collision1_name != message.collision2_name:
-            if not ((message.collision1_name in collision_messages) and (message.collision2_name in collision_messages)):
+            if not (message.collision1_name in collision_messages) and (message.collision2_name in collision_messages):
                 self._collision_msg = message
 
     def set_episode_size(self, episode_size):
         self.max_episode_steps = episode_size
+
+    def wait_for_action(self, action):
+        """Receives an action and loops until the robot reaches the pose set by the action.
+
+        Note: This function can't be migrated to the ut_mara module since it reads constantly
+        from the observation callback provided by /mara_controller/state.
+        """
+        action_finished = False
+        resetting = False
+        trials = 0
+        while not action_finished:
+            # trials += 1
+            # if trials > 10000 and not resetting: #action failed, probably hitting the table.
+            #     print("Can't complete trajectory, setting new trajectory: initial_positions")
+            #     resetting = True
+            # if resetting:
+            #
+            #     # Reset simulation
+            #     reset_cli = self.node.create_client(Empty, '/reset_simulation')
+            #     while not reset_cli.wait_for_service(timeout_sec=1.0):
+            #         self.node.get_logger().info('service not available, waiting again...')
+            #
+            #     reset_future = reset_cli.call_async(Empty.Request())
+            #     rclpy.spin_until_future_complete(self.node, reset_future)
+            #
+            #     # Avoid unnecessary pose check.
+            #     break
+
+            rclpy.spin_once(self.node)
+            obs_message = self._observation_msg
+            if obs_message is not None:
+                last_observation = ut_mara.processObservations(obs_message, self.environment)
+                action_finished = ut_mara.positionsMatch(action, last_observation)
 
     def take_observation(self):
         """
         Take observation from the environment and return it.
         :return: state.
         """
-        # # # # Take an observation
+        # # Take an observation
         rclpy.spin_once(self.node)
         obs_message = self._observation_msg
 
         # Check that the observation is not prior to the action
-        # obs_message = self._observation_msg
-        while obs_message is None or int(str(self._observation_msg.header.stamp.sec)+(str(self._observation_msg.header.stamp.nanosec))) < self.ros_clock:
-            # print("I am in obs_message is none")
+        while obs_message is None or int(str(obs_message.header.stamp.sec)+(str(obs_message.header.stamp.nanosec))) < self.ros_clock:
             rclpy.spin_once(self.node)
             obs_message = self._observation_msg
 
@@ -259,8 +287,22 @@ class MARAEnv(gym.Env):
             translation, rot = general_utils.forwardKinematics(self.mara_chain,
                                                 self.environment['linkNames'],
                                                 lastObservations[:self.numJoints],
-                                                baseLink=self.environment['linkNames'][0], # use the base_robot coordinate system
+                                                baseLink=self.environment['linkNames'][0], # make the table as the base to get the world coordinate system
                                                 endLink=self.environment['linkNames'][-1])
+
+            rot_tgt = tf3d.quaternions.quat2mat(self.target_orientation)
+            # print("FK: ",translation," ;", rot)
+
+
+            # ikJntPos = general_utils.inverseKinematics(self.mara_chain, self.targetPosition, rot) # , minJoints = -np.pi/2.0 * np.ones(self.numJoints), maxJoints = np.pi/2.0 * np.ones(self.numJoints)
+            # # print("joint pose from IK: ", ikJntPos)
+            # sendIk = np.zeros(6)
+            # if ikJntPos is not None:
+            #     sendIk = ikJntPos
+            # time.sleep(1)
+
+            current_quaternion = tf3d.quaternions.mat2quat(rot) #[w, x, y ,z]
+            quat_error = tf3d.quaternions.qmult(current_quaternion, tf3d.quaternions.qconjugate(self.target_orientation))
 
             current_eePos_tgt = np.ndarray.flatten(general_utils.getEePoints(self.environment['end_effector_points'], translation, rot).T)
             eePos_points = current_eePos_tgt - self.targetPosition
@@ -271,6 +313,7 @@ class MARAEnv(gym.Env):
             # vector, typically denoted asrobot_id 'x'.
             state = np.r_[np.reshape(lastObservations, -1),
                           np.reshape(eePos_points, -1),
+                          np.reshape(quat_error, -1),
                           np.reshape(eeVelocities, -1),
                           np.reshape(current_eePos_tgt,-1),
                           np.reshape(rot.reshape(1, 9),-1)]
@@ -280,11 +323,11 @@ class MARAEnv(gym.Env):
     def collision(self):
         # Reset if there is a collision
         if self._collision_msg is not None:
-            while not self.reset_sim.wait_for_service(timeout_sec=1.0):
-                self.node.get_logger().info('/reset_simulation service not available, waiting again...')
-
-            reset_future = self.reset_sim.call_async(Empty.Request())
-            rclpy.spin_until_future_complete(self.node, reset_future)
+            # while not self.reset_sim.wait_for_service(timeout_sec=1.0):
+            #     self.node.get_logger().info('/reset_simulation service not available, waiting again...')
+            #
+            # reset_future = self.reset_sim.call_async(Empty.Request())
+            # rclpy.spin_until_future_complete(self.node, reset_future)
             self._collision_msg = None
             self.collided += 1
             return True
@@ -304,53 +347,27 @@ class MARAEnv(gym.Env):
             - done (status)
         """
         self.iterator+=1
+
         # Execute "action"
+        # actions and services, or wait
         self._pub.publish(ut_mara.getTrajectoryMessage(
             action[:self.numJoints],
             self.environment['jointOrder'],
             self.velocity))
 
-        # time.sleep(1)
+        # Wait until the action is finished.
+        # self.wait_for_action(action)
 
         self.ros_clock = rclpy.clock.Clock().now().nanoseconds
 
         # Take an observation
         obs = self.take_observation()
-        # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
-        rewardDist = ut_math.rmseFunc( obs[self.numJoints:(self.numJoints+3)] )
 
         collided = self.collision()
 
-        reward = ut_math.computeReward(rewardDist)
-
-        # Calculate if the env has been solved
-        done = bool(self.iterator == self.max_episode_steps)
-
-        self.buffer_dist_rewards.append(rewardDist)
-        self.buffer_tot_rewards.append(reward)
+        reward = 0#ut_math.computeReward(rewardDist, rewardOrientation)
+        done = True
         info = {}
-        if self.iterator % self.max_episode_steps == 0:
-
-            max_dist_tgt = max(self.buffer_dist_rewards)
-            mean_dist_tgt = np.mean(self.buffer_dist_rewards)
-            std_dist_tgt = np.std(self.buffer_dist_rewards)
-            min_dist_tgt = min(self.buffer_dist_rewards)
-            skew_dist_tgt = skew(self.buffer_dist_rewards)
-
-            max_tot_rew = max(self.buffer_tot_rewards)
-            mean_tot_rew = np.mean(self.buffer_tot_rewards)
-            std_tot_rew = np.std(self.buffer_tot_rewards)
-            min_tot_rew = min(self.buffer_tot_rewards)
-            skew_tot_rew = skew(self.buffer_tot_rewards)
-
-            num_coll = self.collided
-
-            info = {"infos":{"ep_dist_max": max_dist_tgt,"ep_dist_mean": mean_dist_tgt,"ep_dist_min": min_dist_tgt,\
-                "ep_rew_max": max_tot_rew,"ep_rew_mean": mean_tot_rew,"ep_rew_min": min_tot_rew,"num_coll": num_coll,\
-                "ep_dist_skew": skew_dist_tgt,"ep_dist_std": std_dist_tgt, "ep_rew_std": std_tot_rew, "ep_rew_skew":skew_tot_rew}}
-            self.buffer_dist_rewards = []
-            self.buffer_tot_rewards = []
-            self.collided = 0
 
         # Return the corresponding observations, rewards, etc.
         return obs, reward, done, info
@@ -361,13 +378,13 @@ class MARAEnv(gym.Env):
         """
         self.iterator = 0
 
-        if self.reset_jnts is True:
+        # if self.reset_jnts is True:
             # reset simulation
-            while not self.reset_sim.wait_for_service(timeout_sec=1.0):
-                self.node.get_logger().info('/reset_simulation service not available, waiting again...')
-
-            reset_future = self.reset_sim.call_async(Empty.Request())
-            rclpy.spin_until_future_complete(self.node, reset_future)
+            # while not self.reset_sim.wait_for_service(timeout_sec=1.0):
+            #     self.node.get_logger().info('/reset_simulation service not available, waiting again...')
+            #
+            # reset_future = self.reset_sim.call_async(Empty.Request())
+            # rclpy.spin_until_future_complete(self.node, reset_future)
 
         self.ros_clock = rclpy.clock.Clock().now().nanoseconds
 

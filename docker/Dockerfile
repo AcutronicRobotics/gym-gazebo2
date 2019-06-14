@@ -6,7 +6,7 @@ LABEL maintainer="Lander Usategui <lander at erlerobotics dot com>"
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 
-ENV ROS2_DISTRO crystal
+ENV ROS2_DISTRO dashing
 #Prepare work-space
 RUN mkdir -p /root/ros2_mara_ws/src
 WORKDIR /root/ros2_mara_ws
@@ -45,13 +45,8 @@ RUN \
         ros-$ROS2_DISTRO-tf2-geometry-msgs \
         ros-$ROS2_DISTRO-rclcpp-action \
         ros-$ROS2_DISTRO-cv-bridge \
-        ros-$ROS2_DISTRO-control-msgs \
         ros-$ROS2_DISTRO-image-transport \
-        ros-$ROS2_DISTRO-gazebo-dev \
-        ros-$ROS2_DISTRO-gazebo-msgs \
-        ros-$ROS2_DISTRO-gazebo-plugins \
-        ros-$ROS2_DISTRO-gazebo-ros \
-        ros-$ROS2_DISTRO-gazebo-ros-pkgs \
+        ros-$ROS2_DISTRO-rmw-opensplice-cpp \
         libopencv-dev \
       && rm -rf /var/lib/apt/lists/* \
       && wget https://raw.githubusercontent.com/AcutronicRobotics/MARA/crystal/mara-ros2.repos && vcs import src < mara-ros2.repos \
@@ -63,7 +58,7 @@ RUN \
       && hrim generate models/actuator/gripper/gripper.xml \
       #Compile the work-space
       && bash -c " cd /root/ros2_mara_ws \
-      && source /opt/ros/crystal/setup.bash && colcon build --merge-install --parallel-workers $(nproc) --packages-ignore orocos_kinematics_dynamics individual_trajectories_bridge \
+      && source /opt/ros/dashing/setup.bash && colcon build --merge-install --parallel-workers $(nproc) --packages-ignore orocos_kinematics_dynamics individual_trajectories_bridge \
       && touch /root/ros2_mara_ws/install/share/orocos_kdl/local_setup.sh /root/ros2_mara_ws/install/share/orocos_kdl/local_setup.bash \
       && cd /root && git clone https://github.com/openai/gym && cd /root/gym && pip3 install -e . \
       #gym-gazebo2
