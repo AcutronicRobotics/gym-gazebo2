@@ -1,5 +1,5 @@
 # Installation
-For the complete MARA experiments installation, please refer first to the **ROS2learn** installation instructions:  [github/acutronicrobotics/ros2learn/Install](https://github.com/acutronicrobotics/ros2learn/blob/dashing/Install.md).
+For the complete MARA experiments installation, please refer first to the **ROS2Learn** installation instructions:  [github/AcutronicRobotics/ros2learn/Install](https://github.com/AcutronicRobotics/ros2learn/blob/dashing/Install.md).
 
 ## Table of Contents
 - [ROS 2.0](#ros-20)
@@ -18,7 +18,6 @@ For the complete MARA experiments installation, please refer first to the **ROS2
    - Ubuntu 18: Install ROS 2 Desktop following the official instructions, binaries recommended. [Instructions](https://index.ros.org/doc/ros2/Installation/Linux-Install-Debians/).
 
 ## Dependent tools
-**Note**: We recommend installing **Gazebo 9.9.0** via **ROS Dashing Debian packages** and removing previous gazebo installations to avoid undesired conflicts, e.g. `apt-get remove *gazebo*`. You can also use different versions of the simulator such as Gazebo 10, but you must skip the installation of `ros-dashing-gazebo*` packages.
 
 ```sh
 # ROS 2 extra packages
@@ -33,11 +32,9 @@ ros-dashing-tf2-geometry-msgs \
 ros-dashing-rclcpp-action \
 ros-dashing-cv-bridge \
 ros-dashing-image-transport \
-ros-dashing-gazebo-dev \
-ros-dashing-gazebo-msgs \
-ros-dashing-gazebo-plugins \
-ros-dashing-gazebo-ros \
-ros-dashing-gazebo-ros-pkgs
+
+# Install OpenSplice RMW implementation. Required for dashing until default FastRTPS is fixed.
+sudo apt install ros-dashing-rmw-opensplice-cpp
 
 sudo apt update && sudo apt install -y \
   build-essential \
@@ -82,7 +79,8 @@ vcs import src < additional-repos.repos
 # Avoid compiling erroneus package
 touch ~/ros2_mara_ws/src/orocos_kinematics_dynamics/orocos_kinematics_dynamics/COLCON_IGNORE
 ```
-Generate [HRIM](https://github.com/AcutronicRobotics/HRIM) dependencies:
+
+Generate [HRIM](https://github.com/AcutronicRobotics/HRIM/tree/Coliza) dependencies:
 
 ```sh
 cd ~/ros2_mara_ws/src/HRIM
@@ -92,7 +90,7 @@ hrim generate models/actuator/gripper/gripper.xml
 ```
 ### Compile the workspace
 
-Please make sure you are not sourcing ROS1 workspaces via `bashrc` or any other way.
+Please make sure you are not sourcing ROS1 workspaces via `bashrc` or any other way. Also make sure you are not sourcing any provisioning script from other ROS2 distribution compliant gym-gazebo2 installation, e.g. gym-gazebo2 `crystal`.
 
 #### Ubuntu 18
 
@@ -108,9 +106,9 @@ touch ~/ros2_mara_ws/install/share/orocos_kdl/local_setup.sh ~/ros2_mara_ws/inst
 A few packages are expected to throw warning messages. The expected output is the following:
 
 ```sh
-35 packages finished [12min 26s]
-4 packages had stderr output: cv_bridge orocos_kdl python_orocos_kdl robotiq_gripper_gazebo_plugins
-```
+Summary: 32 packages finished [13min 0s]
+  6 packages had stderr output: hros_cognition_mara_components mara_contact_publisher mara_gazebo_plugins orocos_kdl python_orocos_kdl robotiq_gripper_gazebo_plugins
+  ```
 
 ### OpenAI Gym
 
@@ -148,6 +146,11 @@ cd gym-gazebo2
 echo "source `pwd`/provision/mara_setup.sh" >> ~/.bashrc
 source ~/.bashrc
 ```
+**Note**: In Dashing we need to use opensplice implementation of DDS, since Fast-RTPS and others are still buggy and not supported well in this use case. Please export the OpenSplice DDS implementation manually or use the provisioning script before running/training any example of the MARA enviroment.
+
+```sh
+export RMW_IMPLEMENTATION=rmw_opensplice_cpp
+```
 
 **Note**: This setup file contains paths to ROS and Gazebo used by default by this toolkit. If you installed ROS from sources, you must modify the first line of the provisioning script:
 
@@ -159,4 +162,5 @@ source ~/.bashrc
    export PYTHONPATH=$PYTHONPATH:~/ros2_mara_ws/install/lib/python3/dist-packages
    export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:~/ros2_mara_ws/src/MARA
    export GAZEBO_PLUGIN_PATH=$GAZEBO_PLUGIN_PATH:~/ros2_mara_ws/src/MARA/mara_gazebo_plugins/build/
+   export RMW_IMPLEMENTATION=rmw_opensplice_cpp
 ```
