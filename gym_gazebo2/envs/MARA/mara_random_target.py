@@ -398,6 +398,7 @@ class MARARandomTargetEnv(gym.Env):
 
     def close(self):
         print("Closing " + self.__class__.__name__ + " environment.")
+        self.node.destroy_node()
         parent = psutil.Process(self.launch_subp.pid)
         for child in parent.children(recursive=True):
             child.kill()
