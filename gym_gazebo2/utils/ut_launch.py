@@ -58,7 +58,7 @@ def getExclusiveNetworkParameters():
 
     while isPortInUse(randomPortGazebo):
         print("Randomly selected port is already in use, retrying.")
-        randomGazebo = random.randint(10000, 15000)
+        randomPortGazebo = random.randint(10000, 15000)
 
     # Save network segmentation related information in a temporary folder.
     tempPath = '/tmp/gym-gazebo-2/running/'
