@@ -141,7 +141,7 @@ def generateLaunchDescriptionMara(gzclient, realSpeed, multiInstance, port, urdf
 
     launchDesc = LaunchDescription([
         ExecuteProcess(
-            cmd=[gazeboCmd, '--verbose', '-s', 'libgazebo_ros_factory.so', '-s',
+            cmd=[gazeboCmd, '-s', 'libgazebo_ros_factory.so', '-s',
                  'libgazebo_ros_init.so', worldPath], output='screen', env=envs),
         Node(package='mara_utils_scripts', node_executable='spawn_mara.py',
              arguments=[urdf],
