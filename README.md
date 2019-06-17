@@ -2,9 +2,9 @@
 
 <a href="http://www.acutronicrobotics.com"><img src="/imgs/alr_logo.png" align="left" width="190"></a>
 
-**gym-gazebo2 is a toolkit for developing and comparing reinforcement learning algorithms using ROS 2 and Gazebo**. Built as an extension of [gym-gazebo](https://github.com/erlerobot/gym-gazebo/tree/crystal), gym-gazebo2 has been redesigned with community feedback and adopts now a standalone architecture while mantaining the core concepts of previous work inspired originally by the OpenAI gym.
+**gym-gazebo2 is a toolkit for developing and comparing reinforcement learning algorithms using ROS 2 and Gazebo**. Built as an extension of [gym-gazebo](https://github.com/AcutronicRobotics/gym-gazebo/tree/master), gym-gazebo2 has been redesigned with community feedback and adopts now a standalone architecture while mantaining the core concepts of previous work inspired originally by the OpenAI gym.
 
-[![Travis](https://travis-ci.org/AcutronicRobotics/gym-gazebo2.svg?branch=crystal)](https://travis-ci.org/AcutronicRobotics/gym-gazebo2) [![Article](https://img.shields.io/badge/article-arxiv%3A1903.06278-ecb80c.svg)](https://arxiv.org/pdf/1903.06278.pdf)
+[![Travis](https://travis-ci.org/AcutronicRobotics/gym-gazebo2.svg?branch=master)](https://travis-ci.org/AcutronicRobotics/gym-gazebo2) [![Article](https://img.shields.io/badge/article-arxiv%3A1903.06278-ecb80c.svg)](https://arxiv.org/pdf/1903.06278.pdf)
 
 This work presents an upgraded, real world application oriented version of gym-gazebo, the Robot Operating System (ROS) and Gazebo based Reinforcement Learning (RL) toolkit, which complies with OpenAI Gym. A whitepaper about this work is available at https://arxiv.org/abs/1903.06278. Please use the following BibTex entry to cite our work:
 
@@ -21,12 +21,12 @@ A whitepaper regarding previous work of gym-gazebo is available at https://arxiv
 
 **gym-gazebo2** is a complex piece of software for roboticists that puts together simulation tools, robot middlewares (ROS 2), machine learning and reinforcement learning techniques. All together to create an environment where to benchmark and develop behaviors with robots. Setting up `gym-gazebo2` appropriately requires relevant familiarity with these tools.
 
-**Docs**. In-depth explanations and actively growing tutorials can be found at https://acutronicrobotics.com/docs. The following is an example of what you can achieve using gym-gazebo2 as a submodule of [ros2learn](https://github.com/AcutronicRobotics/ros2learn/tree/crystal) repository. The goal is to reach the green target.
+**Docs**. In-depth explanations and actively growing tutorials can be found at https://acutronicrobotics.com/docs. The following is an example of what you can achieve using gym-gazebo2 as a submodule of [ros2learn](https://github.com/AcutronicRobotics/ros2learn/tree/master) repository. The goal is to reach the green target.
  - 1. Left image shows the start of a training
  - 2. To the right we execute an already trained policy.
 
 <p align="center">
-  <img height="300" src="https://github.com/AcutronicRobotics/gym-gazebo2/blob/crystal/imgs/example_train.gif"> <img height="300" src="https://github.com/AcutronicRobotics/gym-gazebo2/blob/crystal/imgs/example_run.gif">
+  <img height="300" src="https://github.com/AcutronicRobotics/gym-gazebo2/blob/master/imgs/example_train.gif"> <img height="300" src="https://github.com/AcutronicRobotics/gym-gazebo2/blob/master/imgs/example_run.gif">
 </p>
 
 <!--<p align="center">
@@ -50,7 +50,7 @@ A whitepaper regarding previous work of gym-gazebo is available at https://arxiv
 ## Environments
 The code for each environment group is housed in its own subdirectory
 
-[gym_gazebo2/envs](https://github.com/AcutronicRobotics/gym-gazebo2/tree/crystal/gym_gazebo2/envs). Robot specific simulation files should be housed in robot specific ROS2 packages.
+[gym_gazebo2/envs](https://github.com/AcutronicRobotics/gym-gazebo2/tree/master/gym_gazebo2/envs). Robot specific simulation files should be housed in robot specific ROS2 packages.
 
 ### MARA
 #### Real Robot
@@ -66,7 +66,7 @@ MARA stands for Modular Articulated Robotic Arm and is a collaborative robotic a
 <p>
 <img src="imgs/mara_2.gif" align="left" height="125">
 
-MARA also provides an accurate simulated version in Gazebo, which allows to translate behaviors from the simulated environment to the real robot. This is the version we will be training in gym-gazebo2. Please refer to [github.com/acutronicRobotics/MARA](https://github.com/AcutronicRobotics/MARA/tree/crystal) for additional simulation related content for Gazebo, MoveIt! and rviz2.
+MARA also provides an accurate simulated version in Gazebo, which allows to translate behaviors from the simulated environment to the real robot. This is the version we will be training in gym-gazebo2. Please refer to [github.com/acutronicRobotics/MARA](https://github.com/AcutronicRobotics/MARA/tree/master) for additional simulation related content for Gazebo, MoveIt! and rviz2.
 </p><br>
 
 ## Installation
@@ -78,6 +78,12 @@ Refer to [docker/README.md](/docker/README.md) for gym-gazebo2 Docker container 
 ## Usage
 
 ### Executing an algorithm
+
+**Note**: In Dashing we need to use opensplice implementation of DDS, since Fast-RTPS and others are still buggy and not supported well in this use case. Please export the OpenSplice DDS implementation manually or use the provisioning script before running/training any example of the MARA enviroment.
+
+```sh
+export RMW_IMPLEMENTATION=rmw_opensplice_cpp
+```
 
 If you added the privisioning script to your `~/.bashrc`, you can directly execute the algorithm. Load the environment variables manually otherwise.
 

@@ -231,8 +231,8 @@ class MARARealEnv(gym.Env):
         obs = self.take_observation()
 
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
-        rewardDist = ut_math.rmseFunc( self.ob[self.numJoints:(self.numJoints+3)] )
-        rewardOrientation = 2 * np.arccos( abs( self.ob[self.numJoints+3] ) )
+        rewardDist = ut_math.rmseFunc( obs[self.numJoints:(self.numJoints+3)] )
+        rewardOrientation = 2 * np.arccos( abs( obs[self.numJoints+3] ) )
 
         reward = ut_math.computeReward(rewardDist, rewardOrientation, False)
 
@@ -256,6 +256,7 @@ class MARARealEnv(gym.Env):
 
     def close(self):
         print("Closing " + self.__class__.__name__ + " environment.")
+        self.node.destroy_node()
         parent = psutil.Process(self.launch_subp.pid)
         for child in parent.children(recursive=True):
             child.kill()

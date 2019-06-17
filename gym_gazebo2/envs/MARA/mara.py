@@ -8,6 +8,7 @@ import os
 import psutil
 import signal
 import sys
+from scipy.stats import skew
 from gym import utils, spaces
 from gym_gazebo2.utils import ut_generic, ut_launch, ut_mara, ut_math, ut_gazebo, tree_urdf, general_utils
 from gym.utils import seeding
@@ -18,10 +19,15 @@ import transforms3d as tf3d
 
 # ROS 2
 import rclpy
-from rclpy.qos import QoSProfile, qos_profile_sensor_data
+
+
+from rclpy.qos import qos_profile_sensor_data
+from rclpy.qos import QoSProfile
+from rclpy.qos import QoSReliabilityPolicy
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint # Used for publishing mara joint angles.
 from control_msgs.msg import JointTrajectoryControllerState
-from gazebo_msgs.msg import ContactState
+# from gazebo_msgs.srv import SetEntityState, DeleteEntity
+from gazebo_msgs.msg import ContactState, ModelState#, GetModelList
 from std_msgs.msg import String
 from std_srvs.srv import Empty
 from geometry_msgs.msg import Pose
@@ -44,6 +50,7 @@ class MARAEnv(gym.Env):
         args = ut_generic.getArgsParserMARA().parse_args()
         self.gzclient = args.gzclient
         self.realSpeed = args.realSpeed
+        # self.realSpeed = True
         self.velocity = args.velocity
         self.multiInstance = args.multiInstance
         self.port = args.port
@@ -62,7 +69,7 @@ class MARAEnv(gym.Env):
                 self.gzclient, self.realSpeed, self.multiInstance, self.port, urdfPath))
 
         # Create the node after the new ROS_DOMAIN_ID is set in generate_launch_description()
-        rclpy.init(args=None)
+        rclpy.init()
         self.node = rclpy.create_node(self.__class__.__name__)
 
         # class variables
@@ -76,7 +83,8 @@ class MARAEnv(gym.Env):
         #   Environment hyperparams
         #############################
         # Target, where should the agent reach
-        self.targetPosition = np.asarray([-0.40028, 0.095615, 0.72466]) # close to the table
+        self.targetPosition = np.asarray([-0.40028, 0.095615, 0.25]) # close to the table
+        # self.targetPosition =  np.asarray([round(np.random.uniform(-0.615082, -0.35426), 5), round(np.random.uniform( -0.18471, 0.1475), 5), 0.35])
         self.target_orientation = np.asarray([0., 0.7071068, 0.7071068, 0.]) # arrow looking down [w, x, y, z]
         # self.targetPosition = np.asarray([-0.386752, -0.000756, 1.40557]) # easy point
         # self.target_orientation = np.asarray([-0.4958324, 0.5041332, 0.5041331, -0.4958324]) # arrow looking opposite to MARA [w, x, y, z]
@@ -153,7 +161,7 @@ class MARAEnv(gym.Env):
         # Initialize a KDL Jacobian solver from the chain.
         self.jacSolver = ChainJntToJacSolver(self.mara_chain)
 
-        self.obs_dim = self.numJoints + 6
+        self.obs_dim = self.numJoints + 6 + 12
 
         # # Here idially we should find the control range of the robot. Unfortunatelly in ROS/KDL there is nothing like this.
         # # I have tested this with the mujoco enviroment and the output is always same low[-1.,-1.], high[1.,1.]
@@ -167,15 +175,13 @@ class MARAEnv(gym.Env):
         low = -high
         self.observation_space = spaces.Box(low, high)
 
-        # Spawn Target element in gazebo.
-        # node & spawn_cli initialized in super class
+
         spawn_cli = self.node.create_client(SpawnEntity, '/spawn_entity')
 
         while not spawn_cli.wait_for_service(timeout_sec=1.0):
             self.node.get_logger().info('/spawn_entity service not available, waiting again...')
 
         modelXml = ut_gazebo.getTargetSdf()
-
         pose = Pose()
         pose.position.x = self.targetPosition[0]
         pose.position.y = self.targetPosition[1]
@@ -193,10 +199,9 @@ class MARAEnv(gym.Env):
         self.spawn_request.initial_pose = pose
         self.spawn_request.reference_frame = "world"
 
-        #ROS2 Spawn Entity
+        # #ROS2 Spawn Entity
         target_future = spawn_cli.call_async(self.spawn_request)
         rclpy.spin_until_future_complete(self.node, target_future)
-
         # Seed the environment
         self.seed()
         self.buffer_dist_rewards = []
@@ -226,12 +231,14 @@ class MARAEnv(gym.Env):
         Take observation from the environment and return it.
         :return: state.
         """
-        # # Take an observation
+        # # # # Take an observation
         rclpy.spin_once(self.node)
         obs_message = self._observation_msg
 
         # Check that the observation is not prior to the action
-        while obs_message is None or int(str(obs_message.header.stamp.sec)+(str(obs_message.header.stamp.nanosec))) < self.ros_clock:
+        # obs_message = self._observation_msg
+        while obs_message is None or int(str(self._observation_msg.header.stamp.sec)+(str(self._observation_msg.header.stamp.nanosec))) < self.ros_clock:
+            # print("I am in obs_message is none")
             rclpy.spin_once(self.node)
             obs_message = self._observation_msg
 
@@ -264,7 +271,9 @@ class MARAEnv(gym.Env):
             # vector, typically denoted asrobot_id 'x'.
             state = np.r_[np.reshape(lastObservations, -1),
                           np.reshape(eePos_points, -1),
-                          np.reshape(eeVelocities, -1),]
+                          np.reshape(eeVelocities, -1),
+                          np.reshape(current_eePos_tgt,-1),
+                          np.reshape(rot.reshape(1, 9),-1)]
 
             return state
 
@@ -295,7 +304,6 @@ class MARAEnv(gym.Env):
             - done (status)
         """
         self.iterator+=1
-
         # Execute "action"
         self._pub.publish(ut_mara.getTrajectoryMessage(
             action[:self.numJoints],
@@ -306,7 +314,6 @@ class MARAEnv(gym.Env):
 
         # Take an observation
         obs = self.take_observation()
-
         # Fetch the positions of the end-effector which are nr_dof:nr_dof+3
         rewardDist = ut_math.rmseFunc( obs[self.numJoints:(self.numJoints+3)] )
 
@@ -321,16 +328,24 @@ class MARAEnv(gym.Env):
         self.buffer_tot_rewards.append(reward)
         info = {}
         if self.iterator % self.max_episode_steps == 0:
+
             max_dist_tgt = max(self.buffer_dist_rewards)
             mean_dist_tgt = np.mean(self.buffer_dist_rewards)
+            std_dist_tgt = np.std(self.buffer_dist_rewards)
             min_dist_tgt = min(self.buffer_dist_rewards)
+            skew_dist_tgt = skew(self.buffer_dist_rewards)
+
             max_tot_rew = max(self.buffer_tot_rewards)
             mean_tot_rew = np.mean(self.buffer_tot_rewards)
+            std_tot_rew = np.std(self.buffer_tot_rewards)
             min_tot_rew = min(self.buffer_tot_rewards)
+            skew_tot_rew = skew(self.buffer_tot_rewards)
+
             num_coll = self.collided
 
             info = {"infos":{"ep_dist_max": max_dist_tgt,"ep_dist_mean": mean_dist_tgt,"ep_dist_min": min_dist_tgt,\
-                "ep_rew_max": max_tot_rew,"ep_rew_mean": mean_tot_rew,"ep_rew_min": min_tot_rew,"num_coll": num_coll}}
+                "ep_rew_max": max_tot_rew,"ep_rew_mean": mean_tot_rew,"ep_rew_min": min_tot_rew,"num_coll": num_coll,\
+                "ep_dist_skew": skew_dist_tgt,"ep_dist_std": std_dist_tgt, "ep_rew_std": std_tot_rew, "ep_rew_skew":skew_tot_rew}}
             self.buffer_dist_rewards = []
             self.buffer_tot_rewards = []
             self.collided = 0
@@ -362,6 +377,7 @@ class MARAEnv(gym.Env):
 
     def close(self):
         print("Closing " + self.__class__.__name__ + " environment.")
+        self.node.destroy_node()
         parent = psutil.Process(self.launch_subp.pid)
         for child in parent.children(recursive=True):
             child.kill()
