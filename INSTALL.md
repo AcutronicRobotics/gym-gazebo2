@@ -134,7 +134,7 @@ pip3 install -e .
 
 If not:
 ```sh
-cd ~ && git clone https://github.com/AcutronicRobotics/gym-gazebo2
+cd ~ && git clone -b master https://github.com/AcutronicRobotics/gym-gazebo2
 cd gym-gazebo2
 pip3 install -e .
 ```
