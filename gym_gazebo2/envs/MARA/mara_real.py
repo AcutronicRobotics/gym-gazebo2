@@ -95,7 +95,7 @@ class MARARealEnv(gym.Env):
 
         JOINT_ORDER = [MOTOR1_JOINT,MOTOR2_JOINT, MOTOR3_JOINT,
                         MOTOR4_JOINT, MOTOR5_JOINT, MOTOR6_JOINT]
-        LINK_NAMES = [ WORLD, TABLE, BASE,
+        LINK_NAMES = [ WORLD, BASE,
                         MARA_MOTOR1_LINK, MARA_MOTOR2_LINK,
                         MARA_MOTOR3_LINK, MARA_MOTOR4_LINK,
                         MARA_MOTOR5_LINK, MARA_MOTOR6_LINK, EE_LINK]
