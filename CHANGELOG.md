@@ -1,8 +1,7 @@
 # Change Log
 
-## [Unreleased](https://github.com/AcutronicRobotics/gym-gazebo2/tree/HEAD)
-
-[Full Changelog](https://github.com/AcutronicRobotics/gym-gazebo2/compare/crystal-v1.0.0...HEAD)
+## [crystal-v1.0.1](https://github.com/AcutronicRobotics/gym-gazebo2/tree/crystal-v1.0.1) (2019-06-19)
+[Full Changelog](https://github.com/AcutronicRobotics/gym-gazebo2/compare/crystal-v1.0.0...crystal-v1.0.1)
 
 **Fixed bugs:**
 
