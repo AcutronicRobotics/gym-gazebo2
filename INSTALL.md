@@ -17,13 +17,14 @@ For the complete MARA experiments installation, please refer first to the **ROS2
 - **ROS 2 Dashing**.
    - Ubuntu 18: Install ROS 2 Desktop following the official instructions, binaries recommended. [Instructions](https://index.ros.org/doc/ros2/Installation/Linux-Install-Debians/).
 
+## Dependent tools
 - **Gazebo 9.9.0**.
    - Install the latest available version of Gazebo via [one-liner instructions](http://gazebosim.org/tutorials?tut=install_ubuntu#Defaultinstallation:one-liner). Lower versions like **9.0.0 will not work**. Additional information is available [here](https://github.com/AcutronicRobotics/gym-gazebo2/issues/31#issuecomment-501660211).
-
-## Dependent tools
-
+     ```sh
+     curl -sSL http://get.gazebosim.org | sh
+     ```
+- ROS 2 extra packages
 ```sh
-# ROS 2 extra packages
 sudo apt update && sudo apt install -y \
 ros-dashing-action-msgs \
 ros-dashing-message-filters \
